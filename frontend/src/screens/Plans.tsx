@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { events, people, priceLabel, seatsLeft, series, venues } from '../data/mock'
 import { useRsvp } from '../state/rsvp'
 import { Brand, Avatar } from '../components/shared'
-import { BellIcon, CalendarIcon, CheckIcon, PinIcon, StarIcon } from '../components/icons'
+import { CalendarIcon, CheckIcon, PinIcon, StarIcon } from '../components/icons'
 import type { RsvpState, TcEvent } from '../types'
 
 type Tab = 'upcoming' | 'past'
@@ -14,7 +14,6 @@ const SOON = new Set(['Tonight', 'Tomorrow']) // hero only for the next 48h
 
 const STATE_LABEL: Partial<Record<RsvpState, string>> = {
   going: 'Confirmed',
-  waitlisted: 'Waitlist #3',
   'checked-in': 'Checked in',
   attended: 'You went',
   'no-showed': 'Missed',
@@ -26,9 +25,7 @@ function StatePill({ state, event }: { state: RsvpState; event: TcEvent }) {
   const cls =
     state === 'going' || state === 'checked-in' || state === 'attended'
       ? 'confirmed'
-      : state === 'waitlisted'
-        ? 'waitlisted'
-        : state === 'no-showed'
+      : state === 'no-showed'
           ? 'missed'
           : 'cancelled'
   return <span className={`plan-pill ${cls}`}>{STATE_LABEL[state] ?? state}</span>
@@ -200,13 +197,6 @@ export default function Plans() {
 
                 <Quorum e={e} />
 
-                {state === 'waitlisted' ? (
-                  <div className="waitlist-note">
-                    <BellIcon size={14} color="#15477C" />
-                    <span>Moved up 2 this week · you get 45 min to confirm if a seat opens</span>
-                  </div>
-                ) : null}
-
                 <div className="plan-foot">
                   <span className="event-meta">
                     {seatsLeft(e) === 0 ? 'Full' : `${seatsLeft(e)} seats left`}
@@ -306,7 +296,7 @@ export default function Plans() {
             <span className="section-label">Cancel {events[confirmCancel].title}?</span>
             <span className="page-sub">
               It starts {events[confirmCancel].dayLabel.toLowerCase()}. Cancelling within 24 hours
-              counts against your reliability, and the next person on the waitlist gets your seat.
+              counts against your reliability, and frees your seat for someone else.
             </span>
             <div className="btn-row">
               <button className="btn btn-ghost" style={{ minHeight: 48 }} onClick={() => setConfirmCancel(null)}>

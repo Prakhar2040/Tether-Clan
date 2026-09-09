@@ -9,7 +9,7 @@ import { events, seatsLeft } from '../data/mock'
 interface RsvpContextValue {
   stateFor: (eventId: string) => RsvpState
   markInterested: (eventId: string) => void
-  join: (eventId: string) => void // going, or waitlisted when full
+  join: (eventId: string) => void // full events simply cannot be joined
   cancel: (eventId: string) => void
   checkIn: (eventId: string) => void
   finish: (eventId: string) => void // checked-in -> attended
@@ -18,14 +18,13 @@ interface RsvpContextValue {
 const RsvpContext = createContext<RsvpContextValue | null>(null)
 
 const allowed: Record<RsvpState, RsvpState[]> = {
-  none: ['interested', 'going', 'waitlisted'],
-  interested: ['going', 'waitlisted', 'none'],
+  none: ['interested', 'going'],
+  interested: ['going', 'none'],
   going: ['checked-in', 'cancelled', 'no-showed'],
-  waitlisted: ['going', 'cancelled'],
   'checked-in': ['attended'],
   attended: [],
   'no-showed': [],
-  cancelled: ['interested', 'going', 'waitlisted'],
+  cancelled: ['interested', 'going'],
 }
 
 export function RsvpProvider({ children }: { children: ReactNode }) {
@@ -34,7 +33,6 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
     // Upcoming
     'catan-night': 'going',
     'badminton-doubles': 'going',
-    'late-doubles': 'waitlisted',
     'catan-next-wed': 'going',
     // Past — gives My Plans a history to show
     'catan-sep-2': 'attended',
@@ -61,8 +59,10 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
       stateFor,
       markInterested: (id) => transition(id, 'interested'),
       join: (id) => {
+        // No waitlist: a full plan is simply closed.
         const e = events[id]
-        transition(id, e && seatsLeft(e) === 0 ? 'waitlisted' : 'going')
+        if (e && seatsLeft(e) === 0) return
+        transition(id, 'going')
       },
       cancel: (id) => transition(id, 'cancelled'),
       checkIn: (id) => transition(id, 'checked-in'),

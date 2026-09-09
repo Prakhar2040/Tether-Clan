@@ -163,7 +163,7 @@ button {
 .badge-seats { background: var(--orange-chip); color: var(--orange-text); }
 .badge-free { color: var(--green); }
 .badge-going { background: var(--green-bg); color: var(--green); letter-spacing: 0.08em; padding: 5px 9px; }
-.badge-waitlist { background: #EEF2F7; color: var(--blue); }
+.badge-full { background: #F2EFE7; color: var(--muted); }
 
 .interest-note {
   display: flex; align-items: center; gap: 7px;
@@ -388,7 +388,6 @@ button {
   font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
 .plan-state.going { color: var(--green); }
-.plan-state.waitlisted { color: var(--blue); }
 .plan-state.interested { color: var(--warm-text); }
 .plan-state.checked-in, .plan-state.attended { color: var(--muted); }
 
@@ -816,7 +815,7 @@ button {
 }
 .seg-tab.on { background: var(--card); color: var(--blue); box-shadow: 0 1px 4px rgba(7,8,8,0.1); }
 
-/* State clarity: confirmed vs waitlisted vs missed must never be ambiguous */
+/* State clarity: confirmed vs missed vs cancelled must never be ambiguous */
 .plan-pill {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
@@ -824,7 +823,6 @@ button {
   white-space: nowrap;
 }
 .plan-pill.confirmed { background: var(--green-bg); color: var(--green); }
-.plan-pill.waitlisted { background: #EEF2F7; color: var(--blue); }
 .plan-pill.missed { background: #F2EFE7; color: var(--muted); }
 .plan-pill.cancelled { background: #F6EAE4; color: #9A6A4F; }
 
@@ -902,12 +900,6 @@ button {
 .quorum-bar .seg { flex: 1; height: 8px; border-radius: 3px; background: #E4DFD1; }
 .quorum-bar .seg.on { background: var(--blue); }
 
-.waitlist-note {
-  display: flex; align-items: center; gap: 7px;
-  background: #EEF2F7; border-radius: 9px; padding: 9px 11px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 600; color: var(--blue);
-}
 
 /* Past tab */
 .record-strip {

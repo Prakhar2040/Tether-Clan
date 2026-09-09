@@ -1,7 +1,7 @@
 // Object model. Event, Series, Community and Venue are deliberately separate
 // objects: a person's relationship to a Community (member, regular, host) is
 // different from their relationship to an Event (interested, going,
-// waitlisted, checked-in), and a Venue is a place with its own identity, not
+// checked-in), and a Venue is a place with its own identity, not
 // a string on an event.
 
 export type ActivityCategory =
@@ -60,7 +60,6 @@ export type RsvpState =
   | 'none'
   | 'interested'
   | 'going'
-  | 'waitlisted'
   | 'checked-in'
   | 'attended'
   | 'no-showed'
@@ -84,7 +83,6 @@ export interface TcEvent {
   price: number // ₹, 0 = free
   capacity: number
   going: number
-  waitlistCount?: number
   beginnerFriendly?: boolean
   levelLabel?: string // "Intermediate", "All levels", "Pace groups 6–8 min/km"
   venueId: string

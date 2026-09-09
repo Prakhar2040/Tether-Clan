@@ -35,9 +35,9 @@ export default function Circle() {
                 <span className="event-title" style={{ fontSize: 16.5 }}>{e.title}</span>
                 <span className="event-meta">
                   {e.dayLabel} {e.timeLabel} ·{' '}
-                  {e.waitlistCount && seatsLeft(e) === 0
-                    ? `${priceLabel(e)} · waitlist`
-                    : `${priceLabel(e)}${seatsLeft(e) > 0 && seatsLeft(e) <= 3 ? ` · ${seatsLeft(e)} seats left` : ''}`}
+                  {seatsLeft(e) === 0
+                    ? `${priceLabel(e)} · full`
+                    : `${priceLabel(e)}${seatsLeft(e) <= 3 ? ` · ${seatsLeft(e)} seats left` : ''}`}
                 </span>
               </Link>
               {item.sharedInterestNote ? (

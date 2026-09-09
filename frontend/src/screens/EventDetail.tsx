@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { events, people, priceLabel, venues } from '../data/mock'
+import { events, people, priceLabel, seatsLeft, venues } from '../data/mock'
 import { useRsvp } from '../state/rsvp'
 import { Avatar } from '../components/shared'
 import { BackIcon, CheckIcon, ShareIcon, ShieldIcon } from '../components/icons'
@@ -19,8 +19,6 @@ export default function EventDetail() {
   const headerBadge =
     state === 'going' ? (
       <span className="badge badge-going">YOU'RE GOING · {e.dayLabel.toUpperCase()} {e.timeLabel}</span>
-    ) : state === 'waitlisted' ? (
-      <span className="badge badge-waitlist">WAITLIST #3 · MOVED UP 2 THIS WEEK</span>
     ) : state === 'interested' ? (
       <span className="badge badge-seats">INTERESTED · WE'LL REMIND YOU BEFORE IT FILLS</span>
     ) : (
@@ -136,17 +134,14 @@ export default function EventDetail() {
             </div>
             <span className="footer-note">
               Can't make it?{' '}
-              <button onClick={() => cancel(e.id)}>Free cancel till 5 PM</button> — the waitlist
-              thanks you
+              <button onClick={() => cancel(e.id)}>Free cancel till 5 PM</button> — it frees your
+              seat for someone else
             </span>
           </>
-        ) : state === 'waitlisted' ? (
+        ) : seatsLeft(e) === 0 ? (
           <>
-            <div className="btn btn-confirm">You're #3 on the waitlist</div>
-            <span className="footer-note">
-              Historically #3 gets in 7 times out of 10 ·{' '}
-              <button onClick={() => cancel(e.id)}>leave the waitlist</button>
-            </span>
+            <div className="btn btn-ghost" style={{ minHeight: 54 }}>This plan is full</div>
+            <span className="footer-note">All {e.capacity} seats are taken</span>
           </>
         ) : (
           <>

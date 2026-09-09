@@ -47,10 +47,8 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
         </Link>
         {state === 'going' ? (
           <span className="badge badge-going">YOU'RE IN</span>
-        ) : state === 'waitlisted' ? (
-          <span className="badge badge-waitlist">WAITLIST #3</span>
         ) : left === 0 ? (
-          <span className="badge badge-waitlist">FULL · WAITLIST</span>
+          <span className="badge badge-full">FULL</span>
         ) : left <= 3 ? (
           <span className="badge badge-seats">{left} seats left</span>
         ) : null}
@@ -74,13 +72,13 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           <button className="btn btn-primary" onClick={() => navigate(`/event/${e.id}`)}>
             <CheckIcon size={15} color="#FDBE50" strokeWidth={2.6} /> You're going
           </button>
-        ) : state === 'waitlisted' ? (
-          <button className="btn btn-primary" onClick={() => navigate(`/event/${e.id}`)}>
-            On the waitlist
+        ) : left === 0 ? (
+          <button className="btn btn-ghost" disabled>
+            Full
           </button>
         ) : (
           <button className="btn btn-primary" onClick={() => join(e.id)}>
-            {left === 0 ? 'Join waitlist' : 'Join them'}
+            Join them
           </button>
         )}
         {state === 'interested' ? (
@@ -146,7 +144,7 @@ function NewAreaFeed() {
         <div className="host-card">
           <h3>Start one yourself — we'll do the boring part</h3>
           <p>
-            Pick a café and a time. We handle RSVPs, reminders, the waitlist and the group chat.
+            Pick a café and a time. We handle RSVPs, reminders and the group chat.
             Three neighbours already asked to be notified.
           </p>
           <button className="btn btn-cta">Host with help</button>

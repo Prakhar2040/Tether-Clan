@@ -183,7 +183,6 @@ export const events: Record<string, TcEvent> = {
     price: 150,
     capacity: 12,
     going: 12,
-    waitlistCount: 4,
     levelLabel: 'Intermediate',
     venueId: 'hsr-courts',
     hostId: 'vikram',
@@ -393,7 +392,7 @@ export const circleItems: CircleItem[] = [
   {
     id: 'c2',
     personIds: ['vikram'],
-    headline: 'Vikram is on the waitlist',
+    headline: 'Vikram is going',
     eventId: 'late-doubles',
   },
   {
