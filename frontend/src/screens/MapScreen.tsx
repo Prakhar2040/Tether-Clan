@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { events, venues } from '../data/mock'
+import { events, priceLabel, venues } from '../data/mock'
 import { matchesWhen, useFilters, whenTitle } from '../state/filters'
+import { useLocation } from '../state/location'
 import { Brand } from '../components/shared'
 import { PinIcon, SlidersIcon } from '../components/icons'
 import type { TcEvent } from '../types'
@@ -11,9 +12,7 @@ import type { TcEvent } from '../types'
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
 // Fallback when location is denied or unavailable: a sensible city default,
 // never a blank screen behind a permission wall.
-const FALLBACK = { lat: 12.9719, lng: 77.6412 } // Indiranagar
 const RADIUS_KM = 5
-type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'blocked' | 'unsupported'
 
 // Manual fallback: a user who will not (or cannot) grant location must still
 // be able to say where they are.
@@ -81,6 +80,9 @@ function circlePolygon(lat: number, lng: number, km: number) {
 
 export default function MapScreen() {
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
+  const focusId = params.get('event')
+  const focused = focusId ? events[focusId] : undefined
   const { when, activeCount } = useFilters()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -88,9 +90,7 @@ export default function MapScreen() {
   const meMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const [ready, setReady] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
-  const [me, setMe] = useState(FALLBACK)
-  const [locStatus, setLocStatus] = useState<LocStatus>('default')
-  const [placeLabel, setPlaceLabel] = useState('Indiranagar')
+  const { place: me, status: locStatus, request, setPlace } = useLocation()
   const [pickerOpen, setPickerOpen] = useState(false)
   const [locError, setLocError] = useState<string | null>(null)
 
@@ -117,7 +117,7 @@ export default function MapScreen() {
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [FALLBACK.lng, FALLBACK.lat],
+      center: [me.lng, me.lat],
       zoom: 12.2,
       attributionControl: false,
     })
@@ -131,7 +131,7 @@ export default function MapScreen() {
     dot.style.zIndex = '10' // must sit above event pins, which can overlap it
     dot.setAttribute('aria-label', 'Your location')
     meMarkerRef.current = new mapboxgl.Marker({ element: dot })
-      .setLngLat([FALLBACK.lng, FALLBACK.lat])
+      .setLngLat([me.lng, me.lat])
       .addTo(map)
 
     map.on('error', (ev) => {
@@ -146,7 +146,7 @@ export default function MapScreen() {
       map.resize()
       map.addSource('radius', {
         type: 'geojson',
-        data: circlePolygon(FALLBACK.lat, FALLBACK.lng, RADIUS_KM),
+        data: circlePolygon(me.lat, me.lng, RADIUS_KM),
       })
       map.addLayer({
         id: 'radius-fill',
@@ -182,75 +182,29 @@ export default function MapScreen() {
   }, [])
 
   // ---- real location, asked for without gating the map ----
-  // Resolves true when a real fix was obtained, false otherwise, so callers
-  // can fall back to the area picker.
-  const requestLocation = (): Promise<boolean> => {
-    if (!('geolocation' in navigator)) {
-      setLocStatus('unsupported')
-      return Promise.resolve(false)
-    }
-    setLocStatus('locating')
+  const requestLocation = async (): Promise<boolean> => {
     setLocError(null)
-
-    return new Promise((resolve) => {
-      let settled = false
-      let watchId: number | null = null
-      let deadline: ReturnType<typeof setTimeout> | null = null
-
-      const finish = (ok: boolean) => {
-        if (settled) return
-        settled = true
-        if (watchId !== null) navigator.geolocation.clearWatch(watchId)
-        if (deadline) clearTimeout(deadline)
-        resolve(ok)
-      }
-
-      const onFix = (pos: GeolocationPosition) => {
-        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setPlaceLabel('Your location')
-        setLocStatus('granted')
-        finish(true)
-      }
-
-      // Only a denial is final; a slow fix is worth waiting for.
-      const onError = (err: GeolocationPositionError) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocError('Permission denied by the browser')
-          setLocStatus('blocked')
-          finish(false)
-        }
-      }
-
-      // Accept a recent cached fix — this is what makes it feel instant, and
-      // demanding a fresh one is what made it time out.
-      const opts: PositionOptions = {
-        maximumAge: 300_000,
-        timeout: 25_000,
-        enableHighAccuracy: false,
-      }
-      navigator.geolocation.getCurrentPosition(onFix, () => {}, opts)
-      // Keep listening in parallel: watchPosition delivers the first fix that
-      // lands rather than giving up on a deadline.
-      watchId = navigator.geolocation.watchPosition(onFix, onError, opts)
-
-      deadline = setTimeout(() => {
-        setLocError('Could not get a location fix. Pick an area below instead.')
-        setLocStatus('denied')
-        finish(false)
-      }, 25_000)
-    })
+    const ok = await request()
+    if (!ok) setLocError('Could not get a location fix. Pick an area below instead.')
+    return ok
   }
 
   const pickArea = (a: (typeof AREAS)[number]) => {
-    setMe({ lat: a.lat, lng: a.lng })
-    setPlaceLabel(a.name)
-    setLocStatus('default')
+    setPlace({ lat: a.lat, lng: a.lng, label: a.name })
     setPickerOpen(false)
     mapRef.current?.easeTo({ center: [a.lng, a.lat], zoom: 12.6, duration: 600 })
   }
 
+  // Arriving from an event: centre on its venue instead of on you.
   useEffect(() => {
-    if (ready && locStatus === 'default') requestLocation()
+    const map = mapRef.current
+    if (!map || !ready || !focused) return
+    const v = venues[focused.venueId]
+    map.easeTo({ center: [v.lng, v.lat], zoom: 14.4, duration: 700, offset: [0, -70] })
+  }, [ready, focused])
+
+  useEffect(() => {
+    if (ready && locStatus === 'default' && !focused) requestLocation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready])
 
@@ -374,7 +328,7 @@ export default function MapScreen() {
               {AREAS.map((a) => (
                 <button
                   key={a.id}
-                  className={placeLabel === a.name ? 'chip active' : 'chip'}
+                  className={me.label === a.name ? 'chip active' : 'chip'}
                   onClick={() => pickArea(a)}
                 >
                   {a.name}
@@ -382,6 +336,22 @@ export default function MapScreen() {
               ))}
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {focused ? (
+        <div className="map-focus-card">
+          <button className="map-focus-close" onClick={() => setParams({})} aria-label="Clear">
+            ✕
+          </button>
+          <span className="event-title" style={{ fontSize: 16 }}>{focused.title}</span>
+          <span className="event-meta">
+            {focused.dayLabel} {focused.timeLabel} · {priceLabel(focused)}
+          </span>
+          <span className="event-meta">{venues[focused.venueId].name} · {venues[focused.venueId].area}</span>
+          <button className="btn btn-primary" style={{ minHeight: 46 }} onClick={() => navigate(`/event/${focused.id}`)}>
+            Open event
+          </button>
         </div>
       ) : null}
 

@@ -936,3 +936,40 @@ button {
   padding: 8px 6px; border-radius: 10px;
 }
 .roster-row:hover { background: var(--paper); }
+
+/* Tappable venue line on an event card → map, focused on that plan */
+.venue-line {
+  display: flex; align-items: center; gap: 7px;
+  width: 100%; min-height: 40px;
+  background: var(--paper);
+  border-radius: 9px; padding: 8px 11px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 700; color: var(--blue);
+  text-align: left;
+}
+.venue-line span { flex: 1; }
+.venue-line:hover { background: #EFEBE0; }
+
+.tile-tap { align-items: flex-start; text-align: left; }
+.tile-link {
+  display: flex; align-items: center; gap: 5px; margin-top: 4px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; color: var(--orange);
+}
+
+/* Card for the plan the map was opened for */
+.map-focus-card {
+  position: absolute; left: 16px; right: 16px; z-index: 6;
+  bottom: calc(92px + env(safe-area-inset-bottom));
+  background: var(--card);
+  border-radius: 16px; padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 5px;
+  box-shadow: 0 8px 26px rgba(7,8,8,0.2);
+}
+.map-focus-card .btn { margin-top: 6px; }
+.map-focus-close {
+  position: absolute; top: 8px; right: 10px;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--faint); font-size: 14px;
+}

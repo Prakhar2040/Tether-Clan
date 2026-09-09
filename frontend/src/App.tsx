@@ -3,6 +3,7 @@ import { RsvpProvider } from './state/rsvp'
 import { lazy, Suspense } from 'react'
 import { FiltersProvider } from './state/filters'
 import { CircleProvider } from './state/circle'
+import { LocationProvider } from './state/location'
 
 // Mapbox is a large dependency; only load it when the map is opened.
 const MapScreen = lazy(() => import('./screens/MapScreen'))
@@ -29,6 +30,7 @@ export default function App() {
     <RsvpProvider>
       <FiltersProvider>
       <CircleProvider>
+      <LocationProvider>
       <div className="shell">
         <Routes>
           <Route element={<TabLayout />}>
@@ -58,6 +60,7 @@ export default function App() {
           <Route path="/event/:id/recap" element={<PostEvent />} />
         </Routes>
       </div>
+      </LocationProvider>
       </CircleProvider>
       </FiltersProvider>
     </RsvpProvider>

@@ -6,6 +6,7 @@ import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
+import { useLocation } from '../state/location'
 import { DAY_LABELS, matchesWhen, TODAY, useFilters, WEEKDAYS, whenTitle } from '../state/filters'
 import type { When } from '../state/filters'
 import type { SuggestionItem } from '../api/search'
@@ -30,9 +31,13 @@ function beginnerOk(e: TcEvent): boolean {
 // row sits below it — tap it to open the attendee sheet.
 function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }) {
   const { stateFor, join, markInterested } = useRsvp()
+  const { isReal, distanceKm } = useLocation()
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
+  const v = venues[e.venueId]
+  // Real distance once we know where you are; the mock travel time until then.
+  const away = isReal ? `${distanceKm(v.lat, v.lng).toFixed(1)} km away` : `${v.travel.autoMin} min away`
 
   return (
     <article className="card">
@@ -41,7 +46,7 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           <span className="event-title">{e.title}</span>
           <span className="event-meta">
             {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
-            {e.timeLabel} · {venues[e.venueId].travel.autoMin} min away · {priceLabel(e)}
+            {e.timeLabel} · {priceLabel(e)}
           </span>
         </Link>
         {state === 'going' ? (
@@ -52,6 +57,19 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           <span className="badge badge-seats">{left} seats left</span>
         ) : null}
       </div>
+      <button
+        className="venue-line"
+        onClick={(ev) => {
+          ev.stopPropagation()
+          navigate(`/map?event=${e.id}`)
+        }}
+      >
+        <PinIcon size={13} color="#15477C" strokeWidth={2.2} />
+        <span>
+          {v.name} · {away}
+        </span>
+        <ChevronIcon size={13} color="#A79F8C" />
+      </button>
       {e.tags && e.tags.length > 0 ? (
         <div className="tag-row">
           {e.tags.map((t) => (

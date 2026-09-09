@@ -2,14 +2,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { events, people, priceLabel, seatsLeft, venues } from '../data/mock'
 import { useRsvp } from '../state/rsvp'
 import { useCircle } from '../state/circle'
+import { useLocation } from '../state/location'
 import { Avatar } from '../components/shared'
-import { BackIcon, CheckIcon, ShareIcon, ShieldIcon } from '../components/icons'
+import { BackIcon, CheckIcon, PinIcon, ShareIcon, ShieldIcon } from '../components/icons'
 
 export default function EventDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { stateFor, join, markInterested, cancel } = useRsvp()
   const { isConnected } = useCircle()
+  const { isReal, distanceKm } = useLocation()
 
   const e = id ? events[id] : undefined
   if (!e) return null
@@ -126,12 +128,16 @@ export default function EventDetail() {
               <span className="tile-text">{e.whatToExpect}</span>
             </div>
           ) : null}
-          <div className="tile">
+          <button className="tile tile-tap" onClick={() => navigate(`/map?event=${e.id}`)}>
             <span className="tile-label">GETTING THERE</span>
             <span className="tile-text">
-              {venue.entranceNote.split('—')[0].trim()}. {venue.travel.autoMin} min by auto.
+              {venue.name} ·{' '}
+              {isReal ? `${distanceKm(venue.lat, venue.lng).toFixed(1)} km away` : `${venue.travel.autoMin} min by auto`}
             </span>
-          </div>
+            <span className="tile-link">
+              <PinIcon size={12} color="#E9712A" strokeWidth={2.4} /> See on map
+            </span>
+          </button>
         </div>
 
         <div className="trust-line">
