@@ -92,6 +92,7 @@ export default function MapScreen() {
   const [locStatus, setLocStatus] = useState<LocStatus>('default')
   const [placeLabel, setPlaceLabel] = useState('Indiranagar')
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [locError, setLocError] = useState<string | null>(null)
 
   const { title } = whenTitle(when)
 
@@ -127,6 +128,7 @@ export default function MapScreen() {
     // so it is never missing.
     const dot = document.createElement('div')
     dot.className = 'me-dot'
+    dot.style.zIndex = '10' // must sit above event pins, which can overlap it
     dot.setAttribute('aria-label', 'Your location')
     meMarkerRef.current = new mapboxgl.Marker({ element: dot })
       .setLngLat([FALLBACK.lng, FALLBACK.lat])
@@ -188,6 +190,7 @@ export default function MapScreen() {
       return Promise.resolve(false)
     }
     setLocStatus('locating')
+    setLocError(null)
     return new Promise((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -197,10 +200,17 @@ export default function MapScreen() {
           resolve(true)
         },
         (err) => {
+          const reason =
+            err.code === err.PERMISSION_DENIED
+              ? 'Permission denied by the browser'
+              : err.code === err.POSITION_UNAVAILABLE
+                ? 'Position unavailable — macOS Location Services is likely off for Chrome'
+                : 'Timed out while locating'
+          setLocError(`${reason} (code ${err.code}: ${err.message || 'no detail'})`)
           setLocStatus(err.code === err.PERMISSION_DENIED ? 'blocked' : 'denied')
           resolve(false)
         },
-        { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
+        { enableHighAccuracy: false, timeout: 6000, maximumAge: 0 },
       )
     })
   }
@@ -324,8 +334,11 @@ export default function MapScreen() {
                 if (got) setPickerOpen(false)
               }}
             >
-              <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} /> Use my current location
+              <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} />
+              {locStatus === 'locating' ? 'Finding you…' : 'Use my current location'}
             </button>
+
+            {locError ? <span className="page-sub">{locError}</span> : null}
 
             <span className="sheet-section">Or pick an area</span>
             <div className="chip-row" style={{ padding: 0 }}>
