@@ -226,6 +226,8 @@ button {
   justify-content: space-around;
   background: var(--blue-deep);
   padding: 10px 10px calc(14px + env(safe-area-inset-bottom));
+  /* Above the map sheet and any map overlay chrome. */
+  z-index: 20;
 }
 .tab {
   display: flex;
