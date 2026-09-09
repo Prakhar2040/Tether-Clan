@@ -4,6 +4,9 @@ import { events, priceLabel, seatsLeft, venues, worthTheRideIds } from '../data/
 import { useRsvp } from '../state/rsvp'
 import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
+import { SearchSuggestions } from '../components/SearchSuggestions'
+import { useNullState, useSearch } from '../hooks/useSearch'
+import type { SuggestionItem } from '../api/search'
 import {
   BellIcon,
   CheckIcon,
@@ -205,6 +208,7 @@ function Calendar({ when, onPick }: { when: When; onPick: (day: number) => void 
 }
 
 export default function Tonight() {
+  const navigate = useNavigate()
   const [area, setArea] = useState<'Indiranagar' | 'Whitefield'>('Indiranagar')
   const [whoFor, setWhoFor] = useState<string | null>(null)
   const [when, setWhen] = useState<When>('tonight')
@@ -218,7 +222,21 @@ export default function Tonight() {
   const scoped = Object.values(events).filter((e) => matchesWhen(e, when))
   const allTags = [...new Set(scoped.flatMap((e) => e.tags ?? []))].sort()
   const q = query.trim().toLowerCase()
-  const filtered = scoped.filter(
+
+  // The search engine drives results. If it is unreachable we fall back to
+  // local filtering — worse results, never a broken screen.
+  const engineWhen = when === 'tonight' ? 'tonight' : when === 'weekend' ? 'weekend' : String(when)
+  const { result, offline } = useSearch({
+    q: query,
+    when: engineWhen,
+    free: freeOnly,
+    beginner: beginnerOnly,
+    tags: selectedTags,
+    enabled: !quiet,
+  })
+  const nullState = useNullState(!quiet && query.trim() === '')
+
+  const localFiltered = scoped.filter(
     (e) =>
       (!freeOnly || e.price === 0) &&
       (!beginnerOnly || beginnerOk(e)) &&
@@ -229,6 +247,15 @@ export default function Tonight() {
         (e.tags ?? []).some((t) => t.toLowerCase().includes(q)) ||
         venues[e.venueId].name.toLowerCase().includes(q)),
   )
+
+  // Engine results are ids into our local event map, ranked by the engine.
+  const engineFiltered =
+    result && !offline
+      ? result.hydrated.map((h) => events[h.id]).filter(Boolean)
+      : null
+  const filtered = engineFiltered ?? localFiltered
+  const fallbackEvents =
+    result?.fallbackHydrated?.map((h) => events[h.id]).filter(Boolean) ?? []
 
   const activeCount =
     (when !== 'tonight' ? 1 : 0) + (freeOnly ? 1 : 0) + (beginnerOnly ? 1 : 0) + selectedTags.length
@@ -245,6 +272,20 @@ export default function Tonight() {
   }
 
   const { title, sub } = whenTitle(when)
+
+  // Typed suggestions: from the engine while typing, from the null state
+  // before a single keystroke.
+  const suggestionGroups =
+    query.trim() === '' ? (nullState?.groups ?? []) : (result?.groups ?? [])
+  const trendingAreas: SuggestionItem[] = nullState?.trendingAreas ?? []
+
+  const suggestionHandlers = {
+    onActivity: (item: SuggestionItem) => setQuery(item.label),
+    onArea: (item: SuggestionItem) => setQuery(item.label),
+    onVenue: (item: SuggestionItem) => setQuery(item.label),
+    onCommunity: (item: SuggestionItem) => setQuery(item.label),
+    onEvent: (item: SuggestionItem) => navigate(`/event/${item.id}`),
+  }
 
   return (
     <div className="screen">
@@ -285,6 +326,21 @@ export default function Tonight() {
             </button>
           </div>
 
+          {suggestionGroups.length > 0 || trendingAreas.length > 0 ? (
+            <SearchSuggestions
+              groups={suggestionGroups}
+              trendingAreas={query.trim() === '' ? trendingAreas : undefined}
+              heading={query.trim() === '' ? 'Popular right now' : undefined}
+              handlers={suggestionHandlers}
+            />
+          ) : null}
+
+          {offline ? (
+            <span className="engine-note">
+              <span className="dot-warn" /> Search engine unreachable — showing local results
+            </span>
+          ) : null}
+
           <div className="feed">
             {filtered.length === 0 ? (
               <div className="no-match">
@@ -293,6 +349,25 @@ export default function Tonight() {
                 <button className="btn btn-ghost" style={{ flex: 'none', padding: '0 18px' }} onClick={clearFilters}>
                   Clear filters
                 </button>
+                {fallbackEvents.length > 0 ? (
+                  <div className="fallback-block" style={{ width: '100%', marginTop: 12 }}>
+                    <span className="fallback-title">Worth the ride</span>
+                    {fallbackEvents.map((e) => (
+                      <Link key={e.id} to={`/event/${e.id}`} className="card-row event-title link">
+                        <span className="stack-2">
+                          <span className="event-title" style={{ fontSize: 14.5 }}>{e.title}</span>
+                          <span className="event-meta">
+                            {e.dayLabel} {e.timeLabel} · {venues[e.venueId].name}
+                          </span>
+                        </span>
+                        <ChevronIcon size={16} color="#15477C" />
+                      </Link>
+                    ))}
+                    <button className="btn btn-ghost" style={{ minHeight: 40 }}>
+                      <BellIcon size={15} color="#6B665A" /> Notify me when this appears nearby
+                    </button>
+                  </div>
+                ) : null}
               </div>
             ) : (
               filtered.map((e) =>
