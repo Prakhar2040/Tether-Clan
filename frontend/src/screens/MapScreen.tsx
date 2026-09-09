@@ -191,27 +191,53 @@ export default function MapScreen() {
     }
     setLocStatus('locating')
     setLocError(null)
+
     return new Promise((resolve) => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-          setPlaceLabel('Your location')
-          setLocStatus('granted')
-          resolve(true)
-        },
-        (err) => {
-          const reason =
-            err.code === err.PERMISSION_DENIED
-              ? 'Permission denied by the browser'
-              : err.code === err.POSITION_UNAVAILABLE
-                ? 'Position unavailable — macOS Location Services is likely off for Chrome'
-                : 'Timed out while locating'
-          setLocError(`${reason} (code ${err.code}: ${err.message || 'no detail'})`)
-          setLocStatus(err.code === err.PERMISSION_DENIED ? 'blocked' : 'denied')
-          resolve(false)
-        },
-        { enableHighAccuracy: false, timeout: 6000, maximumAge: 0 },
-      )
+      let settled = false
+      let watchId: number | null = null
+      let deadline: ReturnType<typeof setTimeout> | null = null
+
+      const finish = (ok: boolean) => {
+        if (settled) return
+        settled = true
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId)
+        if (deadline) clearTimeout(deadline)
+        resolve(ok)
+      }
+
+      const onFix = (pos: GeolocationPosition) => {
+        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setPlaceLabel('Your location')
+        setLocStatus('granted')
+        finish(true)
+      }
+
+      // Only a denial is final; a slow fix is worth waiting for.
+      const onError = (err: GeolocationPositionError) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocError('Permission denied by the browser')
+          setLocStatus('blocked')
+          finish(false)
+        }
+      }
+
+      // Accept a recent cached fix — this is what makes it feel instant, and
+      // demanding a fresh one is what made it time out.
+      const opts: PositionOptions = {
+        maximumAge: 300_000,
+        timeout: 25_000,
+        enableHighAccuracy: false,
+      }
+      navigator.geolocation.getCurrentPosition(onFix, () => {}, opts)
+      // Keep listening in parallel: watchPosition delivers the first fix that
+      // lands rather than giving up on a deadline.
+      watchId = navigator.geolocation.watchPosition(onFix, onError, opts)
+
+      deadline = setTimeout(() => {
+        setLocError('Could not get a location fix. Pick an area below instead.')
+        setLocStatus('denied')
+        finish(false)
+      }, 25_000)
     })
   }
 
@@ -282,8 +308,11 @@ export default function MapScreen() {
       mapRef.current?.easeTo({ center: [me.lng, me.lat], zoom: 12.6, duration: 500 })
       return
     }
+    // Show the picker straight away: locating can take a moment, and the user
+    // should be able to choose an area instead of watching nothing happen.
+    setPickerOpen(true)
     const got = await requestLocation()
-    if (!got) setPickerOpen(true)
+    if (got) setPickerOpen(false)
   }
 
   if (!TOKEN) {
