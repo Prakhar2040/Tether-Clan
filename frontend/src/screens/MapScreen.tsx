@@ -180,32 +180,29 @@ export default function MapScreen() {
   }, [])
 
   // ---- real location, asked for without gating the map ----
-  const requestLocation = async () => {
+  // Resolves true when a real fix was obtained, false otherwise, so callers
+  // can fall back to the area picker.
+  const requestLocation = (): Promise<boolean> => {
     if (!('geolocation' in navigator)) {
       setLocStatus('unsupported')
-      return
-    }
-    // A site-level block means getCurrentPosition fails without prompting,
-    // so say that plainly instead of looking broken.
-    try {
-      const perm = await navigator.permissions?.query({ name: 'geolocation' as PermissionName })
-      if (perm?.state === 'denied') {
-        setLocStatus('blocked')
-        return
-      }
-    } catch {
-      // Permissions API unavailable — fall through and just ask.
+      return Promise.resolve(false)
     }
     setLocStatus('locating')
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        setPlaceLabel('Your location')
-        setLocStatus('granted')
-      },
-      (err) => setLocStatus(err.code === err.PERMISSION_DENIED ? 'blocked' : 'denied'),
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
-    )
+    return new Promise((resolve) => {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+          setPlaceLabel('Your location')
+          setLocStatus('granted')
+          resolve(true)
+        },
+        (err) => {
+          setLocStatus(err.code === err.PERMISSION_DENIED ? 'blocked' : 'denied')
+          resolve(false)
+        },
+        { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
+      )
+    })
   }
 
   const pickArea = (a: (typeof AREAS)[number]) => {
@@ -268,9 +265,15 @@ export default function MapScreen() {
     }
   }, [inWindow, anchorVenues, ready, title, navigate])
 
-  const recenter = () => {
-    if (locStatus === 'denied' || locStatus === 'default') requestLocation()
-    mapRef.current?.easeTo({ center: [me.lng, me.lat], zoom: 12.6, duration: 500 })
+  // The location button always tries the real thing first; if permission is
+  // not given, offer the area picker rather than doing nothing.
+  const recenter = async () => {
+    if (locStatus === 'granted') {
+      mapRef.current?.easeTo({ center: [me.lng, me.lat], zoom: 12.6, duration: 500 })
+      return
+    }
+    const got = await requestLocation()
+    if (!got) setPickerOpen(true)
   }
 
   if (!TOKEN) {
@@ -316,9 +319,7 @@ export default function MapScreen() {
           ? 'Finding you…'
           : locStatus === 'granted'
             ? 'Using your location'
-            : locStatus === 'blocked'
-              ? 'Location blocked — tap to pick your area'
-              : `Showing ${placeLabel} — tap to change`}
+            : `Showing ${placeLabel} — tap to change`}
       </button>
 
       {pickerOpen ? (
@@ -327,16 +328,16 @@ export default function MapScreen() {
             <span className="sheet-handle" />
             <span className="section-label">Where are you?</span>
 
-            <button className="btn btn-primary" style={{ minHeight: 48 }} onClick={requestLocation}>
+            <button
+              className="btn btn-primary"
+              style={{ minHeight: 48 }}
+              onClick={async () => {
+                const got = await requestLocation()
+                if (got) setPickerOpen(false)
+              }}
+            >
               <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} /> Use my current location
             </button>
-
-            {locStatus === 'blocked' ? (
-              <span className="page-sub">
-                Your browser is blocking location for this site. Click the icon at the left of the
-                address bar → Location → Allow, then reload. Or just pick an area below.
-              </span>
-            ) : null}
 
             <span className="sheet-section">Or pick an area</span>
             <div className="chip-row" style={{ padding: 0 }}>
