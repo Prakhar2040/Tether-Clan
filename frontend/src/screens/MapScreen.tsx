@@ -9,8 +9,11 @@ import { ChevronIcon, PinIcon, SlidersIcon } from '../components/icons'
 import type { TcEvent } from '../types'
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
-const HOME = { lat: 12.9719, lng: 77.6412 } // Indiranagar, the mock "you"
+// Fallback when location is denied or unavailable: a sensible city default,
+// never a blank screen behind a permission wall.
+const FALLBACK = { lat: 12.9719, lng: 77.6412 } // Indiranagar
 const RADIUS_KM = 5
+type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'unsupported'
 
 type SheetPos = 'peek' | 'half' | 'full'
 
@@ -63,6 +66,9 @@ export default function MapScreen() {
   const markersRef = useRef<mapboxgl.Marker[]>([])
   const [ready, setReady] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
+  const [me, setMe] = useState(FALLBACK)
+  const [locStatus, setLocStatus] = useState<LocStatus>('default')
+  const meMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const [sheet, setSheet] = useState<SheetPos>('half')
   const [selected, setSelected] = useState<string | null>(null)
   const [visibleIds, setVisibleIds] = useState<string[] | null>(null)
@@ -89,7 +95,7 @@ export default function MapScreen() {
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [HOME.lng, HOME.lat],
+      center: [FALLBACK.lng, FALLBACK.lat],
       zoom: 12.2,
       attributionControl: false,
     })
@@ -114,9 +120,11 @@ export default function MapScreen() {
       const dot = document.createElement('div')
       dot.className = 'me-dot'
       dot.setAttribute('aria-label', 'Your location')
-      new mapboxgl.Marker({ element: dot }).setLngLat([HOME.lng, HOME.lat]).addTo(map)
+      meMarkerRef.current = new mapboxgl.Marker({ element: dot })
+        .setLngLat([FALLBACK.lng, FALLBACK.lat])
+        .addTo(map)
 
-      map.addSource('radius', { type: 'geojson', data: circlePolygon(HOME.lat, HOME.lng, RADIUS_KM) })
+      map.addSource('radius', { type: 'geojson', data: circlePolygon(FALLBACK.lat, FALLBACK.lng, RADIUS_KM) })
       map.addLayer({
         id: 'radius-fill',
         type: 'fill',
@@ -160,6 +168,42 @@ export default function MapScreen() {
       mapRef.current = null
     }
   }, [])
+
+  // ---- real location, asked for without gating the map ----
+  const requestLocation = () => {
+    if (!('geolocation' in navigator)) {
+      setLocStatus('unsupported')
+      return
+    }
+    setLocStatus('locating')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setLocStatus('granted')
+      },
+      () => setLocStatus('denied'),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 },
+    )
+  }
+
+  // Ask once on open. The map is already rendered at the fallback, so a
+  // refusal costs the user nothing.
+  useEffect(() => {
+    if (ready && locStatus === 'default') requestLocation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready])
+
+  // Move the marker, the radius ring and the camera when the real fix lands.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    meMarkerRef.current?.setLngLat([me.lng, me.lat])
+    const src = map.getSource('radius') as mapboxgl.GeoJSONSource | undefined
+    src?.setData(circlePolygon(me.lat, me.lng, RADIUS_KM))
+    if (locStatus === 'granted') {
+      map.easeTo({ center: [me.lng, me.lat], zoom: 12.6, duration: 700 })
+    }
+  }, [me, ready, locStatus])
 
   // ---- markers, redrawn when the time filter changes ----
   useEffect(() => {
@@ -208,7 +252,7 @@ export default function MapScreen() {
   }, [inWindow, visibleIds])
 
   const recenter = () => {
-    mapRef.current?.easeTo({ center: [HOME.lng, HOME.lat], zoom: 12.2, duration: 500 })
+    mapRef.current?.easeTo({ center: [FALLBACK.lng, FALLBACK.lat], zoom: 12.2, duration: 500 })
   }
 
   if (!TOKEN) {
@@ -236,13 +280,23 @@ export default function MapScreen() {
         </button>
       </div>
 
-      <div className="map-canvas" ref={containerRef} />
+      {/* Explicit height: CSS flex rules on .screen were collapsing this box. */}
+      <div className="map-canvas" ref={containerRef} style={{ height: '100dvh' }} />
 
       {mapError ? (
         <div className="map-error">
           <span className="t">Map didn’t load</span>
           <span className="s">{mapError}</span>
         </div>
+      ) : null}
+
+      {locStatus === 'denied' || locStatus === 'unsupported' ? (
+        <button className="loc-chip" onClick={requestLocation}>
+          <PinIcon size={13} color="#B4571B" strokeWidth={2.4} />
+          {locStatus === 'denied'
+            ? 'Showing Indiranagar — tap to use your location'
+            : 'Location unavailable — showing Indiranagar'}
+        </button>
       ) : null}
 
       <button className="map-recenter" onClick={recenter} aria-label="Recenter">
