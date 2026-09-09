@@ -20,18 +20,27 @@ const RsvpContext = createContext<RsvpContextValue | null>(null)
 const allowed: Record<RsvpState, RsvpState[]> = {
   none: ['interested', 'going', 'waitlisted'],
   interested: ['going', 'waitlisted', 'none'],
-  going: ['checked-in', 'cancelled'],
+  going: ['checked-in', 'cancelled', 'no-showed'],
   waitlisted: ['going', 'cancelled'],
   'checked-in': ['attended'],
   attended: [],
+  'no-showed': [],
   cancelled: ['interested', 'going', 'waitlisted'],
 }
 
 export function RsvpProvider({ children }: { children: ReactNode }) {
   // Seeded so the pre-event/day-of/post-event screens have a story to tell.
   const [states, setStates] = useState<Record<string, RsvpState>>({
+    // Upcoming
     'catan-night': 'going',
+    'badminton-doubles': 'going',
     'late-doubles': 'waitlisted',
+    'catan-next-wed': 'going',
+    // Past — gives My Plans a history to show
+    'catan-sep-2': 'attended',
+    'sketchwalk-aug-30': 'attended',
+    'catan-aug-26': 'no-showed',
+    'pottery-aug-23': 'cancelled',
   })
 
   const stateFor = useCallback(

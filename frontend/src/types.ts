@@ -63,6 +63,7 @@ export type RsvpState =
   | 'waitlisted'
   | 'checked-in'
   | 'attended'
+  | 'no-showed'
   | 'cancelled'
 
 export interface EventRole {
@@ -91,6 +92,10 @@ export interface TcEvent {
   seriesId?: string
   attendees: Attendee[]
   firstTimers: number
+  minViable?: number // quorum: below this the plan does not run
+  dateLabel?: string // display date for past plans
+  cancelledByHost?: boolean
+  connectedWith?: string[] // personIds you connected with afterwards
   tags?: string[] // "Beginner friendly", "Social", "Free", "Outdoor"…
   // Server-enforced: exact coordinates are only sent for public venues.
   // House-party and women-only events are fuzzed before they leave the API.
