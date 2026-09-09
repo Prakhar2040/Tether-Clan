@@ -19,7 +19,7 @@ export interface SearchParams {
   debug?: boolean
 }
 
-const DEFAULT_RADIUS_KM = 8
+const DEFAULT_RADIUS_KM = 12
 
 // ---------- Point 5: hard prefilters ----------
 
