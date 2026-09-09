@@ -62,6 +62,7 @@ export default function MapScreen() {
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
   const [ready, setReady] = useState(false)
+  const [mapError, setMapError] = useState<string | null>(null)
   const [sheet, setSheet] = useState<SheetPos>('half')
   const [selected, setSelected] = useState<string | null>(null)
   const [visibleIds, setVisibleIds] = useState<string[] | null>(null)
@@ -95,7 +96,26 @@ export default function MapScreen() {
     map.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left')
     mapRef.current = map
 
+    // Surface failures instead of rendering a silent blank rectangle.
+    map.on('error', (ev) => {
+      const message = (ev as unknown as { error?: Error }).error?.message ?? 'Unknown map error'
+      setMapError(message)
+    })
+
+    // The container is sized by CSS after mount; without this the canvas can
+    // initialise at zero height and never paint.
+    const ro = new ResizeObserver(() => map.resize())
+    ro.observe(containerRef.current)
+
     map.on('load', () => {
+      map.resize()
+
+      // "You are here": the map should always answer this first.
+      const dot = document.createElement('div')
+      dot.className = 'me-dot'
+      dot.setAttribute('aria-label', 'Your location')
+      new mapboxgl.Marker({ element: dot }).setLngLat([HOME.lng, HOME.lat]).addTo(map)
+
       map.addSource('radius', { type: 'geojson', data: circlePolygon(HOME.lat, HOME.lng, RADIUS_KM) })
       map.addLayer({
         id: 'radius-fill',
@@ -127,7 +147,15 @@ export default function MapScreen() {
     }
     map.on('moveend', syncViewport)
 
+    // If the map has not painted after a few seconds, say so rather than
+    // leaving an unexplained empty rectangle.
+    const watchdog = setTimeout(() => {
+      if (!map.isStyleLoaded()) setMapError((prev) => prev ?? 'Map tiles did not load')
+    }, 6000)
+
     return () => {
+      clearTimeout(watchdog)
+      ro.disconnect()
       map.remove()
       mapRef.current = null
     }
@@ -209,6 +237,13 @@ export default function MapScreen() {
       </div>
 
       <div className="map-canvas" ref={containerRef} />
+
+      {mapError ? (
+        <div className="map-error">
+          <span className="t">Map didn’t load</span>
+          <span className="s">{mapError}</span>
+        </div>
+      ) : null}
 
       <button className="map-recenter" onClick={recenter} aria-label="Recenter">
         <PinIcon size={18} color="#15477C" strokeWidth={2.2} />

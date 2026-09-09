@@ -760,3 +760,40 @@ button {
   width: 100%;
 }
 .map-card.selected { border-color: var(--blue); background: #FFFFFF; box-shadow: 0 3px 12px rgba(21,71,124,0.12); }
+
+/* "You are here" */
+.me-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #15477C;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(21,71,124,0.25), 0 2px 8px rgba(7,8,8,0.3);
+  position: relative;
+}
+.me-dot::after {
+  content: ''; position: absolute; inset: -9px;
+  border-radius: 50%;
+  background: rgba(21,71,124,0.16);
+  animation: me-pulse 2.4s ease-out infinite;
+}
+@keyframes me-pulse {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  70%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* Map failure surface — never an unexplained blank rectangle */
+.map-error {
+  position: absolute; top: 92px; left: 20px; right: 20px; z-index: 3;
+  background: var(--card);
+  border: 1.5px solid var(--chip-line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 3px;
+  box-shadow: 0 4px 16px rgba(7,8,8,0.12);
+}
+.map-error .t { font-size: 13.5px; font-weight: 800; color: var(--blue); }
+.map-error .s {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  word-break: break-word;
+}
