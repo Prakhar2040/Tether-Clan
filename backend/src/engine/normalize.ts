@@ -65,9 +65,11 @@ export function editDistance(a: string, b: string, max = 2): number {
 
 // Fuzzy token equality: exact, prefix, or edit distance 1 on tokens of 4+
 // characters. Returns the match kind so the scorer can weight it.
+// Prefix matching starts at 2 characters — this is a typeahead, so "ca"
+// should already be finding Catan.
 export function tokenMatches(queryTok: string, docTok: string): 'exact' | 'prefix' | 'fuzzy' | null {
   if (queryTok === docTok || singular(queryTok) === singular(docTok)) return 'exact'
-  if (docTok.startsWith(queryTok) && queryTok.length >= 3) return 'prefix'
+  if (docTok.startsWith(queryTok) && queryTok.length >= 2) return 'prefix'
   if (queryTok.length >= 4 && editDistance(queryTok, docTok, 1) <= 1) return 'fuzzy'
   return null
 }

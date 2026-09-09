@@ -5,7 +5,7 @@ import { useRsvp } from '../state/rsvp'
 import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
-import { useNullState, useSearch } from '../hooks/useSearch'
+import { useSearch } from '../hooks/useSearch'
 import type { SuggestionItem } from '../api/search'
 import {
   BellIcon,
@@ -234,7 +234,6 @@ export default function Tonight() {
     tags: selectedTags,
     enabled: !quiet,
   })
-  const nullState = useNullState(!quiet && query.trim() === '')
 
   const localFiltered = scoped.filter(
     (e) =>
@@ -273,11 +272,9 @@ export default function Tonight() {
 
   const { title, sub } = whenTitle(when)
 
-  // Typed suggestions: from the engine while typing, from the null state
-  // before a single keystroke.
-  const suggestionGroups =
-    query.trim() === '' ? (nullState?.groups ?? []) : (result?.groups ?? [])
-  const trendingAreas: SuggestionItem[] = nullState?.trendingAreas ?? []
+  // Typed suggestions appear only while actually typing — before a keystroke
+  // the feed itself is the answer.
+  const suggestionGroups = query.trim() === '' ? [] : (result?.groups ?? [])
 
   const suggestionHandlers = {
     onActivity: (item: SuggestionItem) => setQuery(item.label),
@@ -326,13 +323,8 @@ export default function Tonight() {
             </button>
           </div>
 
-          {suggestionGroups.length > 0 || trendingAreas.length > 0 ? (
-            <SearchSuggestions
-              groups={suggestionGroups}
-              trendingAreas={query.trim() === '' ? trendingAreas : undefined}
-              heading={query.trim() === '' ? 'Popular right now' : undefined}
-              handlers={suggestionHandlers}
-            />
+          {suggestionGroups.length > 0 ? (
+            <SearchSuggestions groups={suggestionGroups} handlers={suggestionHandlers} />
           ) : null}
 
           {offline ? (

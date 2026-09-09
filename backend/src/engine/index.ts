@@ -62,12 +62,19 @@ function composeDoc(e: TcEvent): Doc {
   const venue = venues[e.venueId]
   const community = e.communityId ? communities[e.communityId] : undefined
   const host = people[e.hostId]
+  // Synonyms for this event's activity join the document, so a half-typed
+  // synonym ("sh" → shuttle → badminton) matches like any other token.
+  const synonyms = activities
+    .filter((a) => a.categoryLabels.includes(e.categoryLabel))
+    .flatMap((a) => a.terms)
+    .join(' ')
   return {
     event: e,
     fields: [
       { text: e.title, weight: 1.0 },
       { text: e.categoryLabel, weight: 0.8 },
       { text: e.tags.join(' '), weight: 0.7 },
+      { text: synonyms, weight: 0.65 },
       { text: `${venue.name} ${venue.area}`, weight: 0.6 },
       { text: community?.name ?? '', weight: 0.5 },
       { text: host?.name ?? '', weight: 0.4 },
@@ -159,7 +166,7 @@ function buildGroups(
   const activityIds = new Set(intents.filter((i) => i.kind === 'activity').map((i) => i.id))
   if (activityIds.size === 0 && queryTokens.length > 0) {
     for (const a of activities) {
-      if (a.terms.some((t) => queryTokens.some((qt) => t.startsWith(qt) && qt.length >= 3))) {
+      if (a.terms.some((t) => queryTokens.some((qt) => t.startsWith(qt) && qt.length >= 2))) {
         activityIds.add(a.id)
       }
     }
@@ -179,7 +186,7 @@ function buildGroups(
   const areaIds = new Set(intents.filter((i) => i.kind === 'area').map((i) => i.id))
   if (areaIds.size === 0 && queryTokens.length > 0) {
     for (const a of areas) {
-      if (queryTokens.some((qt) => qt.length >= 3 && a.name.toLowerCase().startsWith(qt))) areaIds.add(a.id)
+      if (queryTokens.some((qt) => qt.length >= 2 && a.name.toLowerCase().startsWith(qt))) areaIds.add(a.id)
     }
   }
   const areaItems = [...areaIds]
@@ -198,7 +205,7 @@ function buildGroups(
   if (venueIds.size === 0 && queryTokens.length > 0) {
     for (const v of Object.values(venues)) {
       const name = normalize(v.name)
-      if (queryTokens.some((qt) => qt.length >= 3 && name.split(' ').some((w) => w.startsWith(qt)))) {
+      if (queryTokens.some((qt) => qt.length >= 2 && name.split(' ').some((w) => w.startsWith(qt)))) {
         venueIds.add(v.id)
       }
     }
@@ -219,7 +226,7 @@ function buildGroups(
   if (communityIds.size === 0 && queryTokens.length > 0) {
     for (const c of Object.values(communities)) {
       const name = normalize(c.name)
-      if (queryTokens.some((qt) => qt.length >= 4 && name.split(' ').some((w) => w.startsWith(qt)))) {
+      if (queryTokens.some((qt) => qt.length >= 3 && name.split(' ').some((w) => w.startsWith(qt)))) {
         communityIds.add(c.id)
       }
     }

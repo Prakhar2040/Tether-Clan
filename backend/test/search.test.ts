@@ -152,3 +152,14 @@ describe('instrumentation (point 10)', () => {
     expect(s.noMatchTerms[0].term).toBe('zzzznotathing')
   })
 })
+
+describe('typeahead prefixes', () => {
+  it('matches from two characters', () => {
+    expect(ids(search({ q: 'ca' }))).toContain('catan-night')
+    expect(ids(search({ q: 'ba' }))).toContain('badminton-doubles')
+  })
+  it('still matches at three and four', () => {
+    expect(ids(search({ q: 'cat' }))).toContain('catan-night')
+    expect(ids(search({ q: 'cata' }))).toContain('catan-night')
+  })
+})
