@@ -15,6 +15,8 @@ export interface Venue {
   id: string
   name: string
   area: string
+  lat: number
+  lng: number
   entranceNote: string
   distanceKm: number
   travel: { autoMin: number; autoFare?: number; metro?: string; walkMin?: number }
@@ -90,6 +92,9 @@ export interface TcEvent {
   attendees: Attendee[]
   firstTimers: number
   tags?: string[] // "Beginner friendly", "Social", "Free", "Outdoor"…
+  // Server-enforced: exact coordinates are only sent for public venues.
+  // House-party and women-only events are fuzzed before they leave the API.
+  locationPrecision?: 'exact' | 'approximate' | 'hidden'
   sharedInterestNote?: string
   whatToExpect?: string
   icebreaker?: string

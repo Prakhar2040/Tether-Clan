@@ -1,5 +1,10 @@
 import { Outlet, Route, Routes } from 'react-router-dom'
 import { RsvpProvider } from './state/rsvp'
+import { lazy, Suspense } from 'react'
+import { FiltersProvider } from './state/filters'
+
+// Mapbox is a large dependency; only load it when the map is opened.
+const MapScreen = lazy(() => import('./screens/MapScreen'))
 import { BottomBar } from './components/shared'
 import Tonight from './screens/Tonight'
 import EventDetail from './screens/EventDetail'
@@ -21,13 +26,29 @@ function TabLayout() {
 export default function App() {
   return (
     <RsvpProvider>
+      <FiltersProvider>
       <div className="shell">
         <Routes>
           <Route element={<TabLayout />}>
             <Route path="/" element={<Tonight />} />
             <Route path="/circle" element={<Circle />} />
             <Route path="/plans" element={<Plans />} />
-            <Route path="/map" element={<Stub title="Map" />} />
+            <Route
+              path="/map"
+              element={
+                <Suspense
+                  fallback={
+                    <div className="screen">
+                      <div className="stub">
+                        <p>Loading map…</p>
+                      </div>
+                    </div>
+                  }
+                >
+                  <MapScreen />
+                </Suspense>
+              }
+            />
             <Route path="/you" element={<Stub title="Your profile" />} />
           </Route>
           <Route path="/event/:id" element={<EventDetail />} />
@@ -35,6 +56,7 @@ export default function App() {
           <Route path="/event/:id/recap" element={<PostEvent />} />
         </Routes>
       </div>
+      </FiltersProvider>
     </RsvpProvider>
   )
 }

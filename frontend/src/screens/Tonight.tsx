@@ -6,6 +6,8 @@ import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
+import { DAY_LABELS, matchesWhen, TODAY, useFilters, WEEKDAYS, whenTitle } from '../state/filters'
+import type { When } from '../state/filters'
 import type { SuggestionItem } from '../api/search'
 import {
   BellIcon,
@@ -19,28 +21,7 @@ import {
 } from '../components/icons'
 import type { TcEvent } from '../types'
 
-// "When" is either a preset or a specific day of Sep 2026.
-type When = 'tonight' | 'weekend' | number
 
-const TODAY = 9 // Wed 9 Sep 2026, the mock "now"
-const DAY_LABELS: Record<number, string> = { 9: 'Tonight', 10: 'Tomorrow', 12: 'Sat', 13: 'Sun' }
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-function weekdayOf(day: number): string {
-  return WEEKDAYS[(new Date(2026, 8, day).getDay() + 6) % 7]
-}
-
-function matchesWhen(e: TcEvent, when: When): boolean {
-  if (when === 'tonight') return e.dayLabel === 'Tonight'
-  if (when === 'weekend') return e.dayLabel === 'Sat' || e.dayLabel === 'Sun'
-  return e.dayLabel === DAY_LABELS[when]
-}
-
-function whenTitle(when: When): { title: string; sub: string } {
-  if (when === 'tonight') return { title: 'Tonight', sub: 'Wed 9 Sep' }
-  if (when === 'weekend') return { title: 'Weekend', sub: 'Sat 12 – Sun 13 Sep' }
-  return { title: `${weekdayOf(when)} ${when} Sep`, sub: `${weekdayOf(when)} ${when} Sep` }
-}
 
 function beginnerOk(e: TcEvent): boolean {
   return Boolean(e.beginnerFriendly) || /all levels|all paces|drop in|first-timers/i.test(e.levelLabel ?? '')
@@ -211,15 +192,24 @@ export default function Tonight() {
   const navigate = useNavigate()
   const [area, setArea] = useState<'Indiranagar' | 'Whitefield'>('Indiranagar')
   const [whoFor, setWhoFor] = useState<string | null>(null)
-  const [when, setWhen] = useState<When>('tonight')
-  const [freeOnly, setFreeOnly] = useState(false)
-  const [beginnerOnly, setBeginnerOnly] = useState(false)
-  const [query, setQuery] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const {
+    when,
+    setWhen,
+    freeOnly,
+    setFreeOnly,
+    beginnerOnly,
+    setBeginnerOnly,
+    query,
+    setQuery,
+    selectedTags,
+    setSelectedTags,
+    clearFilters,
+    activeCount,
+  } = useFilters()
   const [filterOpen, setFilterOpen] = useState(false)
   const quiet = area === 'Whitefield'
 
-  const scoped = Object.values(events).filter((e) => matchesWhen(e, when))
+  const scoped = Object.values(events).filter((e) => matchesWhen(e.dayLabel, when))
   const allTags = [...new Set(scoped.flatMap((e) => e.tags ?? []))].sort()
   const q = query.trim().toLowerCase()
 
@@ -256,19 +246,10 @@ export default function Tonight() {
   const fallbackEvents =
     result?.fallbackHydrated?.map((h) => events[h.id]).filter(Boolean) ?? []
 
-  const activeCount =
-    (when !== 'tonight' ? 1 : 0) + (freeOnly ? 1 : 0) + (beginnerOnly ? 1 : 0) + selectedTags.length
 
   const toggleTag = (t: string) =>
     setSelectedTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]))
 
-  const clearFilters = () => {
-    setWhen('tonight')
-    setFreeOnly(false)
-    setBeginnerOnly(false)
-    setSelectedTags([])
-    setQuery('')
-  }
 
   const { title, sub } = whenTitle(when)
 

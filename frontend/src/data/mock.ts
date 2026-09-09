@@ -14,6 +14,8 @@ export const people: Record<string, Person> = {
 export const venues: Record<string, Venue> = {
   'dice-district': {
     id: 'dice-district',
+    lat: 12.9712,
+    lng: 77.6405,
     name: 'Dice District Board Game Café',
     area: 'Indiranagar, 100 Feet Rd',
     entranceNote:
@@ -25,6 +27,8 @@ export const venues: Record<string, Venue> = {
   },
   'third-wave': {
     id: 'third-wave',
+    lat: 12.9757,
+    lng: 77.6051,
     name: 'Third Wave Coffee',
     area: 'Church Street',
     entranceNote: 'Ground floor, long table at the back.',
@@ -33,6 +37,8 @@ export const venues: Record<string, Venue> = {
   },
   'cubbon-park': {
     id: 'cubbon-park',
+    lat: 12.9763,
+    lng: 77.5929,
     name: 'Cubbon Park',
     area: 'Bandstand entrance',
     entranceNote: 'Meet at the bandstand, look for the yellow flag.',
@@ -41,6 +47,8 @@ export const venues: Record<string, Venue> = {
   },
   'hsr-courts': {
     id: 'hsr-courts',
+    lat: 12.9118,
+    lng: 77.6412,
     name: 'HSR Courts',
     area: 'HSR Layout, Sector 2',
     entranceNote: 'Gate 2, ask for court C.',
@@ -49,6 +57,8 @@ export const venues: Record<string, Venue> = {
   },
   'clay-day': {
     id: 'clay-day',
+    lat: 12.9285,
+    lng: 77.5861,
     name: 'Clay Day Studio',
     area: 'Jayanagar 4th Block',
     entranceNote: 'Blue gate next to the flower market lane, studio is on the terrace.',
@@ -58,6 +68,8 @@ export const venues: Record<string, Venue> = {
   },
   'koramangala-park': {
     id: 'koramangala-park',
+    lat: 12.9337,
+    lng: 77.6273,
     name: 'Koramangala 3rd Block Park',
     area: 'Meet at the north gate',
     entranceNote: 'North gate, look for the group with cycles.',
