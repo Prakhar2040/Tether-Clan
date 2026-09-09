@@ -90,6 +90,8 @@ export interface TcEvent {
   seriesId?: string
   attendees: Attendee[]
   firstTimers: number
+  startsAt?: string // ISO — needed to compute the connect window
+  endsAt?: string
   minViable?: number // quorum: below this the plan does not run
   dateLabel?: string // display date for past plans
   cancelledByHost?: boolean
@@ -105,10 +107,3 @@ export interface TcEvent {
   roles?: EventRole[]
 }
 
-export interface CircleItem {
-  id: string
-  personIds: string[]
-  headline: string // "Ananya, Rohan and 3 others are going"
-  eventId: string
-  sharedInterestNote?: string
-}

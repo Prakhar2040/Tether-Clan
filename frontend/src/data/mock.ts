@@ -1,6 +1,9 @@
-import type { CircleItem, Community, Person, Series, TcEvent, Venue } from '../types'
+import type { Community, Person, Series, TcEvent, Venue } from '../types'
 
-// All sample data. Wed 9 Sep evening, Bengaluru.
+// All sample data. Wed 9 Sep 2026, 17:50 IST, Bengaluru.
+export const NOW = new Date('2026-09-09T17:50:00+05:30')
+// You can add people you met for 48h after an event ends.
+export const CONNECT_WINDOW_HOURS = 48
 
 export const people: Record<string, Person> = {
   ananya: { id: 'ananya', name: 'Ananya', initials: 'AN', color: 'orange' },
@@ -9,6 +12,18 @@ export const people: Record<string, Person> = {
   manav: { id: 'manav', name: 'Manav', initials: 'MJ', color: 'ink' },
   vikram: { id: 'vikram', name: 'Vikram', initials: 'VK', color: 'blue' },
   rahul: { id: 'rahul', name: 'Rahul', initials: 'RH', color: 'yellow' },
+  aditi: { id: 'aditi', name: 'Aditi', initials: 'AD', color: 'blue' },
+  farhan: { id: 'farhan', name: 'Farhan', initials: 'FA', color: 'orange' },
+  meera: { id: 'meera', name: 'Meera', initials: 'ME', color: 'yellow' },
+  karthik: { id: 'karthik', name: 'Karthik', initials: 'KA', color: 'ink' },
+  sneha: { id: 'sneha', name: 'Sneha', initials: 'SN', color: 'blue' },
+  arjun: { id: 'arjun', name: 'Arjun', initials: 'AR', color: 'orange' },
+  divya: { id: 'divya', name: 'Divya', initials: 'DI', color: 'yellow' },
+  nikhil: { id: 'nikhil', name: 'Nikhil', initials: 'NI', color: 'ink' },
+  tara: { id: 'tara', name: 'Tara', initials: 'TA', color: 'blue' },
+  imran: { id: 'imran', name: 'Imran', initials: 'IM', color: 'orange' },
+  lakshmi: { id: 'lakshmi', name: 'Lakshmi', initials: 'LA', color: 'yellow' },
+  sameer: { id: 'sameer', name: 'Sameer', initials: 'SA', color: 'ink' },
 }
 
 export const venues: Record<string, Venue> = {
@@ -103,6 +118,8 @@ export const series: Record<string, Series> = {
 export const events: Record<string, TcEvent> = {
   'catan-night': {
     id: 'catan-night',
+    startsAt: '2026-09-09T19:30:00+05:30',
+    endsAt: '2026-09-09T23:00:00+05:30',
     title: 'Catan Night at Dice District',
     category: 'board-games',
     categoryLabel: 'Board games',
@@ -157,6 +174,8 @@ export const events: Record<string, TcEvent> = {
   },
   sketchwalk: {
     id: 'sketchwalk',
+    startsAt: '2026-09-09T17:00:00+05:30',
+    endsAt: '2026-09-09T20:00:00+05:30',
     title: 'Sketchwalk · Cubbon Park',
     category: 'art',
     categoryLabel: 'Art',
@@ -306,8 +325,48 @@ export const events: Record<string, TcEvent> = {
     firstTimers: 0,
     attendees: [{ personId: 'ananya', relation: 'host' }],
   },
+  'catan-sep-8': {
+    id: 'catan-sep-8',
+    title: 'Meeple Monday at Dice District',
+    category: 'board-games',
+    categoryLabel: 'Board games',
+    dayLabel: 'Past',
+    dateLabel: 'Yesterday',
+    startsAt: '2026-09-08T19:30:00+05:30',
+    endsAt: '2026-09-08T23:00:00+05:30',
+    timeLabel: '7:30 PM',
+    price: 250,
+    capacity: 24,
+    going: 19,
+    tags: ['Beginner friendly', 'Social', 'Indoor'],
+    venueId: 'dice-district',
+    hostId: 'ananya',
+    firstTimers: 4,
+    attendees: [
+      { personId: 'ananya', relation: 'host' },
+      { personId: 'rohan', relation: 'regular' },
+      { personId: 'aditi', relation: 'regular' },
+      { personId: 'farhan', relation: 'regular' },
+      { personId: 'meera', relation: 'first-timer' },
+      { personId: 'karthik', relation: 'regular' },
+      { personId: 'sneha', relation: 'regular' },
+      { personId: 'arjun', relation: 'first-timer' },
+      { personId: 'divya', relation: 'regular' },
+      { personId: 'nikhil', relation: 'regular' },
+      { personId: 'tara', relation: 'first-timer' },
+      { personId: 'imran', relation: 'regular' },
+      { personId: 'lakshmi', relation: 'regular' },
+      { personId: 'sameer', relation: 'first-timer' },
+      { personId: 'vikram', relation: 'regular' },
+      { personId: 'rahul', relation: 'regular' },
+      { personId: 'priya', relation: 'regular' },
+      { personId: 'manav', relation: 'regular' },
+    ],
+  },
   'catan-sep-2': {
     id: 'catan-sep-2',
+    startsAt: '2026-09-02T19:30:00+05:30',
+    endsAt: '2026-09-02T23:00:00+05:30',
     title: 'Catan Night at Dice District',
     category: 'board-games',
     categoryLabel: 'Board games',
@@ -323,10 +382,21 @@ export const events: Record<string, TcEvent> = {
     seriesId: 'wednesday-catan',
     firstTimers: 0,
     connectedWith: ['rohan'],
-    attendees: [{ personId: 'ananya', relation: 'host' }],
+    attendees: [
+      { personId: 'ananya', relation: 'host' },
+      { personId: 'rohan', relation: 'regular' },
+      { personId: 'manav', relation: 'regular' },
+      { personId: 'aditi', relation: 'regular' },
+      { personId: 'farhan', relation: 'first-timer' },
+      { personId: 'meera', relation: 'regular' },
+      { personId: 'karthik', relation: 'first-timer' },
+      { personId: 'sneha', relation: 'regular' },
+    ],
   },
   'sketchwalk-aug-30': {
     id: 'sketchwalk-aug-30',
+    startsAt: '2026-08-30T17:00:00+05:30',
+    endsAt: '2026-08-30T20:00:00+05:30',
     title: 'Sketchwalk · Cubbon Park',
     category: 'art',
     categoryLabel: 'Art',
@@ -341,7 +411,22 @@ export const events: Record<string, TcEvent> = {
     hostId: 'manav',
     firstTimers: 0,
     connectedWith: ['priya', 'manav'],
-    attendees: [{ personId: 'manav', relation: 'host' }],
+    attendees: [
+      { personId: 'manav', relation: 'host' },
+      { personId: 'priya', relation: 'regular' },
+      { personId: 'arjun', relation: 'regular' },
+      { personId: 'divya', relation: 'first-timer' },
+      { personId: 'nikhil', relation: 'regular' },
+      { personId: 'tara', relation: 'regular' },
+      { personId: 'imran', relation: 'first-timer' },
+      { personId: 'lakshmi', relation: 'regular' },
+      { personId: 'sameer', relation: 'regular' },
+      { personId: 'aditi', relation: 'regular' },
+      { personId: 'meera', relation: 'regular' },
+      { personId: 'karthik', relation: 'regular' },
+      { personId: 'sneha', relation: 'first-timer' },
+      { personId: 'farhan', relation: 'regular' },
+    ],
   },
   'catan-aug-26': {
     id: 'catan-aug-26',
@@ -380,28 +465,6 @@ export const events: Record<string, TcEvent> = {
     attendees: [{ personId: 'priya', relation: 'host' }],
   },
 }
-
-export const circleItems: CircleItem[] = [
-  {
-    id: 'c1',
-    personIds: ['ananya', 'rohan'],
-    headline: 'Ananya, Rohan and 3 others are going',
-    eventId: 'catan-night',
-    sharedInterestNote: 'You and Ananya both played at Meeple Monday',
-  },
-  {
-    id: 'c2',
-    personIds: ['vikram'],
-    headline: 'Vikram is going',
-    eventId: 'late-doubles',
-  },
-  {
-    id: 'c3',
-    personIds: ['rahul'],
-    headline: 'Rahul goes every week',
-    eventId: 'sunrise-5k-thu',
-  },
-]
 
 export const tonightEventIds = ['catan-night', 'kannada-english', 'sketchwalk', 'late-doubles']
 
