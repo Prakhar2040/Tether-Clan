@@ -141,7 +141,6 @@ export const events: Record<string, TcEvent> = {
       { personId: 'priya', relation: 'first-timer', note: 'Joined Tether Clan this month · her first event too' },
       { personId: 'manav', relation: 'regular' },
     ],
-    sharedInterestNote: 'You and Ananya both played at Meeple Monday',
     whatToExpect: 'Rules till 7:50, then two boards. Casual, chatty table.',
     icebreaker:
       '“What’s the most ruthless trade anyone’s ever pulled on you — in Catan or in life?”',

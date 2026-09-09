@@ -100,7 +100,6 @@ export interface TcEvent {
   // Server-enforced: exact coordinates are only sent for public venues.
   // House-party and women-only events are fuzzed before they leave the API.
   locationPrecision?: 'exact' | 'approximate' | 'hidden'
-  sharedInterestNote?: string
   whatToExpect?: string
   icebreaker?: string
   hostAnnouncement?: string

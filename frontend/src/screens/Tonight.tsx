@@ -13,7 +13,6 @@ import {
   BellIcon,
   CheckIcon,
   ChevronIcon,
-  HeartIcon,
   LogoMark,
   PinIcon,
   SearchIcon,
@@ -58,12 +57,6 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           {e.tags.map((t) => (
             <span className="tag" key={t}>{t}</span>
           ))}
-        </div>
-      ) : null}
-      {e.sharedInterestNote ? (
-        <div className="interest-note">
-          <HeartIcon size={14} color="#E9712A" />
-          <span>{e.sharedInterestNote}</span>
         </div>
       ) : null}
       <GoingRow e={e} onOpen={() => onWho(e.id)} />

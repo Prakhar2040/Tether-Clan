@@ -165,12 +165,6 @@ button {
 .badge-going { background: var(--green-bg); color: var(--green); letter-spacing: 0.08em; padding: 5px 9px; }
 .badge-full { background: #F2EFE7; color: var(--muted); }
 
-.interest-note {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--warm-chip); border-radius: 8px; padding: 8px 11px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 700; color: var(--warm-text);
-}
 
 .btn-row { display: flex; gap: 9px; }
 .btn {

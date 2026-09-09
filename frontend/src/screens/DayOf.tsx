@@ -1,6 +1,7 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { events, people, venues } from '../data/mock'
 import { useRsvp } from '../state/rsvp'
+import { useCircle } from '../state/circle'
 import { Avatar } from '../components/shared'
 import { BackIcon, ChatIcon, CheckIcon, ShieldIcon } from '../components/icons'
 
@@ -8,13 +9,15 @@ export default function DayOf() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { stateFor, checkIn } = useRsvp()
+  const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
   if (!e) return null
   const venue = venues[e.venueId]
   const state = stateFor(e.id)
   const checkedIn = state === 'checked-in' || state === 'attended'
-  const there = e.attendees.filter((a) => a.relation !== 'first-timer').slice(0, 2)
+  // Faces only for people you have actually connected with.
+  const there = e.attendees.filter((a) => isConnected(a.personId)).slice(0, 3)
 
   return (
     <div className="screen no-bar dayof">
@@ -56,13 +59,19 @@ export default function DayOf() {
         <div className="dayof-card">
           <span className="dayof-label">WHO'S THERE NOW</span>
           <div className="card-people">
-            <span className="avatar-stack">
-              {there.map((a) => (
-                <Avatar key={a.personId} person={people[a.personId]} size={32} />
-              ))}
-            </span>
+            {there.length > 0 ? (
+              <span className="avatar-stack">
+                {there.map((a) => (
+                  <Avatar key={a.personId} person={people[a.personId]} size={32} />
+                ))}
+              </span>
+            ) : null}
             <span className="dayof-text">
-              Ananya and Rohan checked in · 5 more on the way
+              {there.length > 0
+                ? `${there.map((a) => people[a.personId].name).join(', ')} · `
+                : ''}
+              {e.going} here or on the way
+              {e.firstTimers > 0 ? ` · ${e.firstTimers} first-timer${e.firstTimers > 1 ? 's' : ''}` : ''}
             </span>
           </div>
           {e.hostAnnouncement ? (

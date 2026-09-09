@@ -1,15 +1,15 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { events, people, priceLabel, seatsLeft, venues } from '../data/mock'
 import { useRsvp } from '../state/rsvp'
+import { useCircle } from '../state/circle'
 import { Avatar } from '../components/shared'
 import { BackIcon, CheckIcon, ShareIcon, ShieldIcon } from '../components/icons'
-
-const relationLabel = { host: 'host', regular: 'regular', 'first-timer': 'first-timer, like you' }
 
 export default function EventDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { stateFor, join, markInterested, cancel } = useRsvp()
+  const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
   if (!e) return null
@@ -55,23 +55,42 @@ export default function EventDetail() {
         </div>
 
         <section className="card">
-          <span className="section-label">Who you'll meet</span>
-          {e.attendees
-            .filter((a) => a.note || a.relation === 'host')
-            .map((a) => {
-              const p = people[a.personId]
-              return (
-                <div className="person-row" key={a.personId}>
-                  <Avatar person={p} size={36} />
-                  <span className="stack-2" style={{ gap: 1 }}>
-                    <span className="person-name">
-                      {p.name} · {relationLabel[a.relation]}
+          <span className="section-label">Who's going</span>
+          {/* Names only for the host and people already in your circle.
+              Everyone else is a count — no stranger names, no activity. */}
+          {(() => {
+            const host = e.attendees.find((a) => a.relation === 'host')
+            const friends = e.attendees.filter((a) => a.relation !== 'host' && isConnected(a.personId))
+            const others = Math.max(0, e.going - friends.length - (host ? 1 : 0))
+            return (
+              <>
+                {host ? (
+                  <div className="person-row" style={{ alignItems: 'center' }}>
+                    <Avatar person={people[host.personId]} size={36} />
+                    <span className="stack-2" style={{ gap: 1 }}>
+                      <span className="person-name">{people[host.personId].name}</span>
+                      <span className="person-note">Host</span>
                     </span>
-                    {a.note ? <span className="person-note">{a.note}</span> : null}
+                  </div>
+                ) : null}
+                {friends.map((a) => (
+                  <div className="person-row" key={a.personId} style={{ alignItems: 'center' }}>
+                    <Avatar person={people[a.personId]} size={36} />
+                    <span className="stack-2" style={{ gap: 1 }}>
+                      <span className="person-name">{people[a.personId].name}</span>
+                      <span className="person-note">In your circle</span>
+                    </span>
+                  </div>
+                ))}
+                {others > 0 ? (
+                  <span className="person-note">
+                    and {others} other{others > 1 ? 's' : ''} going
+                    {e.firstTimers > 0 ? ` · ${e.firstTimers} first-timer${e.firstTimers > 1 ? 's' : ''}` : ''}
                   </span>
-                </div>
-              )
-            })}
+                ) : null}
+              </>
+            )
+          })()}
         </section>
 
         {e.roles && e.roles.length > 0 ? (
