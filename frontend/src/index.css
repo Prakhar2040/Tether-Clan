@@ -787,9 +787,9 @@ button {
 .map-canvas { width: 100%; }
 
 
-/* Location status chip: the map never hides behind a permission wall */
+/* Location status chip: always visible, always tappable */
 .loc-chip {
-  position: absolute; top: 92px; left: 20px; right: 20px; z-index: 3;
+  position: absolute; top: 92px; left: 20px; right: 20px; z-index: 5;
   display: flex; align-items: center; justify-content: center; gap: 7px;
   background: var(--orange-chip);
   border: 1.5px solid #F3D6BE;
@@ -798,4 +798,7 @@ button {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 12px; font-weight: 700; color: var(--orange-text);
   box-shadow: 0 3px 12px rgba(7,8,8,0.1);
+}
+.loc-chip.ok {
+  background: var(--green-bg); border-color: #BFE0CB; color: var(--green);
 }

@@ -13,7 +13,19 @@ const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
 // never a blank screen behind a permission wall.
 const FALLBACK = { lat: 12.9719, lng: 77.6412 } // Indiranagar
 const RADIUS_KM = 5
-type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'unsupported'
+type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'blocked' | 'unsupported'
+
+// Manual fallback: a user who will not (or cannot) grant location must still
+// be able to say where they are.
+const AREAS = [
+  { id: 'bellandur', name: 'Bellandur', lat: 12.9260, lng: 77.6762 },
+  { id: 'indiranagar', name: 'Indiranagar', lat: 12.9719, lng: 77.6412 },
+  { id: 'koramangala', name: 'Koramangala', lat: 12.9352, lng: 77.6245 },
+  { id: 'hsr', name: 'HSR Layout', lat: 12.9116, lng: 77.6389 },
+  { id: 'whitefield', name: 'Whitefield', lat: 12.9698, lng: 77.7500 },
+  { id: 'jayanagar', name: 'Jayanagar', lat: 12.9308, lng: 77.5838 },
+  { id: 'mg-road', name: 'MG Road / Church St', lat: 12.9756, lng: 77.6046 },
+]
 
 // Activity icon per category, drawn as SVG so pins stay crisp at any zoom.
 const PIN_ICONS: Record<string, string> = {
@@ -78,6 +90,8 @@ export default function MapScreen() {
   const [mapError, setMapError] = useState<string | null>(null)
   const [me, setMe] = useState(FALLBACK)
   const [locStatus, setLocStatus] = useState<LocStatus>('default')
+  const [placeLabel, setPlaceLabel] = useState('Indiranagar')
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const { title } = whenTitle(when)
 
@@ -166,20 +180,40 @@ export default function MapScreen() {
   }, [])
 
   // ---- real location, asked for without gating the map ----
-  const requestLocation = () => {
+  const requestLocation = async () => {
     if (!('geolocation' in navigator)) {
       setLocStatus('unsupported')
       return
+    }
+    // A site-level block means getCurrentPosition fails without prompting,
+    // so say that plainly instead of looking broken.
+    try {
+      const perm = await navigator.permissions?.query({ name: 'geolocation' as PermissionName })
+      if (perm?.state === 'denied') {
+        setLocStatus('blocked')
+        return
+      }
+    } catch {
+      // Permissions API unavailable — fall through and just ask.
     }
     setLocStatus('locating')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setPlaceLabel('Your location')
         setLocStatus('granted')
       },
-      () => setLocStatus('denied'),
-      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60_000 },
+      (err) => setLocStatus(err.code === err.PERMISSION_DENIED ? 'blocked' : 'denied'),
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
     )
+  }
+
+  const pickArea = (a: (typeof AREAS)[number]) => {
+    setMe({ lat: a.lat, lng: a.lng })
+    setPlaceLabel(a.name)
+    setLocStatus('default')
+    setPickerOpen(false)
+    mapRef.current?.easeTo({ center: [a.lng, a.lat], zoom: 12.6, duration: 600 })
   }
 
   useEffect(() => {
@@ -273,13 +307,51 @@ export default function MapScreen() {
         </div>
       ) : null}
 
-      {locStatus === 'denied' || locStatus === 'unsupported' ? (
-        <button className="loc-chip" onClick={requestLocation}>
-          <PinIcon size={13} color="#B4571B" strokeWidth={2.4} />
-          {locStatus === 'denied'
-            ? 'Showing Indiranagar — tap to use your location'
-            : 'Location unavailable — showing Indiranagar'}
-        </button>
+      <button
+        className={`loc-chip${locStatus === 'granted' ? ' ok' : ''}`}
+        onClick={() => setPickerOpen(true)}
+      >
+        <PinIcon size={13} color={locStatus === 'granted' ? '#2E7D4F' : '#B4571B'} strokeWidth={2.4} />
+        {locStatus === 'locating'
+          ? 'Finding you…'
+          : locStatus === 'granted'
+            ? 'Using your location'
+            : locStatus === 'blocked'
+              ? 'Location blocked — tap to pick your area'
+              : `Showing ${placeLabel} — tap to change`}
+      </button>
+
+      {pickerOpen ? (
+        <div className="sheet-backdrop" onClick={() => setPickerOpen(false)}>
+          <div className="sheet" onClick={(ev) => ev.stopPropagation()}>
+            <span className="sheet-handle" />
+            <span className="section-label">Where are you?</span>
+
+            <button className="btn btn-primary" style={{ minHeight: 48 }} onClick={requestLocation}>
+              <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} /> Use my current location
+            </button>
+
+            {locStatus === 'blocked' ? (
+              <span className="page-sub">
+                Your browser is blocking location for this site. Click the icon at the left of the
+                address bar → Location → Allow, then reload. Or just pick an area below.
+              </span>
+            ) : null}
+
+            <span className="sheet-section">Or pick an area</span>
+            <div className="chip-row" style={{ padding: 0 }}>
+              {AREAS.map((a) => (
+                <button
+                  key={a.id}
+                  className={placeLabel === a.name ? 'chip active' : 'chip'}
+                  onClick={() => pickArea(a)}
+                >
+                  {a.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       ) : null}
 
       <button className="map-recenter" onClick={recenter} aria-label="Recenter on my location">
