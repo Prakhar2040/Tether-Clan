@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Archivo:wght@400;500;600;700;900&display=swap">
+  <style>
+    body { margin: 0; background: #F1EDE3; font-family: Archivo, system-ui, sans-serif; color: #070808; }
+    a { color: #E9712A; } a:hover { color: #15477C; }
+    .board { padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+    .hd { display: flex; flex-direction: column; gap: 6px; max-width: 820px; }
+    .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: #E9712A; text-transform: uppercase; }
+    .name { font-size: 30px; font-weight: 900; line-height: 1.05; color: #15477C; text-transform: uppercase; }
+    .why { font-size: 13.5px; line-height: 1.45; color: #3A3A38; }
+    .why b { color: #15477C; }
+    .phones { display: flex; gap: 26px; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .cap { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #8A8577; }
+    .phone { width: 390px; height: 844px; border-radius: 30px; overflow: hidden; position: relative; flex: 0 0 auto; outline: 1px solid rgba(7,8,8,0.18); box-shadow: 0 18px 40px rgba(21,71,124,0.14); }
+    .serif { font-family: Lora, Georgia, serif; }
+    .ink { color: #1E3A5C; }
+  </style>
+</helmet>
+<div class="board">
+  <div class="hd">
+    <div class="kicker">Option B</div>
+    <div class="name">Warm Editorial</div>
+    <div class="why"><b>Why:</b> calm, literate, trustworthy — reads like a city culture digest, which flatters the pre-event content (venue notes, what to expect, who's coming). <b>Tradeoff:</b> low urgency; scarcity and tonight-energy are muted, so conversion leans on copy rather than visual pressure.</div>
+  </div>
+  <div class="phones">
+    <div class="col">
+      <div class="cap">Discover · Tonight</div>
+      <div class="phone" style="background: #FAF3E4;">
+        <div style="display: flex; flex-direction: column; height: 844px; box-sizing: border-box; padding-top: 54px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 24px 0 24px;">
+            <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.14em; color: #15477C;">TETHER CLAN</span>
+            <span style="font-size: 12px; font-weight: 600; color: #8A8577; border-bottom: 1px solid #D9D1BE; padding-bottom: 2px;">Indiranagar · 3 km</span>
+          </div>
+          <div style="padding: 26px 24px 18px 24px; display: flex; flex-direction: column; gap: 8px; border-bottom: 2px solid #15477C; margin: 0 24px 0 24px; padding-left: 0; padding-right: 0;">
+            <div class="serif ink" style="font-size: 36px; line-height: 1.08; font-weight: 500;">This evening<span style="color: #E9712A;">.</span></div>
+            <div style="font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; color: #8A8577;">WEDNESDAY 9 SEPTEMBER · FOUR GATHERINGS NEARBY</div>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; padding: 8px 24px 0 24px; display: flex; flex-direction: column;">
+            <div style="display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px solid #E2DAC6;">
+              <div style="width: 58px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 15px; font-weight: 700; color: #E9712A;">7:30</span>
+                <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; color: #8A8577;">PM</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="serif ink" style="font-size: 19px; line-height: 1.2; font-weight: 600;">Catan Night at Dice District</div>
+                <div class="serif" style="font-size: 13.5px; line-height: 1.5; color: #5A554A; font-style: italic;">A settlers table for six, two seats left. Beginners taught kindly.</div>
+                <div style="font-size: 12px; font-weight: 600; color: #8A8577;">Board games · 1.2 km · ₹250 · 6 of 8 going</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px solid #E2DAC6;">
+              <div style="width: 58px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 15px; font-weight: 700; color: #E9712A;">8:00</span>
+                <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; color: #8A8577;">PM</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="serif ink" style="font-size: 19px; line-height: 1.2; font-weight: 600;">Kannada–English Table</div>
+                <div class="serif" style="font-size: 13.5px; line-height: 1.5; color: #5A554A; font-style: italic;">Half an hour in each language over filter coffee. All levels welcome.</div>
+                <div style="font-size: 12px; font-weight: 600; color: #8A8577;">Language exchange · 2.4 km · Free</div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 16px; padding: 18px 0; border-bottom: 1px solid #E2DAC6;">
+              <div style="width: 58px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 15px; font-weight: 700; color: #E9712A;">9:00</span>
+                <span style="font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; color: #8A8577;">PM</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div class="serif ink" style="font-size: 19px; line-height: 1.2; font-weight: 600;">Late Doubles · HSR Pickleball</div>
+                <div class="serif" style="font-size: 13.5px; line-height: 1.5; color: #5A554A; font-style: italic;">Round robin under lights. Bring a paddle if you have one.</div>
+                <div style="font-size: 12px; font-weight: 600; color: #8A8577;">Pickleball · 4.1 km · ₹150 · waitlist</div>
+              </div>
+            </div>
+            <div style="padding: 16px 0; display: flex; align-items: center; gap: 8px;">
+              <span class="serif" style="font-size: 14px; font-style: italic; color: #5A554A;">Tomorrow: a sunrise 5K in Cubbon Park —</span>
+              <span style="font-size: 12.5px; font-weight: 700; color: #E9712A; border-bottom: 1.5px solid #E9712A; padding-bottom: 1px;">see the weekend</span>
+            </div>
+          </div>
+          <div style="display: flex; border-top: 1px solid #E2DAC6; background: #FAF3E4; padding: 14px 24px 28px 24px; justify-content: space-between;">
+            <span style="font-size: 12px; font-weight: 700; color: #15477C; padding: 8px 0;">Tonight</span>
+            <span style="font-size: 12px; font-weight: 600; color: #A79F8C; padding: 8px 0;">Nearby</span>
+            <span style="font-size: 12px; font-weight: 600; color: #A79F8C; padding: 8px 0;">Your circle</span>
+            <span style="font-size: 12px; font-weight: 600; color: #A79F8C; padding: 8px 0;">Plans</span>
+            <span style="font-size: 12px; font-weight: 600; color: #A79F8C; padding: 8px 0;">You</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap">Event detail · Interested vs Going</div>
+      <div class="phone" style="background: #FAF3E4;">
+        <div style="display: flex; flex-direction: column; height: 844px; box-sizing: border-box; padding-top: 54px;">
+          <div style="padding: 12px 24px 0 24px; display: flex; justify-content: space-between; align-items: center;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15477C" stroke-width="2"><path d="M15 5l-7 7 7 7"></path></svg>
+            <span style="font-size: 12px; font-weight: 600; color: #8A8577;">Share</span>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; padding: 18px 24px 0 24px; display: flex; flex-direction: column; gap: 18px;">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <span style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; color: #E9712A;">BOARD GAMES · TONIGHT 7:30 PM</span>
+              <div class="serif ink" style="font-size: 30px; line-height: 1.12; font-weight: 500;">Catan Night at Dice District</div>
+              <div class="serif" style="font-size: 14.5px; line-height: 1.6; color: #5A554A;">A relaxed settlers table on the café's second floor. Ananya teaches the rules in the first twenty minutes, so first-timers are genuinely fine. The table is booked until eleven.</div>
+            </div>
+            <div style="display: flex; flex-direction: column; border-top: 1px solid #E2DAC6;">
+              <div style="display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid #E2DAC6;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #8A8577;">Host</span>
+                <span style="font-size: 13px; font-weight: 600; color: #1E3A5C;">Ananya · 4.9 · phone verified</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid #E2DAC6;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #8A8577;">Venue</span>
+                <span style="font-size: 13px; font-weight: 600; color: #1E3A5C;">Dice District, 100 Feet Rd · 9 min</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid #E2DAC6;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #8A8577;">Cost</span>
+                <span style="font-size: 13px; font-weight: 600; color: #1E3A5C;">₹250, paid at the venue</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid #E2DAC6;">
+                <span style="font-size: 12.5px; font-weight: 600; color: #8A8577;">Table</span>
+                <span style="font-size: 13px; font-weight: 600; color: #1E3A5C;">6 of 8 going · 2 first-timers</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <span style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.14em; color: #15477C;">IF YOU'RE NEW</span>
+              <div class="serif" style="font-size: 14px; line-height: 1.6; color: #5A554A; font-style: italic; border-left: 2px solid #FDBE50; padding-left: 14px;">"Come ten minutes early and mention you're new — I'll seat you next to someone patient." — Ananya</div>
+            </div>
+          </div>
+          <div style="padding: 16px 24px 30px 24px; display: flex; flex-direction: column; gap: 10px; border-top: 2px solid #15477C;">
+            <div style="display: flex; border: 1.5px solid #15477C; border-radius: 6px; overflow: hidden;">
+              <div style="flex: 1; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
+                <span style="font-size: 14px; font-weight: 700; color: #15477C;">Interested</span>
+                <span style="font-size: 10.5px; font-weight: 500; color: #8A8577;">watch it, no promise</span>
+              </div>
+              <div style="flex: 1; min-height: 52px; background: #15477C; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;">
+                <span style="font-size: 14px; font-weight: 700; color: #FDBE50;">Going · ₹250</span>
+                <span style="font-size: 10.5px; font-weight: 500; color: rgba(255,255,255,0.75);">holds one seat</span>
+              </div>
+            </div>
+            <span style="font-size: 11.5px; font-weight: 500; color: #8A8577; text-align: center;">Exact address is shared once you're going.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

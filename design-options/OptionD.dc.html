@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Archivo:wght@400;500;600;700;900&display=swap">
+  <style>
+    body { margin: 0; background: #F1EDE3; font-family: Archivo, system-ui, sans-serif; color: #070808; }
+    a { color: #E9712A; } a:hover { color: #15477C; }
+    .board { padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+    .hd { display: flex; flex-direction: column; gap: 6px; max-width: 820px; }
+    .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: #E9712A; text-transform: uppercase; }
+    .name { font-size: 30px; font-weight: 900; line-height: 1.05; color: #15477C; text-transform: uppercase; }
+    .why { font-size: 13.5px; line-height: 1.45; color: #3A3A38; }
+    .why b { color: #15477C; }
+    .phones { display: flex; gap: 26px; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .cap { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #8A8577; }
+    .phone { width: 390px; height: 844px; border-radius: 30px; overflow: hidden; position: relative; flex: 0 0 auto; outline: 1px solid rgba(7,8,8,0.18); box-shadow: 0 18px 40px rgba(21,71,124,0.14); }
+    .baloo { font-family: 'Baloo 2', Archivo, sans-serif; }
+  </style>
+</helmet>
+<div class="board">
+  <div class="hd">
+    <div class="kicker">Option D</div>
+    <div class="name">Playful Bubbles</div>
+    <div class="why"><b>Why:</b> extends the logo's speech-bubble DNA into the whole UI — rounded, friendly, sticker-like; the least intimidating surface for a nervous first-timer, and event roles become fun to claim. <b>Tradeoff:</b> can read juvenile for serious activities (networking, running PBs), and playfulness eats density.</div>
+  </div>
+  <div class="phones">
+    <div class="col">
+      <div class="cap">Discover · Tonight</div>
+      <div class="phone" style="background: #FFF7E4;">
+        <div style="display: flex; flex-direction: column; height: 844px; box-sizing: border-box; padding-top: 54px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px 0 20px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg width="28" height="28" viewBox="0 0 48 48" fill="none"><circle cx="22" cy="9" r="6" fill="#15477C"></circle><path d="M13 24c0-5 4-9 9-9s9 4 9 9v10c0 4-3 7-7 7h-1l-3 5-1-5c-3.5-0.5-6-3.5-6-7V24z" fill="#15477C"></path><circle cx="9" cy="17" r="3.4" fill="#E9712A"></circle><path d="M4 26c0-3 2.2-5 5-5s5 2 5 5v4.5c0 2.5-2 4.5-4.5 4.5h-0.4L7 38l-0.6-3.1C4.9 34.3 4 32.8 4 31v-5z" fill="#E9712A"></path><circle cx="38" cy="15" r="3.8" fill="#E9712A"></circle><path d="M32.5 25c0-3.2 2.4-5.5 5.5-5.5s5.5 2.3 5.5 5.5v5c0 2.7-2.1 4.8-4.8 4.8h-0.5l-2.4 4-0.6-4.1c-1.6-0.7-2.7-2.3-2.7-4.2V25z" fill="#E9712A"></path></svg>
+              <span class="baloo" style="font-size: 17px; font-weight: 800; color: #15477C;">Tether Clan</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 5px; background: #FFFFFF; border: 2px solid #15477C; border-radius: 999px; padding: 7px 12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E9712A" stroke-width="2.4"><path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z"></path><circle cx="12" cy="10" r="2.6"></circle></svg>
+              <span style="font-size: 12px; font-weight: 700; color: #15477C;">3 km</span>
+            </div>
+          </div>
+          <div style="padding: 20px 20px 12px 20px; display: flex; flex-direction: column; gap: 3px;">
+            <div class="baloo" style="font-size: 32px; font-weight: 800; line-height: 1.05; color: #15477C;">What's on tonight?</div>
+            <div style="font-size: 13px; font-weight: 600; color: #A08A55;">Wed 9 Sep · Indiranagar and around</div>
+          </div>
+          <div style="display: flex; gap: 8px; padding: 0 20px 14px 20px;">
+            <div class="baloo" style="background: #15477C; color: #FDBE50; font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px;">Games</div>
+            <div class="baloo" style="background: #FFFFFF; border: 2px solid #E8DFC8; color: #6B665A; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px;">Active</div>
+            <div class="baloo" style="background: #FFFFFF; border: 2px solid #E8DFC8; color: #6B665A; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px;">Learn</div>
+            <div class="baloo" style="background: #FFFFFF; border: 2px solid #E8DFC8; color: #6B665A; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 999px;">Make</div>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; padding: 0 20px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="background: #FFFFFF; border: 2.5px solid #15477C; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 5px 0 rgba(21,71,124,0.9); position: relative;">
+              <div style="position: absolute; top: -11px; right: 14px; background: #E9712A; color: #fff; border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 800; transform: rotate(2deg);" class="baloo">2 seats left!</div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 40px; height: 40px; border-radius: 14px; background: #FDBE50; display: flex; align-items: center; justify-content: center;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15477C" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"></rect><circle cx="9" cy="9" r="1.4" fill="#15477C" stroke="none"></circle><circle cx="15" cy="15" r="1.4" fill="#15477C" stroke="none"></circle><circle cx="15" cy="9" r="1.4" fill="#15477C" stroke="none"></circle><circle cx="9" cy="15" r="1.4" fill="#15477C" stroke="none"></circle></svg>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span class="baloo" style="font-size: 18px; font-weight: 800; line-height: 1.15; color: #15477C;">Catan Night at Dice District</span>
+                  <span style="font-size: 12px; font-weight: 600; color: #8A8577;">7:30 PM · 9 min away · ₹250</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                  <div style="width: 26px; height: 26px; border-radius: 50%; background: #15477C; color: #FDBE50; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #fff;">AN</div>
+                  <div style="width: 26px; height: 26px; border-radius: 50%; background: #E9712A; color: #fff; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -8px;">RS</div>
+                  <div style="width: 26px; height: 26px; border-radius: 50%; background: #FDBE50; color: #15477C; font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -8px;">+4</div>
+                  <span style="font-size: 12px; font-weight: 700; color: #15477C; margin-left: 8px;">6 going</span>
+                </div>
+                <div class="baloo" style="background: #FDBE50; color: #15477C; border-radius: 999px; padding: 9px 16px; font-size: 13.5px; font-weight: 800; min-height: 22px;">Count me in</div>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border: 2.5px solid #E8DFC8; border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 40px; height: 40px; border-radius: 14px; background: #DCEAF8; display: flex; align-items: center; justify-content: center;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#15477C" stroke-width="2"><path d="M4 17c2-1 3-4 3-6a5 5 0 0 1 10 0c0 2 1 5 3 6"></path><path d="M8 17h8v1.5a4 4 0 0 1-8 0V17z"></path></svg>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                  <span class="baloo" style="font-size: 18px; font-weight: 800; line-height: 1.15; color: #15477C;">Kannada–English Table</span>
+                  <span style="font-size: 12px; font-weight: 600; color: #8A8577;">8:00 PM · 18 min away · Free</span>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 12px; font-weight: 700; color: #2E7D4F;">Open to all levels</span>
+                <div class="baloo" style="border: 2px solid #15477C; color: #15477C; border-radius: 999px; padding: 7px 16px; font-size: 13.5px; font-weight: 800;">Interested</div>
+              </div>
+            </div>
+            <div style="background: #15477C; border-radius: 22px; padding: 16px; display: flex; align-items: center; gap: 12px; position: relative;">
+              <div style="position: absolute; top: -11px; left: 14px; background: #FDBE50; color: #15477C; border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 800; transform: rotate(-2deg);" class="baloo">Tomorrow 6 AM</div>
+              <div style="display: flex; flex-direction: column; gap: 3px; flex: 1;">
+                <span class="baloo" style="font-size: 18px; font-weight: 800; line-height: 1.15; color: #FDBE50;">Sunrise 5K · Cubbon Park</span>
+                <span style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8);">Pace groups · your friend Rahul is going</span>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDBE50" stroke-width="2.4"><path d="M9 5l7 7-7 7"></path></svg>
+            </div>
+          </div>
+          <div style="display: flex; background: #FFFFFF; border-top: 2px solid #E8DFC8; padding: 12px 10px 26px 10px; justify-content: space-around;">
+            <div class="baloo" style="font-size: 12px; font-weight: 800; color: #15477C; background: #FDBE50; border-radius: 999px; padding: 8px 16px;">Tonight</div>
+            <div class="baloo" style="font-size: 12px; font-weight: 700; color: #8A8577; padding: 8px 6px;">Map</div>
+            <div class="baloo" style="font-size: 12px; font-weight: 700; color: #8A8577; padding: 8px 6px;">Circle</div>
+            <div class="baloo" style="font-size: 12px; font-weight: 700; color: #8A8577; padding: 8px 6px;">Plans</div>
+            <div class="baloo" style="font-size: 12px; font-weight: 700; color: #8A8577; padding: 8px 6px;">You</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap">Event detail · Roles + first-timer</div>
+      <div class="phone" style="background: #FFF7E4;">
+        <div style="display: flex; flex-direction: column; height: 844px; box-sizing: border-box; padding-top: 54px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px 0 20px;">
+            <div style="width: 40px; height: 40px; border-radius: 999px; background: #FFFFFF; border: 2px solid #15477C; display: flex; align-items: center; justify-content: center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15477C" stroke-width="2.4"><path d="M15 5l-7 7 7 7"></path></svg>
+            </div>
+            <div style="width: 40px; height: 40px; border-radius: 999px; background: #FFFFFF; border: 2px solid #15477C; display: flex; align-items: center; justify-content: center;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#15477C" stroke-width="2"><circle cx="18" cy="5" r="2.6"></circle><circle cx="6" cy="12" r="2.6"></circle><circle cx="18" cy="19" r="2.6"></circle><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"></path></svg>
+            </div>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; padding: 14px 20px 0 20px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div class="baloo" style="align-self: flex-start; background: #E9712A; color: #fff; border-radius: 999px; padding: 5px 12px; font-size: 11.5px; font-weight: 800; transform: rotate(-1.5deg);">Board games · beginners taught!</div>
+              <div class="baloo" style="font-size: 27px; font-weight: 800; line-height: 1.1; color: #15477C;">Catan Night at Dice District</div>
+              <div style="font-size: 13px; font-weight: 600; color: #8A8577;">Tonight 7:30 PM · Dice District, 100 Feet Rd · ₹250</div>
+            </div>
+            <div style="background: #FFFFFF; border: 2.5px solid #FDBE50; border-radius: 20px; padding: 14px; display: flex; gap: 10px; align-items: flex-start; position: relative;">
+              <div style="width: 34px; height: 34px; border-radius: 50%; background: #E9712A; color: #fff; font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">AN</div>
+              <div style="display: flex; flex-direction: column; gap: 3px;">
+                <span class="baloo" style="font-size: 13.5px; font-weight: 800; color: #15477C;">Ananya says</span>
+                <span style="font-size: 13px; line-height: 1.5; font-weight: 500; color: #4A463C;">"First time? Two of tonight's six are also new. I teach the rules till 7:50, then we play two boards. Come early, grab chai."</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <span class="baloo" style="font-size: 16px; font-weight: 800; color: #15477C;">Grab a role, make it happen</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <div class="baloo" style="background: #15477C; color: #FDBE50; border-radius: 999px; padding: 9px 14px; font-size: 12.5px; font-weight: 700;">Teach the rules · Ananya</div>
+                <div class="baloo" style="background: #15477C; color: #FDBE50; border-radius: 999px; padding: 9px 14px; font-size: 12.5px; font-weight: 700;">Bring Catan · Rohan</div>
+                <div class="baloo" style="border: 2px dashed #E9712A; color: #E9712A; border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 800;">+ Book the table</div>
+                <div class="baloo" style="border: 2px dashed #E9712A; color: #E9712A; border-radius: 999px; padding: 7px 14px; font-size: 12.5px; font-weight: 800;">+ Bring snacks</div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <span class="baloo" style="font-size: 16px; font-weight: 800; color: #15477C;">Who's in · 6 of 8</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex;">
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: #15477C; color: #FDBE50; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2.5px solid #FFF7E4;">AN</div>
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: #E9712A; color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2.5px solid #FFF7E4; margin-left: -10px;">RS</div>
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: #FDBE50; color: #15477C; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2.5px solid #FFF7E4; margin-left: -10px;">PK</div>
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: #070808; color: #FDBE50; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2.5px solid #FFF7E4; margin-left: -10px;">MJ</div>
+                  <div style="width: 34px; height: 34px; border-radius: 50%; background: #DCEAF8; color: #15477C; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2.5px solid #FFF7E4; margin-left: -10px;">+2</div>
+                </div>
+                <div class="baloo" style="background: #FDBE50; color: #15477C; border-radius: 999px; padding: 5px 11px; font-size: 11px; font-weight: 800;">2 first-timers</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 14px 20px 30px 20px; display: flex; flex-direction: column; gap: 9px; background: #FFFFFF; border-top: 2px solid #E8DFC8;">
+            <div class="baloo" style="background: #E9712A; border-radius: 999px; min-height: 56px; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 0 rgba(160,70,15,0.85);">
+              <span style="font-size: 17px; font-weight: 800; color: #FFFFFF;">Count me in · ₹250</span>
+            </div>
+            <span style="font-size: 12px; font-weight: 600; color: #8A8577; text-align: center;">Plus-one allowed · address shared after you join</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

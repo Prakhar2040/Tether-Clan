@@ -1,0 +1,26 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "App" },
+    { "id": "page-2", "name": "Directions" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 844, "title": "01 · Tonight", "page": "page-1" },
+    { "file": "EventDetail.dc.html", "x": 480, "y": 0, "w": 390, "h": 844, "title": "02 · Before you go", "page": "page-1" },
+    { "file": "Circle.dc.html", "x": 960, "y": 0, "w": 390, "h": 844, "title": "03 · Your circle", "page": "page-1" },
+    { "file": "DayOf.dc.html", "x": 1440, "y": 0, "w": 390, "h": 844, "title": "04 · Day of", "page": "page-1" },
+    { "file": "PostEvent.dc.html", "x": 1920, "y": 0, "w": 390, "h": 844, "title": "05 · After", "page": "page-1" },
+    { "file": "EmptyState.dc.html", "x": 2400, "y": 0, "w": 390, "h": 844, "title": "06 · New area", "page": "page-1" },
+    { "file": "DirectionA.dc.html", "x": 0, "y": 1200, "w": 880, "h": 1070, "title": "Option A · Poster Bold", "page": "page-2" },
+    { "file": "OptionB.dc.html", "x": 980, "y": 1200, "w": 880, "h": 1070, "title": "Option B · Warm Editorial", "page": "page-2" },
+    { "file": "OptionC.dc.html", "x": 1960, "y": 1200, "w": 880, "h": 1070, "title": "Option C · Utility Dense", "page": "page-2" },
+    { "file": "OptionD.dc.html", "x": 2940, "y": 1200, "w": 880, "h": 1070, "title": "Option D · Playful Bubbles", "page": "page-2" },
+    { "file": "OptionE.dc.html", "x": 0, "y": 2410, "w": 880, "h": 1070, "title": "Option E · Tonight Dark", "page": "page-2" },
+    { "file": "OptionF.dc.html", "x": 980, "y": 2410, "w": 880, "h": 1070, "title": "Option F · Map First", "page": "page-2" },
+    { "file": "OptionG.dc.html", "x": 1960, "y": 2410, "w": 880, "h": 1070, "title": "Option G · People First", "page": "page-2" }
+  ],
+  "annotations": [
+    { "id": "app-notes", "x": 0, "y": -250, "w": 520, "page": "page-1", "text": "Chosen direction: G (People First) with Option A's bottom bar. Six attendee screens: Tonight feed, pre-event page, circle feed, day-of live mode (blue, its own visual language), post-event, and the new-area empty state.\n\nAll data is mocked sample content. Aliment/Acumin aren't web fonts — Archivo & Archivo Narrow stand in." },
+    { "id": "how-to-read-this", "x": 0, "y": 940, "w": 560, "page": "page-2", "text": "The original seven directions, kept for reference. Each board's header says why that direction and its tradeoff; the RSVP module differs per board to walk the whole lifecycle (quorum, Interested vs Going, waitlist movement, roles, day-of, getting-there, pre-event people)." }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

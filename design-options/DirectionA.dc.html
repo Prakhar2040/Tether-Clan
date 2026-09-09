@@ -1,0 +1,208 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;900&family=Archivo+Narrow:wght@500;600;700&display=swap">
+  <style>
+    body { margin: 0; background: #F1EDE3; font-family: Archivo, system-ui, sans-serif; color: #070808; }
+    a { color: #E9712A; } a:hover { color: #15477C; }
+    .board { padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+    .hd { display: flex; flex-direction: column; gap: 6px; max-width: 820px; }
+    .kicker { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; color: #E9712A; text-transform: uppercase; }
+    .name { font-size: 30px; font-weight: 900; line-height: 1.05; color: #15477C; text-transform: uppercase; }
+    .why { font-size: 13.5px; line-height: 1.45; color: #3A3A38; }
+    .why b { color: #15477C; }
+    .phones { display: flex; gap: 26px; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .cap { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #8A8577; }
+    .phone { width: 390px; height: 844px; border-radius: 30px; overflow: hidden; position: relative; flex: 0 0 auto; outline: 1px solid rgba(7,8,8,0.18); box-shadow: 0 18px 40px rgba(21,71,124,0.14); }
+    .disp { font-weight: 900; text-transform: uppercase; letter-spacing: 0.01em; }
+    .nrw { font-family: 'Archivo Narrow', Archivo, sans-serif; }
+  </style>
+</helmet>
+<div class="board">
+  <div class="hd">
+    <div class="kicker">Option A</div>
+    <div class="name">Poster Bold</div>
+    <div class="why"><b>Why:</b> the brand at full volume — flat color blocks, chunky display type, unmistakable at a glance and on a WhatsApp share. <b>Tradeoff:</b> loud; long browsing sessions can tire, and quiet content (venue notes, bios) has to fight the volume.</div>
+  </div>
+  <div class="phones">
+    <div class="col">
+      <div class="cap">Discover · Tonight</div>
+      <div class="phone" style="background: #15477C;">
+        <div style="display: flex; flex-direction: column; height: 844px; box-sizing: border-box; padding-top: 54px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px 0 20px;">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <svg width="26" height="26" viewBox="0 0 48 48" fill="none"><circle cx="22" cy="9" r="6" fill="#FDBE50"></circle><path d="M13 24c0-5 4-9 9-9s9 4 9 9v10c0 4-3 7-7 7h-1l-3 5-1-5c-3.5-0.5-6-3.5-6-7V24z" fill="#FDBE50"></path><circle cx="9" cy="17" r="3.4" fill="#E9712A"></circle><path d="M4 26c0-3 2.2-5 5-5s5 2 5 5v4.5c0 2.5-2 4.5-4.5 4.5h-0.4L7 38l-0.6-3.1C4.9 34.3 4 32.8 4 31v-5z" fill="#E9712A"></path><circle cx="38" cy="15" r="3.8" fill="#E9712A"></circle><path d="M32.5 25c0-3.2 2.4-5.5 5.5-5.5s5.5 2.3 5.5 5.5v5c0 2.7-2.1 4.8-4.8 4.8h-0.5l-2.4 4-0.6-4.1c-1.6-0.7-2.7-2.3-2.7-4.2V25z" fill="#E9712A"></path></svg>
+              <span class="disp" style="font-size: 15px; color: #FDBE50; letter-spacing: 0.06em;">Tether Clan</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; background: rgba(253,190,80,0.16); border-radius: 999px; padding: 8px 12px; min-height: 28px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FDBE50" stroke-width="2.2"><path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z"></path><circle cx="12" cy="10" r="2.6"></circle></svg>
+              <span class="nrw" style="font-size: 12.5px; font-weight: 700; color: #FDBE50;">Indiranagar · 3 km</span>
+            </div>
+          </div>
+          <div style="padding: 22px 20px 14px 20px; display: flex; flex-direction: column; gap: 4px;">
+            <div class="disp" style="font-size: 46px; line-height: 0.98; color: #FDBE50;">Tonight</div>
+            <div class="nrw" style="font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.85);">Wed 9 Sep · 4 events near you</div>
+          </div>
+          <div style="display: flex; gap: 8px; padding: 0 20px 16px 20px;">
+            <div class="nrw" style="background: #FDBE50; color: #15477C; font-size: 12.5px; font-weight: 700; padding: 9px 13px; border-radius: 4px;">TONIGHT</div>
+            <div class="nrw" style="border: 2px solid rgba(253,190,80,0.5); color: #FDBE50; font-size: 12.5px; font-weight: 700; padding: 7px 13px; border-radius: 4px;">WEEKEND</div>
+            <div class="nrw" style="border: 2px solid rgba(253,190,80,0.5); color: #FDBE50; font-size: 12.5px; font-weight: 700; padding: 7px 13px; border-radius: 4px;">UNDER ₹300</div>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; padding: 0 20px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="background: #FDBE50; border-radius: 10px; padding: 16px 16px 14px 16px; display: flex; flex-direction: column; gap: 9px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="nrw" style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; color: #E9712A;">BOARD GAMES</span>
+                <span class="nrw" style="font-size: 11.5px; font-weight: 700; background: #15477C; color: #FDBE50; padding: 4px 8px; border-radius: 3px;">NEEDS 2 MORE</span>
+              </div>
+              <div class="disp" style="font-size: 21px; line-height: 1.04; color: #15477C;">Catan Night at Dice District</div>
+              <div style="display: flex; gap: 14px; align-items: center;">
+                <span class="nrw" style="font-size: 13px; font-weight: 600; color: #070808;">7:30 PM</span>
+                <span class="nrw" style="font-size: 13px; font-weight: 600; color: #070808;">1.2 km · 9 min</span>
+                <span class="nrw" style="font-size: 13px; font-weight: 700; color: #070808;">₹250</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex;">
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: #15477C; color: #FDBE50; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #FDBE50;">AN</div>
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: #E9712A; color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #FDBE50; margin-left: -7px;">RS</div>
+                  <div style="width: 24px; height: 24px; border-radius: 50%; background: #070808; color: #FDBE50; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #FDBE50; margin-left: -7px;">+4</div>
+                </div>
+                <span class="nrw" style="font-size: 12.5px; font-weight: 600; color: #070808;">4 of 8 in · game on at 6</span>
+              </div>
+            </div>
+            <div style="background: #FFFFFF; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 9px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="nrw" style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; color: #E9712A;">LANGUAGE EXCHANGE</span>
+                <span class="nrw" style="font-size: 11.5px; font-weight: 700; color: #15477C;">FREE</span>
+              </div>
+              <div class="disp" style="font-size: 21px; line-height: 1.04; color: #15477C;">Kannada–English Table</div>
+              <div style="display: flex; gap: 14px;">
+                <span class="nrw" style="font-size: 13px; font-weight: 600; color: #070808;">8:00 PM</span>
+                <span class="nrw" style="font-size: 13px; font-weight: 600; color: #070808;">2.4 km · 18 min</span>
+                <span class="nrw" style="font-size: 13px; font-weight: 600; color: #070808;">All levels</span>
+              </div>
+            </div>
+            <div style="background: #E9712A; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 9px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="nrw" style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; color: #FDBE50;">RUN CLUB · TOMORROW</span>
+                <span class="nrw" style="font-size: 11.5px; font-weight: 700; background: #070808; color: #FDBE50; padding: 4px 8px; border-radius: 3px;">6:00 AM</span>
+              </div>
+              <div class="disp" style="font-size: 21px; line-height: 1.04; color: #FFFFFF;">Sunrise 5K · Cubbon Park</div>
+              <div style="display: flex; gap: 14px;">
+                <span class="nrw" style="font-size: 13px; font-weight: 600; color: #FFF3DC;">Pace groups 6–8 min/km</span>
+                <span class="nrw" style="font-size: 13px; font-weight: 700; color: #FFF3DC;">FREE</span>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; background: #0E3A68; padding: 12px 10px 26px 10px; justify-content: space-around;">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 58px; padding: 4px 0;">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#FDBE50" stroke-width="2"><path d="M3 11l9-8 9 8v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 20v-9z"></path></svg>
+              <span class="nrw" style="font-size: 10px; font-weight: 700; color: #FDBE50;">TONIGHT</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 58px; padding: 4px 0;">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"><path d="M12 21s-7-6.1-7-11a7 7 0 1 1 14 0c0 4.9-7 11-7 11z"></path><circle cx="12" cy="10" r="2.6"></circle></svg>
+              <span class="nrw" style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.55);">MAP</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 58px; padding: 4px 0;">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"><circle cx="9" cy="8" r="3.4"></circle><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"></path><circle cx="17.5" cy="9.5" r="2.6"></circle><path d="M15.5 13.6a5.4 5.4 0 0 1 6 5.4"></path></svg>
+              <span class="nrw" style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.55);">CIRCLE</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 58px; padding: 4px 0;">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"><rect x="3.5" y="5" width="17" height="16" rx="2"></rect><path d="M3.5 10h17M8 2.8V7M16 2.8V7"></path></svg>
+              <span class="nrw" style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.55);">MY PLANS</span>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 58px; padding: 4px 0;">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2"><circle cx="12" cy="8" r="3.6"></circle><path d="M4.5 20.5c0-4.1 3.4-7.5 7.5-7.5s7.5 3.4 7.5 7.5"></path></svg>
+              <span class="nrw" style="font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.55);">YOU</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="cap">Event detail · Quorum state</div>
+      <div class="phone" style="background: #FFFFFF;">
+        <div style="display: flex; flex-direction: column; height: 844px; box-sizing: border-box;">
+          <div style="background: #15477C; padding: 54px 20px 20px 20px; display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FDBE50" stroke-width="2.4"><path d="M15 5l-7 7 7 7"></path></svg>
+              <div style="display: flex; gap: 14px; align-items: center;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDBE50" stroke-width="2"><path d="M14 5.5l6 3v10l-6-3-4 3-6-3v-10l6 3 4-3z"></path></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDBE50" stroke-width="2"><circle cx="18" cy="5" r="2.6"></circle><circle cx="6" cy="12" r="2.6"></circle><circle cx="18" cy="19" r="2.6"></circle><path d="M8.3 10.8l7.4-4.3M8.3 13.2l7.4 4.3"></path></svg>
+              </div>
+            </div>
+            <span class="nrw" style="font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em; color: #E9712A; background: #FDBE50; align-self: flex-start; padding: 5px 9px; border-radius: 3px;">BOARD GAMES · BEGINNER-FRIENDLY</span>
+            <div class="disp" style="font-size: 30px; line-height: 1.02; color: #FDBE50;">Catan Night at Dice District</div>
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: #E9712A; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;">AN</div>
+              <span class="nrw" style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9);">Hosted by Ananya · 4.9 host rating · phone verified</span>
+            </div>
+          </div>
+          <div style="display: flex; background: #FDBE50; padding: 14px 20px;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <span class="nrw" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: #E9712A;">WHEN</span>
+              <span class="nrw" style="font-size: 14px; font-weight: 700; color: #070808;">Tonight · 7:30 PM</span>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <span class="nrw" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: #E9712A;">WHERE</span>
+              <span class="nrw" style="font-size: 14px; font-weight: 700; color: #070808;">1.2 km · 9 min</span>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <span class="nrw" style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: #E9712A;">COST</span>
+              <span class="nrw" style="font-size: 14px; font-weight: 700; color: #070808;">₹250 at venue</span>
+            </div>
+          </div>
+          <div style="flex: 1 1 auto; overflow: hidden; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="border: 3px solid #15477C; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span class="disp" style="font-size: 16px; color: #15477C;">Game on at 6</span>
+                <span class="nrw" style="font-size: 12.5px; font-weight: 700; color: #E9712A;">2 more by Fri 6 PM</span>
+              </div>
+              <div style="display: flex; gap: 5px;">
+                <div style="flex: 1; height: 12px; border-radius: 3px; background: #15477C;"></div>
+                <div style="flex: 1; height: 12px; border-radius: 3px; background: #15477C;"></div>
+                <div style="flex: 1; height: 12px; border-radius: 3px; background: #15477C;"></div>
+                <div style="flex: 1; height: 12px; border-radius: 3px; background: #15477C;"></div>
+                <div style="flex: 1; height: 12px; border-radius: 3px; background: #DCE3EC;"></div>
+                <div style="flex: 1; height: 12px; border-radius: 3px; background: #DCE3EC;"></div>
+              </div>
+              <span class="nrw" style="font-size: 12.5px; font-weight: 600; color: #3A3A38;">4 in so far. If we don't hit 6, everyone's told by Friday evening — no dead evenings.</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <span class="disp" style="font-size: 14px; color: #15477C;">Who's coming</span>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: #15477C; color: #FDBE50; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">AN</div>
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: #E9712A; color: #fff; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">RS</div>
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: #FDBE50; color: #15477C; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">PK</div>
+                <div style="width: 34px; height: 34px; border-radius: 8px; background: #070808; color: #FDBE50; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center;">MJ</div>
+                <span class="nrw" style="font-size: 12.5px; font-weight: 600; color: #3A3A38;">2 first-timers — hosts say hi first</span>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <span class="disp" style="font-size: 14px; color: #15477C;">Finding the place</span>
+              <span class="nrw" style="font-size: 13px; line-height: 1.5; color: #3A3A38;">Dice District Board Game Café, 100 Feet Rd. Entrance is beside Blue Tokai — take the stairs to the second floor. Ask for the Tether Clan table.</span>
+            </div>
+          </div>
+          <div style="padding: 14px 20px 30px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 3px solid #15477C;">
+            <div style="background: #E9712A; border-radius: 8px; min-height: 56px; display: flex; align-items: center; justify-content: center;">
+              <span class="disp" style="font-size: 17px; color: #FFFFFF;">I'm in · ₹250</span>
+            </div>
+            <div style="display: flex; justify-content: center; gap: 6px; align-items: center; min-height: 30px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#15477C" stroke-width="2.2"><path d="M12 20.5s-8-5.4-8-11A4.6 4.6 0 0 1 12 6.6 4.6 4.6 0 0 1 20 9.5c0 5.6-8 11-8 11z"></path></svg>
+              <span class="nrw" style="font-size: 13px; font-weight: 700; color: #15477C;">Interested — remind me before it fills up</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
