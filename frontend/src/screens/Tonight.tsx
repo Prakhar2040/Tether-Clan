@@ -183,7 +183,7 @@ function Calendar({ when, onPick }: { when: When; onPick: (day: number) => void 
 
 export default function Tonight() {
   const navigate = useNavigate()
-  const { place } = useLocation()
+  const { place, distanceKm } = useLocation()
   const [locOpen, setLocOpen] = useState(false)
   const [whoFor, setWhoFor] = useState<string | null>(null)
   const {
@@ -236,7 +236,18 @@ export default function Tonight() {
     result && !offline
       ? result.hydrated.map((h) => events[h.id]).filter(Boolean)
       : null
-  const filtered = engineFiltered ?? localFiltered
+  const unsorted = engineFiltered ?? localFiltered
+
+  // With no search term, nearest first — everything on screen is the same day,
+  // so distance is the useful axis. A search keeps the engine's relevance order.
+  const filtered =
+    query.trim() === ''
+      ? [...unsorted].sort((a, b) => {
+          const va = venues[a.venueId]
+          const vb = venues[b.venueId]
+          return distanceKm(va.lat, va.lng) - distanceKm(vb.lat, vb.lng)
+        })
+      : unsorted
   const fallbackEvents =
     result?.fallbackHydrated?.map((h) => events[h.id]).filter(Boolean) ?? []
 
