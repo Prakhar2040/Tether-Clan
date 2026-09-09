@@ -15,6 +15,7 @@ export interface Venue {
   id: string
   name: string
   area: string
+  areaName: string // clean locality, e.g. "Koramangala"
   lat: number
   lng: number
   entranceNote: string

@@ -7,6 +7,7 @@ import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
 import { useLocation } from '../state/location'
+import { LocationChip, LocationSheet } from '../components/LocationPicker'
 import { DAY_LABELS, matchesWhen, TODAY, useFilters, WEEKDAYS, whenTitle } from '../state/filters'
 import type { When } from '../state/filters'
 import type { SuggestionItem } from '../api/search'
@@ -15,7 +16,6 @@ import {
   CheckIcon,
   ChevronIcon,
   LogoMark,
-  PinIcon,
   SearchIcon,
   SlidersIcon,
 } from '../components/icons'
@@ -31,13 +31,10 @@ function beginnerOk(e: TcEvent): boolean {
 // row sits below it — tap it to open the attendee sheet.
 function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }) {
   const { stateFor, join, markInterested } = useRsvp()
-  const { isReal, distanceKm } = useLocation()
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
   const v = venues[e.venueId]
-  // Real distance once we know where you are; the mock travel time until then.
-  const away = isReal ? `${distanceKm(v.lat, v.lng).toFixed(1)} km away` : `${v.travel.autoMin} min away`
 
   return (
     <article className="card">
@@ -46,7 +43,7 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           <span className="event-title">{e.title}</span>
           <span className="event-meta">
             {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
-            {e.timeLabel} · {priceLabel(e)}
+            {e.timeLabel} · {v.areaName} · {priceLabel(e)}
           </span>
         </Link>
         {state === 'going' ? (
@@ -57,19 +54,6 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           <span className="badge badge-seats">{left} seats left</span>
         ) : null}
       </div>
-      <button
-        className="venue-line"
-        onClick={(ev) => {
-          ev.stopPropagation()
-          navigate(`/map?event=${e.id}`)
-        }}
-      >
-        <PinIcon size={13} color="#15477C" strokeWidth={2.2} />
-        <span>
-          {v.name} · {away}
-        </span>
-        <ChevronIcon size={13} color="#A79F8C" />
-      </button>
       {e.tags && e.tags.length > 0 ? (
         <div className="tag-row">
           {e.tags.map((t) => (
@@ -199,7 +183,8 @@ function Calendar({ when, onPick }: { when: When; onPick: (day: number) => void 
 
 export default function Tonight() {
   const navigate = useNavigate()
-  const [area, setArea] = useState<'Indiranagar' | 'Whitefield'>('Indiranagar')
+  const { place } = useLocation()
+  const [locOpen, setLocOpen] = useState(false)
   const [whoFor, setWhoFor] = useState<string | null>(null)
   const {
     when,
@@ -216,7 +201,7 @@ export default function Tonight() {
     activeCount,
   } = useFilters()
   const [filterOpen, setFilterOpen] = useState(false)
-  const quiet = area === 'Whitefield'
+  const quiet = place.label === 'Whitefield'
 
   const scoped = Object.values(events).filter((e) => matchesWhen(e.dayLabel, when))
   const allTags = [...new Set(scoped.flatMap((e) => e.tags ?? []))].sort()
@@ -278,14 +263,7 @@ export default function Tonight() {
     <div className="screen">
       <div className="top-row">
         <Brand />
-        <button
-          className="location-chip"
-          onClick={() => setArea(quiet ? 'Indiranagar' : 'Whitefield')}
-          title="Switch area"
-        >
-          <PinIcon size={12} color="#E9712A" strokeWidth={2.4} />
-          {area} · 3 km
-        </button>
+        <LocationChip onOpen={() => setLocOpen(true)} />
       </div>
 
       {quiet ? (
@@ -372,6 +350,8 @@ export default function Tonight() {
           </div>
         </>
       )}
+
+      {locOpen ? <LocationSheet onClose={() => setLocOpen(false)} /> : null}
 
       {whoFor ? <WhoSheet e={events[whoFor]} onClose={() => setWhoFor(null)} /> : null}
 

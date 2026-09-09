@@ -29,6 +29,7 @@ export const people: Record<string, Person> = {
 export const venues: Record<string, Venue> = {
   'dice-district': {
     id: 'dice-district',
+    areaName: 'Indiranagar',
     lat: 12.9712,
     lng: 77.6405,
     name: 'Dice District Board Game Café',
@@ -42,6 +43,7 @@ export const venues: Record<string, Venue> = {
   },
   'third-wave': {
     id: 'third-wave',
+    areaName: 'Church Street',
     lat: 12.9757,
     lng: 77.6051,
     name: 'Third Wave Coffee',
@@ -52,6 +54,7 @@ export const venues: Record<string, Venue> = {
   },
   'cubbon-park': {
     id: 'cubbon-park',
+    areaName: 'Cubbon Park',
     lat: 12.9763,
     lng: 77.5929,
     name: 'Cubbon Park',
@@ -62,6 +65,7 @@ export const venues: Record<string, Venue> = {
   },
   'hsr-courts': {
     id: 'hsr-courts',
+    areaName: 'HSR Layout',
     lat: 12.9118,
     lng: 77.6412,
     name: 'HSR Courts',
@@ -72,6 +76,7 @@ export const venues: Record<string, Venue> = {
   },
   'clay-day': {
     id: 'clay-day',
+    areaName: 'Jayanagar',
     lat: 12.9285,
     lng: 77.5861,
     name: 'Clay Day Studio',
@@ -83,6 +88,7 @@ export const venues: Record<string, Venue> = {
   },
   'koramangala-park': {
     id: 'koramangala-park',
+    areaName: 'Koramangala',
     lat: 12.9337,
     lng: 77.6273,
     name: 'Koramangala 3rd Block Park',

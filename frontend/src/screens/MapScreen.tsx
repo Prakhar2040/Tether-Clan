@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { events, priceLabel, venues } from '../data/mock'
+import { events, venues } from '../data/mock'
 import { matchesWhen, useFilters, whenTitle } from '../state/filters'
 import { useLocation } from '../state/location'
+import { LocationSheet } from '../components/LocationPicker'
 import { Brand } from '../components/shared'
 import { PinIcon, SlidersIcon } from '../components/icons'
 import type { TcEvent } from '../types'
@@ -13,18 +14,6 @@ const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
 // Fallback when location is denied or unavailable: a sensible city default,
 // never a blank screen behind a permission wall.
 const RADIUS_KM = 5
-
-// Manual fallback: a user who will not (or cannot) grant location must still
-// be able to say where they are.
-const AREAS = [
-  { id: 'bellandur', name: 'Bellandur', lat: 12.9260, lng: 77.6762 },
-  { id: 'indiranagar', name: 'Indiranagar', lat: 12.9719, lng: 77.6412 },
-  { id: 'koramangala', name: 'Koramangala', lat: 12.9352, lng: 77.6245 },
-  { id: 'hsr', name: 'HSR Layout', lat: 12.9116, lng: 77.6389 },
-  { id: 'whitefield', name: 'Whitefield', lat: 12.9698, lng: 77.7500 },
-  { id: 'jayanagar', name: 'Jayanagar', lat: 12.9308, lng: 77.5838 },
-  { id: 'mg-road', name: 'MG Road / Church St', lat: 12.9756, lng: 77.6046 },
-]
 
 // Activity icon per category, drawn as SVG so pins stay crisp at any zoom.
 const PIN_ICONS: Record<string, string> = {
@@ -80,9 +69,6 @@ function circlePolygon(lat: number, lng: number, km: number) {
 
 export default function MapScreen() {
   const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
-  const focusId = params.get('event')
-  const focused = focusId ? events[focusId] : undefined
   const { when, activeCount } = useFilters()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -90,9 +76,8 @@ export default function MapScreen() {
   const meMarkerRef = useRef<mapboxgl.Marker | null>(null)
   const [ready, setReady] = useState(false)
   const [mapError, setMapError] = useState<string | null>(null)
-  const { place: me, status: locStatus, request, setPlace } = useLocation()
+  const { place: me, status: locStatus, request } = useLocation()
   const [pickerOpen, setPickerOpen] = useState(false)
-  const [locError, setLocError] = useState<string | null>(null)
 
   const { title } = whenTitle(when)
 
@@ -182,29 +167,10 @@ export default function MapScreen() {
   }, [])
 
   // ---- real location, asked for without gating the map ----
-  const requestLocation = async (): Promise<boolean> => {
-    setLocError(null)
-    const ok = await request()
-    if (!ok) setLocError('Could not get a location fix. Pick an area below instead.')
-    return ok
-  }
-
-  const pickArea = (a: (typeof AREAS)[number]) => {
-    setPlace({ lat: a.lat, lng: a.lng, label: a.name })
-    setPickerOpen(false)
-    mapRef.current?.easeTo({ center: [a.lng, a.lat], zoom: 12.6, duration: 600 })
-  }
-
-  // Arriving from an event: centre on its venue instead of on you.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!map || !ready || !focused) return
-    const v = venues[focused.venueId]
-    map.easeTo({ center: [v.lng, v.lat], zoom: 14.4, duration: 700, offset: [0, -70] })
-  }, [ready, focused])
+  const requestLocation = () => request()
 
   useEffect(() => {
-    if (ready && locStatus === 'default' && !focused) requestLocation()
+    if (ready && locStatus === 'default') requestLocation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready])
 
@@ -304,55 +270,10 @@ export default function MapScreen() {
       ) : null}
 
       {pickerOpen ? (
-        <div className="sheet-backdrop" onClick={() => setPickerOpen(false)}>
-          <div className="sheet" onClick={(ev) => ev.stopPropagation()}>
-            <span className="sheet-handle" />
-            <span className="section-label">Where are you?</span>
-
-            <button
-              className="btn btn-primary"
-              style={{ minHeight: 48 }}
-              onClick={async () => {
-                const got = await requestLocation()
-                if (got) setPickerOpen(false)
-              }}
-            >
-              <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} />
-              {locStatus === 'locating' ? 'Finding you…' : 'Use my current location'}
-            </button>
-
-            {locError ? <span className="page-sub">{locError}</span> : null}
-
-            <span className="sheet-section">Or pick an area</span>
-            <div className="chip-row" style={{ padding: 0 }}>
-              {AREAS.map((a) => (
-                <button
-                  key={a.id}
-                  className={me.label === a.name ? 'chip active' : 'chip'}
-                  onClick={() => pickArea(a)}
-                >
-                  {a.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {focused ? (
-        <div className="map-focus-card">
-          <button className="map-focus-close" onClick={() => setParams({})} aria-label="Clear">
-            ✕
-          </button>
-          <span className="event-title" style={{ fontSize: 16 }}>{focused.title}</span>
-          <span className="event-meta">
-            {focused.dayLabel} {focused.timeLabel} · {priceLabel(focused)}
-          </span>
-          <span className="event-meta">{venues[focused.venueId].name} · {venues[focused.venueId].area}</span>
-          <button className="btn btn-primary" style={{ minHeight: 46 }} onClick={() => navigate(`/event/${focused.id}`)}>
-            Open event
-          </button>
-        </div>
+        <LocationSheet
+          onClose={() => setPickerOpen(false)}
+          onPicked={(lat, lng) => mapRef.current?.easeTo({ center: [lng, lat], zoom: 12.6, duration: 600 })}
+        />
       ) : null}
 
       <button className="map-recenter" onClick={recenter} aria-label="Recenter on my location">
