@@ -2,7 +2,7 @@ import type { RankedEvent, SearchResponse, SuggestionGroup, TcEvent } from '../t
 import { activities } from '../data/taxonomy'
 import { areaById, areas } from '../data/areas'
 import { communities, DEFAULT_LOCATION, events, NOW, people, venues, yourCircle } from '../data/seed'
-import { normalize, tokenize, tokenMatches } from './normalize'
+import { normalize, tokenMatches } from './normalize'
 import { route } from './router'
 import { logQuery } from './log'
 
@@ -113,7 +113,7 @@ interface Scored {
 
 const W = { relevance: 0.3, time: 0.25, geo: 0.2, social: 0.15, scarcity: 0.1 }
 
-function scoreEvent(doc: Doc, queryTokens: string[], origin: { lat: number; lng: number }): Scored {
+function scoreEvent(doc: Doc, queryTokens: string[]): Scored {
   const e = doc.event
   const venue = venues[e.venueId]
 
@@ -294,7 +294,7 @@ export function search(params: SearchParams): SearchResponse {
   }
 
   const scored = candidates
-    .map((e) => scoreEvent(composeDoc(e), queryTokens, origin))
+    .map((e) => scoreEvent(composeDoc(e), queryTokens))
     .sort((a, b) => b.score - a.score)
 
   // --- point 9: zero-result fallback — nearest matches beyond the radius ---
@@ -307,7 +307,7 @@ export function search(params: SearchParams): SearchResponse {
         if (queryTokens.length === 0) return true
         return textRelevance(composeDoc(e), queryTokens) > 0.15
       })
-      .map((e) => scoreEvent(composeDoc(e), queryTokens, origin))
+      .map((e) => scoreEvent(composeDoc(e), queryTokens))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
     if (wider.length > 0) {

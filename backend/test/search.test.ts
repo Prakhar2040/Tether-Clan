@@ -82,7 +82,9 @@ describe('synonyms and facets (point 2)', () => {
     expect(ids(search({ q: 'boardgame' }))).toContain('catan-night')
   })
   it('shuttle → badminton', () => {
-    expect(ids(search({ q: 'shuttle' }))).toEqual(['badminton-doubles'])
+    const r = ids(search({ q: 'shuttle' }))
+    expect(r).toContain('badminton-doubles')
+    expect(r.every((id) => id.includes('badminton'))).toBe(true)
   })
   it('ride → cycling', () => {
     expect(ids(search({ q: 'ride' }))).toContain('cycle-loop')

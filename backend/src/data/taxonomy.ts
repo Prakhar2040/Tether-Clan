@@ -64,6 +64,54 @@ export const activities: Activity[] = [
     terms: ['book', 'books', 'reading', 'book club', 'novel'],
     categoryLabels: ['Books'],
   },
+  {
+    id: 'chess',
+    label: 'Chess',
+    terms: ['chess', 'blitz', 'checkmate'],
+    categoryLabels: ['Board games'],
+  },
+  {
+    id: 'football',
+    label: 'Football',
+    terms: ['football', 'soccer', '5s', 'five a side', 'turf'],
+    categoryLabels: ['Football'],
+  },
+  {
+    id: 'music',
+    label: 'Music & open mic',
+    terms: ['music', 'open mic', 'gig', 'jam', 'singing'],
+    categoryLabels: ['Music'],
+  },
+  {
+    id: 'dance',
+    label: 'Dance',
+    terms: ['dance', 'dancing', 'salsa', 'bachata'],
+    categoryLabels: ['Dance'],
+  },
+  {
+    id: 'trivia',
+    label: 'Trivia',
+    terms: ['trivia', 'quiz', 'pub quiz'],
+    categoryLabels: ['Trivia'],
+  },
+  {
+    id: 'yoga',
+    label: 'Yoga',
+    terms: ['yoga', 'stretch', 'flow'],
+    categoryLabels: ['Yoga'],
+  },
+  {
+    id: 'photography',
+    label: 'Photography',
+    terms: ['photo', 'photography', 'photo walk', 'camera'],
+    categoryLabels: ['Photography'],
+  },
+  {
+    id: 'baking',
+    label: 'Baking',
+    terms: ['baking', 'bake', 'sourdough', 'bread'],
+    categoryLabels: ['Make'],
+  },
 ]
 
 // Filter words the router lifts out of the query (point 4).

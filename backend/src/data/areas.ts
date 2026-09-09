@@ -19,6 +19,12 @@ export const areas: Area[] = [
   { id: 'church-street', name: 'Church Street', aliases: ['church st', 'mg road', 'mg rd'], lat: 12.9756, lng: 77.6046, radiusKm: 1.5 },
   { id: 'cubbon-park', name: 'Cubbon Park', aliases: ['cubbon'], lat: 12.9763, lng: 77.5929, radiusKm: 1.5 },
   { id: 'whitefield', name: 'Whitefield', aliases: ['whitefeild', 'whitfield'], lat: 12.9698, lng: 77.75, radiusKm: 3.5 },
+  { id: 'bellandur', name: 'Bellandur', aliases: ['bellandhur', 'belandur'], lat: 12.9260, lng: 77.6762, radiusKm: 3 },
+  { id: 'marathahalli', name: 'Marathahalli', aliases: ['marathalli'], lat: 12.9591, lng: 77.6974, radiusKm: 3 },
+  { id: 'domlur', name: 'Domlur', aliases: [], lat: 12.9611, lng: 77.6387, radiusKm: 2 },
+  { id: 'sarjapur', name: 'Sarjapur Road', aliases: ['sarjapur', 'kaikondrahalli'], lat: 12.9098, lng: 77.6836, radiusKm: 3.5 },
+  { id: 'btm', name: 'BTM Layout', aliases: ['btm'], lat: 12.9166, lng: 77.6101, radiusKm: 2.5 },
+  { id: 'malleshwaram', name: 'Malleshwaram', aliases: ['malleswaram'], lat: 13.0037, lng: 77.5712, radiusKm: 2.5 },
 ]
 
 export const areaById = Object.fromEntries(areas.map((a) => [a.id, a]))
