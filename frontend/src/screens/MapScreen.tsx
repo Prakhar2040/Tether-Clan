@@ -310,18 +310,6 @@ export default function MapScreen() {
         </div>
       ) : null}
 
-      <button
-        className={`loc-chip${locStatus === 'granted' ? ' ok' : ''}`}
-        onClick={() => setPickerOpen(true)}
-      >
-        <PinIcon size={13} color={locStatus === 'granted' ? '#2E7D4F' : '#B4571B'} strokeWidth={2.4} />
-        {locStatus === 'locating'
-          ? 'Finding you…'
-          : locStatus === 'granted'
-            ? 'Using your location'
-            : `Showing ${placeLabel} — tap to change`}
-      </button>
-
       {pickerOpen ? (
         <div className="sheet-backdrop" onClick={() => setPickerOpen(false)}>
           <div className="sheet" onClick={(ev) => ev.stopPropagation()}>
