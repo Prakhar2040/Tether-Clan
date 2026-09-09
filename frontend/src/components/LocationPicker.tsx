@@ -45,9 +45,13 @@ export function LocationSheet({
           style={{ minHeight: 48 }}
           onClick={async () => {
             setError(null)
-            const ok = await request()
-            if (ok) onClose()
-            else setError('Could not get a location fix. Pick an area below instead.')
+            const fix = await request()
+            if (fix) {
+              onPicked?.(fix.lat, fix.lng)
+              onClose()
+            } else {
+              setError('Could not get a location fix. Pick an area below instead.')
+            }
           }}
         >
           <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} />

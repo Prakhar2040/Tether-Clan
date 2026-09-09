@@ -223,17 +223,9 @@ export default function MapScreen() {
 
   // The location button always tries the real thing first; if permission is
   // not given, offer the area picker rather than doing nothing.
-  const recenter = async () => {
-    if (locStatus === 'granted') {
-      mapRef.current?.easeTo({ center: [me.lng, me.lat], zoom: 12.6, duration: 500 })
-      return
-    }
-    // Show the picker straight away: locating can take a moment, and the user
-    // should be able to choose an area instead of watching nothing happen.
-    setPickerOpen(true)
-    const got = await requestLocation()
-    if (got) setPickerOpen(false)
-  }
+  // The locate control opens the sheet; choosing "use my current location"
+  // (or an area) is what moves the map.
+  const recenter = () => setPickerOpen(true)
 
   if (!TOKEN) {
     return (

@@ -19,7 +19,7 @@ interface LocationValue {
   place: Place
   status: LocStatus
   isReal: boolean // true only when it came from the device
-  request: () => Promise<boolean>
+  request: () => Promise<Place | null>
   setPlace: (p: Place) => void
   distanceKm: (lat: number, lng: number) => number
 }
@@ -74,10 +74,10 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   )
 
   // Accepts a recent cached fix, and keeps listening for the first real one.
-  const request = useCallback((): Promise<boolean> => {
+  const request = useCallback((): Promise<Place | null> => {
     if (!('geolocation' in navigator)) {
       setStatus('unsupported')
-      return Promise.resolve(false)
+      return Promise.resolve(null)
     }
     setStatus('locating')
     return new Promise((resolve) => {
@@ -85,12 +85,12 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       let watchId: number | null = null
       let deadline: ReturnType<typeof setTimeout> | null = null
 
-      const finish = (ok: boolean) => {
+      const finish = (fix: Place | null) => {
         if (settled) return
         settled = true
         if (watchId !== null) navigator.geolocation.clearWatch(watchId)
         if (deadline) clearTimeout(deadline)
-        resolve(ok)
+        resolve(fix)
       }
 
       const onFix = (pos: GeolocationPosition) => {
@@ -99,13 +99,13 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         setIsReal(true)
         setStatus('granted')
         persist(p, true)
-        finish(true)
+        finish(p)
       }
 
       const onError = (err: GeolocationPositionError) => {
         if (err.code === err.PERMISSION_DENIED) {
           setStatus('blocked')
-          finish(false)
+          finish(null)
         }
       }
 
@@ -114,7 +114,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       watchId = navigator.geolocation.watchPosition(onFix, onError, opts)
       deadline = setTimeout(() => {
         setStatus('denied')
-        finish(false)
+        finish(null)
       }, 25_000)
     })
   }, [persist])
