@@ -15,6 +15,8 @@ export default function EventDetail() {
   if (!e) return null
   const venue = venues[e.venueId]
   const state = stateFor(e.id)
+  // Deciding needs what/when/where/who; preparing needs roles and icebreakers.
+  const going = state === 'going' || state === 'checked-in'
 
   const headerBadge =
     state === 'going' ? (
@@ -60,8 +62,11 @@ export default function EventDetail() {
               Everyone else is a count — no stranger names, no activity. */}
           {(() => {
             const host = e.attendees.find((a) => a.relation === 'host')
-            const friends = e.attendees.filter((a) => a.relation !== 'host' && isConnected(a.personId))
-            const others = Math.max(0, e.going - friends.length - (host ? 1 : 0))
+            const allFriends = e.attendees.filter((a) => a.relation !== 'host' && isConnected(a.personId))
+            // Cap the named rows: this section must not grow with your circle.
+            const friends = allFriends.slice(0, 3)
+            const moreFriends = allFriends.length - friends.length
+            const others = Math.max(0, e.going - allFriends.length - (host ? 1 : 0))
             return (
               <>
                 {host ? (
@@ -82,6 +87,9 @@ export default function EventDetail() {
                     </span>
                   </div>
                 ))}
+                {moreFriends > 0 ? (
+                  <span className="person-note">and {moreFriends} more from your circle</span>
+                ) : null}
                 {others > 0 ? (
                   <span className="person-note">
                     and {others} other{others > 1 ? 's' : ''} going
@@ -93,7 +101,7 @@ export default function EventDetail() {
           })()}
         </section>
 
-        {e.roles && e.roles.length > 0 ? (
+        {going && e.roles && e.roles.length > 0 ? (
           <section className="stack-2" style={{ gap: 9 }}>
             <span className="section-label">Roles for tonight</span>
             <div className="role-chips">
@@ -112,7 +120,7 @@ export default function EventDetail() {
           </section>
         ) : null}
 
-        {e.icebreaker ? (
+        {going && e.icebreaker ? (
           <section className="icebreaker">
             <span className="icebreaker-label">TONIGHT'S ICEBREAKER</span>
             <span className="icebreaker-text">{e.icebreaker}</span>
