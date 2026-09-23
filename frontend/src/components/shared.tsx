@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import type { Person } from '../types'
+import type { Community, Person } from '../types'
 import { CalendarIcon, CircleIcon, HomeIcon, LogoMark3D, PersonIcon, PinIcon } from './icons'
 
 export function Brand() {
@@ -44,10 +44,28 @@ export function AvatarStack({
   )
 }
 
+// Stands in for a community logo: its initials on its brand colour.
+export function CommunityMark({ c, size = 46 }: { c: Community; size?: number }) {
+  const initials = c.name
+    .split(' ')
+    .filter((w) => /^[A-Za-z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+  return (
+    <span
+      className="comm-mark"
+      style={{ background: c.color, width: size, height: size, fontSize: size * 0.34 }}
+    >
+      {initials}
+    </span>
+  )
+}
+
 const tabs = [
-  { to: '/', label: 'Events', icon: HomeIcon, end: true },
+  { to: '/events', label: 'Events', icon: HomeIcon },
   { to: '/map', label: 'Map', icon: PinIcon },
-  { to: '/circle', label: 'Circle', icon: CircleIcon },
+  { to: '/', label: 'Community', icon: CircleIcon, end: true },
   { to: '/plans', label: 'My plans', icon: CalendarIcon },
   { to: '/you', label: 'You', icon: PersonIcon },
 ]

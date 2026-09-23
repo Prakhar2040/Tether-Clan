@@ -42,7 +42,7 @@ export default function PostEvent() {
 
         <div className="photo-row">
           <div className="photo" style={{ flex: 1.4, background: '#15477C' }}>
-            <span className="photo-label">Ananya · 4 photos</span>
+            <span className="photo-label">Robin · 4 photos</span>
           </div>
           <div className="photo" style={{ flex: 1, background: '#FDBE50' }} />
           <button className="photo-add" style={{ flex: 1 }}>
@@ -80,7 +80,7 @@ export default function PostEvent() {
         <section className="card" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <span className="stack-2" style={{ gap: 2 }}>
             <span className="section-label">How was the night?</span>
-            <span className="person-note" style={{ fontSize: 11.5 }}>Quietly feeds Ananya's host rating</span>
+            <span className="person-note" style={{ fontSize: 11.5 }}>Quietly feeds Robin's host rating</span>
           </span>
           <div className="stars">
             {[1, 2, 3, 4, 5].map((n) => (
@@ -123,7 +123,7 @@ export default function PostEvent() {
             >
               skip a week
             </button>{' '}
-            — Ananya won't count it against you
+            — Robin won't count it against you
           </span>
         ) : null}
       </div>

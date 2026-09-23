@@ -117,7 +117,7 @@ export default function Plans() {
             <div className="no-match">
               <span className="t">Nothing planned yet</span>
               <span className="s">There are four things on near you tonight</span>
-              <button className="btn btn-cta" style={{ flex: 'none', padding: '0 20px' }} onClick={() => navigate('/')}>
+              <button className="btn btn-cta" style={{ flex: 'none', padding: '0 20px' }} onClick={() => navigate('/events')}>
                 See tonight
               </button>
             </div>

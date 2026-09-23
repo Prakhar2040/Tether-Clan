@@ -245,7 +245,7 @@ export default function MapScreen() {
     <div className="screen no-bar map-screen">
       <div className="map-header">
         <Brand />
-        <button className="location-chip" onClick={() => navigate('/')}>
+        <button className="location-chip" onClick={() => navigate('/events')}>
           <SlidersIcon size={13} color="#15477C" />
           {title}
           {activeCount > 0 ? ` · ${activeCount}` : ''}

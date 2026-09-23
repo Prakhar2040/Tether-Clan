@@ -799,7 +799,7 @@ button {
 /* ---------- My Plans ---------- */
 .seg-tabs {
   display: flex; gap: 6px; margin: 0 20px 14px;
-  background: #EDE8DA; border-radius: 999px; padding: 4px;
+  background: #E6DFCD; border-radius: 999px; padding: 4px;
 }
 .seg-tab {
   flex: 1; min-height: 38px; border-radius: 999px;
@@ -973,3 +973,396 @@ button {
   display: flex; align-items: center; justify-content: center;
   color: var(--faint); font-size: 14px;
 }
+
+/* ---------- Community ---------- */
+/* The list row is the whole surface: who posted, what they said, how long
+   ago. Preview text truncates at two lines so every row is the same height. */
+.comm-mark {
+  flex: 0 0 auto; border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 900; color: #fff; letter-spacing: 0.02em;
+}
+/* A community tile leads with its photo: you should recognise the room
+   before you read the name. Text sits on a scrim so it survives any image. */
+.comm-tile {
+  display: flex; flex-direction: column;
+  background: var(--card); border-radius: 18px; overflow: hidden;
+  text-decoration: none; box-shadow: 0 6px 22px rgba(21,71,124,0.10);
+}
+.comm-cover {
+  position: relative; height: 176px;
+  background-size: cover; background-position: center 30%;
+  display: flex; align-items: flex-end;
+}
+.comm-cover::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(7,8,8,0.82) 0%, rgba(7,8,8,0.42) 38%, rgba(7,8,8,0) 72%);
+}
+/* No photo yet: the brand colour carries it, with the mark washed in behind. */
+.comm-cover.no-photo::after {
+  background: linear-gradient(to top, rgba(7,8,8,0.62) 0%, rgba(7,8,8,0.12) 60%, rgba(7,8,8,0) 100%);
+}
+.comm-cover-mark {
+  position: absolute; right: 14px; top: 8px;
+  font-size: 74px; font-weight: 900; letter-spacing: -0.02em;
+  color: rgba(255,255,255,0.16); line-height: 1;
+}
+.comm-cover-text {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 3px; padding: 16px; width: 100%;
+}
+.comm-kicker {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--yellow);
+}
+.comm-tile-name { font-size: 22px; font-weight: 900; line-height: 1.1; color: #fff; }
+/* Members and rating are the two numbers that say whether this room is
+   worth walking into, so they get size, not a caption. */
+.comm-tile-stats {
+  display: flex; align-items: center; gap: 5px; margin-top: 3px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.78);
+}
+.comm-tile-stats svg { flex: 0 0 auto; }
+.comm-stat-n {
+  font-family: Archivo, sans-serif;
+  font-size: 17px; font-weight: 900; color: #fff; letter-spacing: -0.01em;
+}
+.comm-stat-word { position: relative; top: 0.5px; }
+.comm-stat-dot {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(255,255,255,0.5); margin: 0 3px;
+}
+.comm-tile-dot {
+  position: absolute; z-index: 1; top: 14px; right: 14px;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--orange); box-shadow: 0 0 0 3px rgba(233,113,42,0.28);
+}
+
+.comm-tile-body { display: flex; flex-direction: column; padding: 13px 16px 14px; }
+/* The next plan is the reason to open the tile, so it gets its own line. */
+.comm-next {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 13px; font-weight: 700; color: var(--blue);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.comm-next.quiet { color: var(--faint); font-weight: 600; }
+.comm-next-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); flex: 0 0 auto; }
+
+.comm-banner {
+  position: relative; height: 164px; margin: 0 0 -24px;
+  background-size: cover; background-position: center 30%;
+}
+.comm-banner::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(248,245,236,0.96) 0%, rgba(248,245,236,0) 58%);
+}
+.comm-banner .comm-kicker { display: none; }
+
+.comm-time {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--faint); flex: 0 0 auto;
+}
+
+.comm-head {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; gap: 9px; padding: 0 20px 14px;
+}
+.comm-head .comm-mark { box-shadow: 0 0 0 3px var(--paper); }
+.comm-head-name {
+  font-size: 25px; font-weight: 900; line-height: 1.08;
+  color: var(--blue); letter-spacing: -0.015em;
+}
+.comm-head-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.comm-head-stats {
+  display: flex; align-items: center; gap: 5px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: var(--muted-2);
+}
+.comm-head-stats .comm-stat-n { font-size: 16px; color: var(--blue); }
+.comm-head-stats .comm-stat-dot { background: var(--outline); }
+.comm-rate-n { color: var(--faint); }
+
+/* Underlined text beats a beige pill: less weight, same job. */
+.tab-bar {
+  display: flex; gap: 22px; padding: 0 20px;
+  border-bottom: 1px solid var(--line); margin-bottom: 4px;
+}
+.tab-link {
+  background: none; padding: 0 0 10px; min-height: 36px;
+  font-size: 13.5px; font-weight: 700; color: var(--muted);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab-link.on { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ---------- The channel ---------- */
+/* No cards. Posts are text on paper, separated by air and a hairline —
+   the white-box-on-beige stack was the thing that read as cluttered. */
+.channel { flex: 1; padding: 6px 20px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+/* Pinned collapses to its headline — it is reference material, not news. */
+.pinned-band {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--warm-chip); border-radius: 12px;
+  padding: 11px 13px;
+}
+.pinned-head {
+  display: flex; align-items: center; gap: 9px;
+  background: none; padding: 0; text-align: left; width: 100%;
+}
+.pinned-head svg:last-child { transition: transform 0.18s ease; flex: 0 0 auto; }
+.pinned-band.open .pinned-head svg:last-child { transform: rotate(90deg); }
+.pinned-head .post-pin { flex: 0 0 auto; }
+.pinned-title {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13.5px; font-weight: 800; color: var(--warm-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pinned-band .post-body { font-size: 13.5px; color: #5A5241; }
+
+/* ---------- A message ---------- */
+.msg { display: flex; gap: 9px; align-items: flex-start; }
+.msg-gutter { flex: 0 0 32px; padding-top: 4px; }
+.msg-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+
+/* The squared top-left corner is the tail: it points at who sent it. */
+/* Washed in the community's own colour, so Dice District and the run club
+   do not read as the same room. White is reserved for content cards. */
+.msg-bubble {
+  display: flex; flex-direction: column; gap: 9px;
+  background: color-mix(in srgb, var(--comm, #15477C) 5%, #fff);
+  border: 1px solid color-mix(in srgb, var(--comm, #15477C) 14%, transparent);
+  border-radius: 4px 16px 16px 16px;
+  padding: 12px 14px 11px;
+}
+.msg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.msg-name { font-size: 13px; font-weight: 800; color: color-mix(in srgb, var(--comm, #15477C) 88%, #000); }
+.msg-time {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 600; color: var(--faint); flex: 0 0 auto;
+}
+
+.post-pin {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: var(--warm-text);
+}
+/* A headline gives the channel something to skim, and the emoji gives it an
+   entry point. */
+.post-title {
+  display: flex; align-items: baseline; gap: 8px; margin: 0;
+  font-size: 16.5px; font-weight: 900; line-height: 1.25;
+  color: color-mix(in srgb, var(--comm, #15477C) 88%, #000); letter-spacing: -0.01em;
+}
+.post-emoji { font-size: 18px; line-height: 1; flex: 0 0 auto; }
+.post-body { font-size: 14.5px; line-height: 1.55; font-weight: 500; color: #4A463D; margin: 0; }
+
+/* Reactions sit under the bubble as chips — they close the message off and
+   make the gap to the next one unmistakable. Only emoji people actually
+   used get a chip; the rest live behind the plus. */
+.react-row { display: flex; flex-wrap: nowrap; gap: 5px; padding-left: 2px; min-width: 0; }
+.react-row.wrapped { flex-wrap: wrap; }
+.react-row .react-btn, .react-row .react-add, .react-row .react-more { flex: 0 0 auto; }
+.react-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #fff; border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 9px 3px 7px; min-height: 27px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 700; color: var(--muted-2);
+}
+.react-emoji { font-size: 14px; line-height: 1; }
+.react-btn.on {
+  border-color: color-mix(in srgb, var(--comm, #15477C) 45%, transparent);
+  background: color-mix(in srgb, var(--comm, #15477C) 9%, #fff);
+  color: color-mix(in srgb, var(--comm, #15477C) 85%, #000);
+}
+.react-more {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fff; border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 10px; min-height: 27px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 700; color: var(--muted-2);
+}
+.react-add {
+  display: inline-flex; align-items: center; gap: 1px;
+  background: #fff; border: 1px dashed var(--outline); border-radius: 999px;
+  padding: 3px 9px; min-height: 27px; color: var(--muted);
+}
+.react-plus { font-size: 13px; font-weight: 800; line-height: 1; }
+
+/* The picker: everything else you could send. */
+.sheet.picker { gap: 12px; }
+.picker-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
+.picker-cell {
+  aspect-ratio: 1; border-radius: 12px; font-size: 23px;
+  display: flex; align-items: center; justify-content: center;
+  background: #F2EFE7; border: 1.5px solid transparent;
+}
+.picker-cell.on { border-color: var(--blue); background: #E4EDF7; }
+
+/* Where you stopped last time. */
+.read-line {
+  display: flex; align-items: center; gap: 10px; padding: 0;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--orange);
+}
+.read-line::before, .read-line::after {
+  content: ''; flex: 1; height: 1px; background: rgba(233,113,42,0.3);
+}
+
+
+/* ---------- Poll ---------- */
+.poll { display: flex; flex-direction: column; gap: 6px; }
+.poll-q {
+  display: flex; align-items: baseline; gap: 9px; margin-bottom: 4px;
+  font-size: 16.5px; font-weight: 900; line-height: 1.25; letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--comm, #15477C) 88%, #000);
+}
+.poll-opt {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--chip-line); border-radius: 9px;
+  padding: 9px 12px; min-height: 40px; background: none; text-align: left;
+}
+.poll-opt.voted { border-color: transparent; background: rgba(7,8,8,0.045); }
+.poll-opt.mine { background: color-mix(in srgb, var(--comm, #15477C) 13%, #fff); }
+.poll-fill { position: absolute; left: 0; top: 0; bottom: 0; background: rgba(7,8,8,0.07); }
+.poll-opt.mine .poll-fill { background: color-mix(in srgb, var(--comm, #15477C) 22%, #fff); }
+.poll-label {
+  position: relative; z-index: 1; flex: 1;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13.5px; font-weight: 600; color: var(--ink);
+}
+.poll-opt.mine .poll-label { font-weight: 800; color: color-mix(in srgb, var(--comm, #15477C) 88%, #000); }
+.poll-pct {
+  position: relative; z-index: 1; flex: 0 0 auto;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 800; color: var(--muted-2);
+}
+.poll-opt.mine .poll-pct { color: color-mix(in srgb, var(--comm, #15477C) 88%, #000); }
+.poll-foot {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--faint); margin-top: 3px;
+}
+
+.composer-lock {
+  position: sticky; bottom: 0; display: flex; align-items: center; gap: 8px;
+  padding: 13px 20px calc(13px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line); background: var(--paper);
+}
+.composer-lock svg { flex: 0 0 auto; }
+.composer-hint {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--muted);
+}
+
+.gallery-count {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--faint); padding-bottom: 2px;
+}
+.photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.photo-cell.wide { grid-column: 1 / -1; }
+.photo-grid .photo {
+  background-size: cover; background-position: center;
+  position: relative; overflow: hidden;
+}
+.photo-grid .photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(7,8,8,0.6) 0%, rgba(7,8,8,0) 55%);
+}
+.photo-grid .photo-label { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1px; }
+.photo-by { font-size: 9.5px; font-weight: 600; color: rgba(255,255,255,0.6); }
+/* ---------- About ---------- */
+.about { flex: 1; padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 24px; }
+.about-block { display: flex; flex-direction: column; gap: 12px; }
+.about-label {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--faint);
+}
+/* The description carries the tab, so it gets real size and measure. */
+/* Their own words, so they get the size. */
+.about-lead { font-size: 16px; line-height: 1.62; font-weight: 500; color: #33302A; margin: 0; }
+.about-lead:first-of-type { font-size: 17px; }
+.about-body { font-size: 14.5px; line-height: 1.58; font-weight: 500; color: #4A463D; margin: 0; }
+.about-facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.about-fact {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; color: var(--muted-2);
+  border: 1px solid var(--chip-line); border-radius: 999px; padding: 4px 10px;
+}
+
+/* About is the owner's page: they lead it, and the community follows as
+   something they are saying. */
+.owner-head { display: flex; gap: 14px; align-items: center; }
+.owner-photo {
+  flex: 0 0 88px; height: 88px; border-radius: 16px;
+  background-size: cover; background-position: center;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; font-weight: 900; color: rgba(255,255,255,0.55);
+}
+.owner-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.owner-name { font-size: 24px; font-weight: 900; color: var(--blue); line-height: 1.1; letter-spacing: -0.015em; }
+.owner-title { font-size: 13.5px; font-weight: 700; color: var(--muted-2); }
+.owner-role {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--faint); margin-top: 3px;
+}
+
+/* The line worth pulling out. An editorial device, and the cheapest way to
+   stop three stacked paragraphs reading as a wall. */
+.pull-quote {
+  margin: 2px 0; padding: 0 0 0 16px;
+  border-left: 3px solid color-mix(in srgb, var(--comm, #15477C) 55%, transparent);
+  font-size: 19px; line-height: 1.4; font-weight: 800; letter-spacing: -0.012em;
+  color: color-mix(in srgb, var(--comm, #15477C) 88%, #000);
+}
+
+/* Numbers break prose better than another paragraph does. */
+.stat-strip {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+}
+.stat {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--paper); padding: 13px 14px;
+}
+.stat-n {
+  font-size: 22px; font-weight: 900; letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--comm, #15477C) 88%, #000);
+}
+.stat-label {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; line-height: 1.3; color: var(--muted-2);
+}
+
+/* The photos already exist; About was the one page not using them. */
+.strip {
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -20px; padding: 0 20px 2px;
+}
+.strip::-webkit-scrollbar { display: none; }
+.strip-cell { flex: 0 0 168px; }
+.strip .photo { background-size: cover; background-position: center; position: relative; overflow: hidden; }
+.strip .photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(7,8,8,0.6) 0%, rgba(7,8,8,0) 55%);
+}
+.strip .photo-label { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1px; }
+
+/* Numbered, because house rules are a list you can point at. */
+.rules { display: flex; flex-direction: column; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.rules li { display: flex; gap: 11px; align-items: flex-start; }
+.rule-n {
+  flex: 0 0 22px; height: 22px; border-radius: 50%;
+  background: color-mix(in srgb, var(--comm, #15477C) 12%, #fff);
+  color: color-mix(in srgb, var(--comm, #15477C) 85%, #000);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 800; margin-top: 1px;
+}
+.rule-text { font-size: 14px; line-height: 1.5; font-weight: 500; color: #4A463D; }

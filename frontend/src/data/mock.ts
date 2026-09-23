@@ -1,4 +1,4 @@
-import type { Community, Person, Series, TcEvent, Venue } from '../types'
+import type { Person, Series, TcEvent, Venue } from '../types'
 
 // All sample data. Wed 9 Sep 2026, 17:50 IST, Bengaluru.
 export const NOW = new Date('2026-09-09T17:50:00+05:30')
@@ -6,7 +6,7 @@ export const NOW = new Date('2026-09-09T17:50:00+05:30')
 export const CONNECT_WINDOW_HOURS = 48
 
 export const people: Record<string, Person> = {
-  ananya: { id: 'ananya', name: 'Ananya', initials: 'AN', color: 'orange' },
+  ananya: { id: 'ananya', name: 'Robin', initials: 'RB', color: 'orange' },
   rohan: { id: 'rohan', name: 'Rohan', initials: 'RS', color: 'blue' },
   priya: { id: 'priya', name: 'Priya', initials: 'PK', color: 'yellow' },
   manav: { id: 'manav', name: 'Manav', initials: 'MJ', color: 'ink' },
@@ -165,10 +165,7 @@ export const venues: Record<string, Venue> = {
   },
 }
 
-export const communities: Record<string, Community> = {
-  'dice-district-regulars': { id: 'dice-district-regulars', name: 'Dice District Regulars', memberCount: 64 },
-  'cubbon-runners': { id: 'cubbon-runners', name: 'Cubbon Park Run Club', memberCount: 210 },
-}
+// Communities now live in ./community.ts, with their posts, photos and owners.
 
 export const series: Record<string, Series> = {
   'wednesday-catan': {
@@ -422,6 +419,32 @@ export const events: Record<string, TcEvent> = {
       { id: 'bring-catan', label: 'Bring Catan', claimedBy: 'rohan' },
       { id: 'book-table', label: 'Book the table' },
     ],
+  },
+  'board-game-saturday': {
+    id: 'board-game-saturday',
+    title: 'Board Game Saturday · 40+ on the shelf',
+    category: 'board-games',
+    categoryLabel: 'Board games',
+    dayLabel: 'Sat',
+    timeLabel: '5:00 PM',
+    startsAt: '2026-09-12T17:00:00+05:30',
+    endsAt: '2026-09-12T21:00:00+05:30',
+    price: 200,
+    capacity: 24,
+    going: 14,
+    beginnerFriendly: true,
+    levelLabel: 'All levels',
+    venueId: 'dice-district',
+    hostId: 'ananya',
+    firstTimers: 5,
+    tags: ['Beginner friendly', 'Social', 'Indoor'],
+    attendees: [
+      { personId: 'ananya', relation: 'host', note: 'Runs the shelf and teaches anything on it' },
+      { personId: 'rohan', relation: 'regular' },
+      { personId: 'aditi', relation: 'regular' },
+      { personId: 'karthik', relation: 'first-timer' },
+    ],
+    whatToExpect: 'Four hours, open shelf, tables reshuffle as games end.',
   },
   'kannada-english': {
     id: 'kannada-english',

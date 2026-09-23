@@ -73,9 +73,36 @@ export const CheckIcon = (p: IconProps) => (
   </svg>
 )
 
-export const HeartIcon = (p: IconProps) => (
-  <svg {...base(p)}>
+export const HeartIcon = ({ filled, ...p }: IconProps & { filled?: boolean }) => (
+  <svg {...base(p)} fill={filled ? p.color ?? 'currentColor' : 'none'}>
     <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l8.8 8.8 8.8-8.8a5.5 5.5 0 0 0 0-7.8z" />
+  </svg>
+)
+
+// The add-a-reaction affordance, paired with a small plus.
+export const SmileyIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M8.5 14.5a4.5 4.5 0 0 0 7 0" />
+    <path d="M9 9.5h.01M15 9.5h.01" strokeWidth={2.6} />
+  </svg>
+)
+
+// A pushpin, for the one post a community keeps at the top.
+export const PinnedIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M9 3h6l-1 5 3.5 3.5H6.5L10 8 9 3z" />
+    <path d="M12 11.5V21" />
+  </svg>
+)
+
+// Two hands, for the second reaction. Reads at 14px, which is the only test.
+export const ClapIcon = ({ filled, ...p }: IconProps & { filled?: boolean }) => (
+  <svg {...base(p)} fill={filled ? p.color ?? 'currentColor' : 'none'}>
+    <path d="M8.5 13.5L5.8 10a1.6 1.6 0 0 1 2.5-2l2.2 2.6" />
+    <path d="M10.5 9.2V5.1a1.6 1.6 0 0 1 3.2 0v4.3" />
+    <path d="M13.7 9.6V6.4a1.6 1.6 0 0 1 3.2 0v5.1" />
+    <path d="M16.9 11.5c0-1 .5-1.8 1.5-1.8s1.6.8 1.6 1.8v2.4A6.4 6.4 0 0 1 13.6 21c-2.6 0-4-1.2-5.1-2.8" />
   </svg>
 )
 
