@@ -88,6 +88,14 @@ export const SmileyIcon = (p: IconProps) => (
   </svg>
 )
 
+// A ticket stub, notched on both sides.
+export const TicketIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3 9.5V7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2.5a2.5 2.5 0 0 0 0 5V17a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2.5a2.5 2.5 0 0 0 0-5z" />
+    <path d="M14 6v2M14 11v2M14 16v2" />
+  </svg>
+)
+
 // A pushpin, for the one post a community keeps at the top.
 export const PinnedIcon = (p: IconProps) => (
   <svg {...base(p)}>

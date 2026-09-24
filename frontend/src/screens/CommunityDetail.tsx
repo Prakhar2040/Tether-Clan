@@ -1,29 +1,37 @@
 import { useEffect, useState } from 'react'
 import type { CSSProperties } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
   canPost,
   communities,
+  eventImages,
+  pastCommunityEvents,
   photosFor,
   postsFor,
+  upcomingCommunityEvents,
 } from '../data/community'
-import { people } from '../data/mock'
+import { events, people, priceLabel, venues } from '../data/mock'
+import { useRsvp } from '../state/rsvp'
 import { useCommunities } from '../state/communities'
+import { TicketPass } from './Ticket'
+import { dateParts, PastRow, TicketRow } from '../components/tickets'
 import { Avatar, CommunityMark } from '../components/shared'
 import {
   BackIcon,
   CheckIcon,
   ChevronIcon,
+  PinIcon,
+  TicketIcon,
   LockIcon,
   PinnedIcon,
   ShareIcon,
   SmileyIcon,
   StarIcon,
 } from '../components/icons'
-import type { Community, CommunityPhoto, CommunityPost } from '../types'
+import type { Community, CommunityPhoto, CommunityPost, TcEvent } from '../types'
 import { REACTION_PICKER } from '../types'
 
-type Tab = 'posts' | 'photos' | 'about'
+type Tab = 'posts' | 'tickets' | 'photos' | 'about'
 
 
 function PhotoTile({ photo, height = 92 }: { photo: CommunityPhoto; height?: number }) {
@@ -161,6 +169,89 @@ function PollBody({ post }: { post: CommunityPost }) {
   )
 }
 
+// The plan, as a ticketing app shows one: a picture, what it is, where it
+// is, and one button. No attendee list, no roles — who else is coming is
+// theirs to tell you, not ours.
+function PlanView({
+  event,
+  onBack,
+  onPass,
+}: {
+  event: TcEvent
+  onBack: () => void
+  onPass: (id: string) => void
+}) {
+  const { stateFor, join } = useRsvp()
+  const navigate = useNavigate()
+  const state = stateFor(event.id)
+  const soldOut = event.going >= event.capacity
+  const held = state === 'going' || state === 'checked-in'
+  const past = event.dayLabel === 'Past'
+  const venue = venues[event.venueId]
+  const image = eventImages[event.id]
+  const { dow, day, mon } = dateParts(event)
+
+  return (
+    <div className="plan-view">
+      <button className="plan-back" onClick={onBack}>
+        <BackIcon size={14} color="#15477C" /> All tickets
+      </button>
+
+      {image ? (
+        <div className="plan-hero" style={{ backgroundImage: `url(${image})` }} />
+      ) : null}
+
+      <div className="plan-headline">
+        <span className="plan-date">
+          {dow} {day} {mon} · {event.timeLabel}
+        </span>
+        <h2 className="plan-name">{event.title}</h2>
+      </div>
+
+      {event.whatToExpect ? <p className="about-body">{event.whatToExpect}</p> : null}
+
+      {event.theme ? (
+        <div className="plan-theme">
+          <span className="about-label">Theme</span>
+          <span className="plan-theme-text">{event.theme}</span>
+        </div>
+      ) : null}
+
+      <section className="about-block">
+        <span className="about-label">Where</span>
+        <div className="plan-where">
+          <span className="plan-venue">{venue.name}</span>
+          <span className="plan-area">{venue.area}</span>
+          <span className="plan-entrance">{venue.entranceNote}</span>
+          <button className="plan-map" onClick={() => navigate('/map')}>
+            <PinIcon size={14} color="#15477C" strokeWidth={2.2} />
+            Open in map
+            <ChevronIcon size={13} color="#8A8577" />
+          </button>
+        </div>
+      </section>
+
+      <div className="plan-action">
+        {past ? (
+          <span className="plan-action-note">This one has already happened</span>
+        ) : held ? (
+          <button className="btn btn-confirm" onClick={() => onPass(event.id)}>
+            <TicketIcon size={16} color="#FDBE50" strokeWidth={2.2} /> View your ticket
+          </button>
+        ) : soldOut ? (
+          <button className="btn btn-ghost" disabled>
+            Sold out
+          </button>
+        ) : (
+          <button className="btn btn-confirm" onClick={() => join(event.id)}>
+            {event.price === 0 ? 'Reserve a place · Free' : `Buy · ${priceLabel(event)}`}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // A message, not an article block. Avatar in the gutter, bubble to the
 // right, reactions hanging off the bottom — so you can see at a glance that
 // Robin put this here, and where one message stops and the next starts.
@@ -196,7 +287,14 @@ function PostCard({ post }: { post: CommunityPost }) {
 
 export function CommunityView({ community: c }: { community: Community }) {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<Tab>('posts')
+  const [params, setParams] = useSearchParams()
+  const tab = (params.get('tab') as Tab) ?? 'posts'
+  const openPlanId = params.get('plan')
+  const openPassId = params.get('pass')
+  const setTab = (t: Tab) => setParams(t === 'posts' ? {} : { tab: t }, { replace: true })
+  const openPlan = (eventId: string) => setParams({ tab: 'tickets', plan: eventId })
+  const openPass = (eventId: string) => setParams({ tab: 'tickets', pass: eventId })
+  const closePlan = () => setParams({ tab: 'tickets' }, { replace: true })
   const [pinOpen, setPinOpen] = useState(false)
   const { roleIn, isMember, join, leave, markRead, newCount, readLineAt } = useCommunities()
 
@@ -226,12 +324,19 @@ export function CommunityView({ community: c }: { community: Community }) {
   }
   if (fresh > 0 && !linePlaced) timeline.push({ sep: 'new' })
   const gallery = photosFor(c.id)
+
+  // Tickets split three ways: what you already hold, what is still for sale,
+  // and what has already happened — missed nights included.
+  const upcoming = upcomingCommunityEvents(c.id)
+  const past = pastCommunityEvents(c.id)
+  const openPlan_ = openPlanId ? events[openPlanId] : undefined
+  const openPass_ = openPassId ? events[openPassId] : undefined
   const owners = c.ownerIds.map((p) => people[p]).filter(Boolean)
   const owner = owners[0]
   const admins = c.adminIds.map((p) => people[p]).filter(Boolean)
 
   return (
-    <div className="screen no-bar">
+    <div className="screen">
       <div className="top-row">
         <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back">
           <BackIcon size={20} color="#15477C" />
@@ -274,6 +379,9 @@ export function CommunityView({ community: c }: { community: Community }) {
       <div className="tab-bar">
         <button className={tab === 'posts' ? 'tab-link on' : 'tab-link'} onClick={() => setTab('posts')}>
           Posts
+        </button>
+        <button className={tab === 'tickets' ? 'tab-link on' : 'tab-link'} onClick={() => setTab('tickets')}>
+          Tickets
         </button>
         <button className={tab === 'photos' ? 'tab-link on' : 'tab-link'} onClick={() => setTab('photos')}>
           Photos
@@ -337,6 +445,48 @@ export function CommunityView({ community: c }: { community: Community }) {
             )}
           </div>
         </>
+      ) : null}
+
+      {tab === 'tickets' ? (
+        <div className="about" style={{ '--comm': c.color } as CSSProperties}>
+          {openPass_ ? (
+            <div className="plan-view">
+              <button className="plan-back" onClick={closePlan}>
+                <BackIcon size={14} color="#15477C" /> All tickets
+              </button>
+              <TicketPass event={openPass_} communityId={c.id} />
+            </div>
+          ) : openPlan_ ? (
+            <PlanView event={openPlan_} onBack={closePlan} onPass={openPass} />
+          ) : (
+            <>
+              <section className="about-block">
+                <span className="about-label">On sale</span>
+                {upcoming.length === 0 ? (
+                  <p className="about-body">
+                    Nothing on sale right now. {owner?.name ?? 'The owner'} posts when the next
+                    one opens.
+                  </p>
+                ) : (
+                  upcoming.map((e) => (
+                    <TicketRow key={e.id} event={e} onOpen={openPlan} onPass={openPass} />
+                  ))
+                )}
+              </section>
+
+              {past.length > 0 ? (
+                <section className="about-block">
+                  <span className="about-label">Already happened</span>
+                  <div className="past-list">
+                    {past.map((e) => (
+                      <PastRow key={e.id} event={e} onOpen={openPlan} />
+                    ))}
+                  </div>
+                </section>
+              ) : null}
+            </>
+          )}
+        </div>
       ) : null}
 
       {tab === 'photos' ? (

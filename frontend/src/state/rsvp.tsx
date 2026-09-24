@@ -33,12 +33,14 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
     // Upcoming
     'catan-night': 'going',
     'badminton-doubles': 'going',
-    'catan-next-wed': 'going',
+    'sunrise-5k-thu': 'going',
     // Past — gives My Plans a history to show
     'catan-sep-2': 'attended',
     'sketchwalk-aug-30': 'attended',
     'catan-aug-26': 'no-showed',
     'pottery-aug-23': 'cancelled',
+    'run-sep-6': 'attended',
+    'run-aug-30': 'no-showed',
   })
 
   const stateFor = useCallback(

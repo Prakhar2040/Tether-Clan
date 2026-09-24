@@ -377,13 +377,6 @@ button {
 .stub p { font-family: 'Archivo Narrow', Archivo, sans-serif; font-size: 13px; font-weight: 600; color: var(--muted); margin: 0; }
 
 /* Plans list */
-.plan-state {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
-}
-.plan-state.going { color: var(--green); }
-.plan-state.interested { color: var(--warm-text); }
-.plan-state.checked-in, .plan-state.attended { color: var(--muted); }
 
 /* Instagram-style "who's going" row */
 .going-row {
@@ -404,15 +397,6 @@ button {
   text-align: left;
 }
 .going-names b { color: var(--ink); font-weight: 700; }
-.relation-tag {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--faint);
-  margin-left: 4px;
-}
 
 /* Bottom sheet */
 .sheet-backdrop {
@@ -797,116 +781,18 @@ button {
 }
 
 /* ---------- My Plans ---------- */
-.seg-tabs {
-  display: flex; gap: 6px; margin: 0 20px 14px;
-  background: #E6DFCD; border-radius: 999px; padding: 4px;
-}
-.seg-tab {
-  flex: 1; min-height: 38px; border-radius: 999px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13px; font-weight: 700; color: var(--muted-2);
-  display: flex; align-items: center; justify-content: center;
-}
-.seg-tab.on { background: var(--card); color: var(--blue); box-shadow: 0 1px 4px rgba(7,8,8,0.1); }
 
 /* State clarity: confirmed vs missed vs cancelled must never be ambiguous */
-.plan-pill {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; border-radius: 5px; padding: 5px 8px;
-  white-space: nowrap;
-}
-.plan-pill.confirmed { background: var(--green-bg); color: var(--green); }
-.plan-pill.missed { background: #F2EFE7; color: var(--muted); }
-.plan-pill.cancelled { background: #F6EAE4; color: #9A6A4F; }
 
 /* The imminent plan gets everything you need in the next few hours */
-.hero-plan {
-  background: var(--blue);
-  border-radius: 18px;
-  padding: 16px;
-  display: flex; flex-direction: column; gap: 10px;
-  box-shadow: 0 6px 20px rgba(21,71,124,0.22);
-}
-.hero-when {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--yellow);
-}
-.hero-title {
-  font-size: 21px; font-weight: 900; line-height: 1.1; color: #FFFFFF;
-  text-decoration: none;
-}
-.hero-meta {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.82);
-}
-.hero-people { display: flex; align-items: center; gap: 9px; }
-.hero-plan .avatar { border-color: var(--blue); }
-.hero-actions { display: flex; gap: 8px; }
-.hero-btn {
-  flex: 1; min-height: 46px; border-radius: 10px;
-  background: var(--card);
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12.5px; font-weight: 700; color: var(--blue);
-}
 
-.plan-card.muted { opacity: 0.72; }
-.plan-foot {
-  display: flex; align-items: center; justify-content: space-between;
-  border-top: 1px solid var(--line); padding-top: 10px;
-}
-.plan-cancel {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12.5px; font-weight: 700; color: var(--muted);
-  min-height: 36px; padding: 0 4px;
-}
 
 /* Series awareness: one card, not twelve identical rows */
-.series-note {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--paper); border-radius: 9px; padding: 9px 11px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 600; color: var(--muted-2);
-}
-.series-note span { flex: 1; }
-.series-skip {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 700; color: var(--orange);
-  white-space: nowrap; min-height: 32px;
-}
 
 /* Quorum: the one card state that is genuinely actionable */
-.quorum { display: flex; flex-direction: column; gap: 7px; }
-.quorum-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.quorum-text {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12.5px; font-weight: 700; color: var(--orange-text);
-}
-.quorum-text.met { color: var(--green); }
-.quorum-nudge {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 700; color: var(--blue);
-  white-space: nowrap;
-}
-.quorum-bar { display: flex; gap: 4px; }
-.quorum-bar .seg { flex: 1; height: 8px; border-radius: 3px; background: #E4DFD1; }
-.quorum-bar .seg.on { background: var(--blue); }
 
 
 /* Past tab */
-.record-strip {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 2px 2px 6px;
-}
-.record-main { font-size: 14px; font-weight: 800; color: var(--blue); }
-.record-sub {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 600; color: var(--faint);
-}
-.connected-row { display: flex; align-items: center; gap: 9px; }
-.rate-row { display: flex; align-items: center; justify-content: space-between; }
 
 /* ---------- Circle ---------- */
 .going-anon {
@@ -917,25 +803,7 @@ button {
   font-size: 10px; font-weight: 800; flex: 0 0 auto;
 }
 
-.person-request { flex-direction: row; align-items: center; gap: 11px; padding: 13px 14px; }
-.person-row-card { flex-direction: row; align-items: center; gap: 11px; padding: 13px 14px; width: 100%; }
-.req-actions { display: flex; align-items: center; gap: 8px; }
-.req-deny {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12.5px; font-weight: 700; color: var(--muted);
-  min-height: 36px; padding: 0 6px;
-}
 
-.roster-list {
-  display: flex; flex-direction: column; gap: 2px;
-  max-height: 42dvh; overflow-y: auto;
-  margin: 0 -6px;
-}
-.roster-row {
-  display: flex; align-items: center; gap: 11px;
-  padding: 8px 6px; border-radius: 10px;
-}
-.roster-row:hover { background: var(--paper); }
 
 /* Tappable venue line on an event card → map, focused on that plan */
 .venue-line {
@@ -950,12 +818,6 @@ button {
 .venue-line span { flex: 1; }
 .venue-line:hover { background: #EFEBE0; }
 
-.tile-tap { align-items: flex-start; text-align: left; }
-.tile-link {
-  display: flex; align-items: center; gap: 5px; margin-top: 4px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11.5px; font-weight: 700; color: var(--orange);
-}
 
 /* Card for the plan the map was opened for */
 .map-focus-card {
@@ -1061,10 +923,6 @@ button {
 }
 .comm-banner .comm-kicker { display: none; }
 
-.comm-time {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11.5px; font-weight: 600; color: var(--faint); flex: 0 0 auto;
-}
 
 .comm-head {
   position: relative; z-index: 1;
@@ -1100,7 +958,7 @@ button {
 /* ---------- The channel ---------- */
 /* No cards. Posts are text on paper, separated by air and a hairline —
    the white-box-on-beige stack was the thing that read as cluttered. */
-.channel { flex: 1; padding: 6px 20px 16px; display: flex; flex-direction: column; gap: 18px; }
+.channel { flex: 1; padding: 6px 20px 74px; display: flex; flex-direction: column; gap: 18px; }
 
 /* Pinned collapses to its headline — it is reference material, not news. */
 .pinned-band {
@@ -1247,10 +1105,13 @@ button {
   font-size: 11.5px; font-weight: 600; color: var(--faint); margin-top: 3px;
 }
 
+/* Pinned the same way the tab bar is, so nothing can scroll into the strip
+   between the two and show through. */
 .composer-lock {
-  position: sticky; bottom: 0; display: flex; align-items: center; gap: 8px;
-  padding: 13px 20px calc(13px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line); background: var(--paper);
+  position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; z-index: 15;
+  display: flex; align-items: center; gap: 8px;
+  padding: 13px 20px; border-top: 1px solid var(--line); background: var(--paper);
 }
 .composer-lock svg { flex: 0 0 auto; }
 .composer-hint {
@@ -1354,6 +1215,96 @@ button {
 }
 .strip .photo-label { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1px; }
 
+/* ---------- Tickets ---------- */
+/* Shaped like a ticket: a date stub, then the plan, then one action. No
+   seat counts anywhere — on sale or sold out, nothing in between. */
+.ticket {
+  display: flex; align-items: stretch; gap: 0;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  overflow: hidden;
+}
+.ticket.held { border-color: color-mix(in srgb, var(--green) 40%, transparent); }
+.stub {
+  flex: 0 0 62px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0; padding: 12px 0;
+  background: color-mix(in srgb, var(--comm, #15477C) 9%, #fff);
+  border-right: 1px dashed color-mix(in srgb, var(--comm, #15477C) 30%, transparent);
+  color: color-mix(in srgb, var(--comm, #15477C) 88%, #000);
+}
+.ticket.held .stub {
+  background: var(--green-bg);
+  border-right-color: color-mix(in srgb, var(--green) 35%, transparent);
+  color: var(--green);
+}
+.stub-dow, .stub-mon {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.14em; opacity: 0.75;
+}
+.stub-day { font-size: 24px; font-weight: 900; line-height: 1.05; letter-spacing: -0.02em; }
+
+.ticket-main {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;
+  background: none; padding: 12px 12px 12px 14px; text-align: left;
+}
+.ticket-title { font-size: 15px; font-weight: 800; color: var(--blue); line-height: 1.25; }
+.ticket-where {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--faint);
+}
+.ticket-yours {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 3px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em; color: var(--green);
+}
+.sold-tag {
+  flex: 0 0 auto; align-self: center; margin-right: 13px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); background: #F2EFE7; border-radius: 6px; padding: 6px 9px;
+}
+.ticket-buy {
+  flex: 0 0 auto; align-self: center; margin-right: 11px;
+  min-height: 38px; padding: 0 13px; font-size: 12.5px;
+}
+
+/* Past is faded back so it never competes with what is still to come — but
+   the mark on the left stays crisp, so you can tell at a glance which nights
+   you were actually at. */
+.past-list { display: flex; flex-direction: column; }
+.past-row {
+  display: flex; align-items: center; gap: 11px;
+  background: none; padding: 11px 2px; text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+.past-row:last-child { border-bottom: none; }
+.past-mark {
+  flex: 0 0 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 900; line-height: 1;
+}
+.past-row.went .past-mark { background: var(--green-bg); color: var(--green); }
+.past-row.missed .past-mark { background: var(--orange-chip); color: var(--orange-text); }
+.past-row.skipped .past-mark { background: #ECE7DA; color: var(--faint); }
+.past-date {
+  flex: 0 0 74px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: var(--faint);
+}
+.past-title {
+  flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.past-verdict {
+  flex: 0 0 auto;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em;
+}
+.past-row.went .past-verdict { color: var(--green); }
+.past-row.missed .past-verdict { color: var(--orange-text); }
+.past-row.skipped .past-verdict { color: var(--faint); }
+/* Only the ones you were at keep their weight. */
+.past-row.went .past-title { color: var(--muted-2); }
+
 /* Numbered, because house rules are a list you can point at. */
 .rules { display: flex; flex-direction: column; gap: 11px; margin: 0; padding: 0; list-style: none; }
 .rules li { display: flex; gap: 11px; align-items: flex-start; }
@@ -1366,3 +1317,186 @@ button {
   font-size: 11.5px; font-weight: 800; margin-top: 1px;
 }
 .rule-text { font-size: 14px; line-height: 1.5; font-weight: 500; color: #4A463D; }
+
+/* ---------- The ticket ---------- */
+/* A ticket proves a seat and says what tonight is about. It does not list
+   who else is coming, carries no roles, and cannot be cancelled from here. */
+.ticket-screen { align-items: center; }
+.pass-wrap { display: flex; flex-direction: column; width: 100%; }
+.pass {
+  width: 100%; max-width: 330px; margin: 6px auto 0;
+  background: #fff; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 10px 40px rgba(21,71,124,0.16);
+}
+.pass-top {
+  display: flex; flex-direction: column; gap: 6px;
+  background: var(--comm, #15477C); color: #fff; padding: 22px 22px 20px;
+}
+.pass-community {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--yellow);
+}
+.pass-title { font-size: 23px; font-weight: 900; line-height: 1.15; margin: 0; letter-spacing: -0.015em; }
+.pass-when {
+  font-size: 14px; font-weight: 800; letter-spacing: 0.04em; margin-top: 4px;
+}
+.pass-where {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 500; line-height: 1.45; color: rgba(255,255,255,0.78);
+}
+.pass-theme {
+  display: flex; flex-direction: column; gap: 3px;
+  background: color-mix(in srgb, var(--comm, #15477C) 8%, #fff);
+  padding: 14px 22px;
+}
+.pass-theme-label {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: color-mix(in srgb, var(--comm, #15477C) 70%, #000);
+}
+.pass-theme-text { font-size: 13.5px; line-height: 1.45; font-weight: 600; color: #2A2823; }
+
+/* The tear line, with the notches punched out of the card's edges. */
+.perf { position: relative; height: 1px; background: none; }
+.perf::before {
+  content: ''; position: absolute; left: 16px; right: 16px; top: 0;
+  border-top: 2px dashed var(--line);
+}
+.notch {
+  position: absolute; top: -11px; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--paper);
+}
+.notch.left { left: -11px; }
+.notch.right { right: -11px; }
+
+.pass-bottom {
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+  padding: 24px 22px 26px;
+}
+.qr { width: 176px; height: 176px; display: block; }
+.pass-ref {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.16em; color: var(--ink);
+}
+.pass-hint {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 600; color: var(--faint);
+}
+.pass-paid {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted-2); border-top: 1px solid var(--line);
+  padding-top: 11px; margin-top: 3px; width: 100%; text-align: center;
+}
+.pass-privacy {
+  max-width: 300px; margin: 20px auto 24px; text-align: center;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 500; line-height: 1.5; color: var(--faint);
+}
+.stub-empty {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px; padding: 0 30px; text-align: center;
+}
+.stub-empty .t { font-size: 16px; font-weight: 800; color: var(--blue); }
+.stub-empty .s {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 13px; font-weight: 500; color: var(--muted);
+}
+
+/* My Plans: a seat you hold has a ticket, and this is where you look for it. */
+
+/* ---------- A plan, inside the Tickets tab ---------- */
+/* The community header and tabs stay put; only this panel changes. A
+   ticketing app's plan page: picture, what it is, where, one button. No
+   attendee list anywhere — who else is coming is theirs to tell you. */
+.plan-view { display: flex; flex-direction: column; gap: 16px; }
+.plan-back {
+  display: inline-flex; align-items: center; gap: 6px; align-self: flex-start;
+  background: none; padding: 0; min-height: 30px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--blue);
+}
+.plan-hero {
+  height: 192px; border-radius: 16px; margin: 0 -20px;
+  background-size: cover; background-position: center 35%;
+}
+.plan-headline { display: flex; flex-direction: column; gap: 5px; }
+.plan-date {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--comm, #15477C) 78%, #000);
+}
+.plan-name {
+  font-size: 23px; font-weight: 900; line-height: 1.15; margin: 0;
+  color: var(--blue); letter-spacing: -0.015em;
+}
+.plan-theme {
+  display: flex; flex-direction: column; gap: 5px;
+  background: color-mix(in srgb, var(--comm, #15477C) 7%, #fff);
+  border-radius: 12px; padding: 13px 15px;
+}
+.plan-theme-text { font-size: 13.5px; line-height: 1.5; font-weight: 600; color: #2A2823; }
+.plan-where { display: flex; flex-direction: column; gap: 3px; }
+.plan-venue { font-size: 15.5px; font-weight: 800; color: var(--blue); }
+.plan-area {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: var(--muted-2);
+}
+.plan-entrance {
+  font-size: 13px; line-height: 1.5; font-weight: 500; color: var(--muted); margin-top: 4px;
+}
+.plan-map {
+  display: flex; align-items: center; gap: 7px; margin-top: 9px;
+  background: none; border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 11px; min-height: 40px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 700; color: var(--blue);
+}
+.plan-map svg:last-child { margin-left: auto; }
+.plan-action { display: flex; flex-direction: column; margin-top: 2px; }
+.plan-action .btn { width: 100%; }
+.plan-action-note {
+  text-align: center; padding: 14px 0;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: var(--faint);
+}
+
+/* ---------- My Plans ---------- */
+/* Same language as a community's Tickets tab: a stub, the plan, one action. */
+.plan-entry { display: flex; flex-direction: column; gap: 7px; }
+.plan-entry-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 0 2px;
+}
+.plan-series {
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--faint);
+}
+.plan-link {
+  background: none; padding: 0; min-height: 26px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--blue); text-decoration: underline; text-underline-offset: 3px;
+}
+.plan-link.danger { color: var(--muted); }
+
+.ticket-kicker {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.13em;
+  text-transform: uppercase; color: var(--faint);
+}
+.past-kicker {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 600; color: var(--faint); margin-left: 7px;
+}
+
+/* One rating prompt, for the most recent night you were actually at. */
+.rate-card {
+  display: flex; flex-direction: column; gap: 5px; align-items: flex-start;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 15px 16px;
+}
+.rate-title { font-size: 16px; font-weight: 800; color: var(--blue); line-height: 1.2; }
+.rate-card .stars { margin: 6px 0 4px; gap: 6px; }

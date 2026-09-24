@@ -13,6 +13,7 @@ import Tonight from './screens/Tonight'
 import EventDetail from './screens/EventDetail'
 import Community from './screens/Community'
 import CommunityDetail from './screens/CommunityDetail'
+import Ticket from './screens/Ticket'
 import DayOf from './screens/DayOf'
 import PostEvent from './screens/PostEvent'
 import Plans from './screens/Plans'
@@ -57,8 +58,11 @@ export default function App() {
               }
             />
             <Route path="/you" element={<Stub title="Your profile" />} />
+            {/* Inside the tab shell: going into a community must not strand
+                you without the bottom bar. */}
+            <Route path="/community/:id" element={<CommunityDetail />} />
+            <Route path="/ticket/:id" element={<Ticket />} />
           </Route>
-          <Route path="/community/:id" element={<CommunityDetail />} />
           <Route path="/event/:id" element={<EventDetail />} />
           <Route path="/event/:id/live" element={<DayOf />} />
           <Route path="/event/:id/recap" element={<PostEvent />} />

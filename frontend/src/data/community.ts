@@ -163,7 +163,8 @@ export const lastReadAt: Record<string, number> = {
 
 // Plans this community runs but that are not on a series yet.
 const looseEventIds: Record<string, string[]> = {
-  'dice-district-regulars': ['board-game-saturday'],
+  'dice-district-regulars': ['board-game-saturday', 'catan-sep-8'],
+  'cubbon-runners': ['long-run-sat', 'pace-clinic', 'run-sep-6', 'run-aug-30', 'run-aug-23'],
   'sketchbook-bengaluru': ['sketchwalk', 'sketchwalk-aug-30'],
   'sarjapur-riders': ['cycle-loop'],
 }
@@ -465,12 +466,30 @@ export const posts: CommunityPost[] = [
 ]
 
 export const photos: CommunityPhoto[] = [
+  { id: 'cpr-p1', communityId: 'cubbon-runners', src: runClubCover, color: '#2E7D4F', caption: 'Two hundred of us', byId: 'rahul', timeLabel: '3w' },
   { id: 'ddr-p1', communityId: 'dice-district-regulars', src: ddrCelebration, color: '#15477C', caption: 'Aditi, from last place', byId: 'rohan', timeLabel: '1d', eventId: 'catan-sep-8' },
   { id: 'ddr-p2', communityId: 'dice-district-regulars', src: ddrHegemony, color: '#0E3A68', caption: 'Hegemony, four hours in', byId: 'rohan', timeLabel: '1d' },
   { id: 'ddr-p3', communityId: 'dice-district-regulars', src: ddrWizard, color: '#E9712A', caption: 'Rock Paper Wizard, and the hand signals', byId: 'ananya', timeLabel: '2d' },
   { id: 'ddr-p6', communityId: 'dice-district-regulars', src: ddrHall, color: '#15477C', caption: 'Games night at the hall', byId: 'rohan', timeLabel: '2w' },
   { id: 'ddr-p11', communityId: 'dice-district-regulars', src: ddrOrigins, color: '#E9712A', caption: 'Where it started', byId: 'ananya', timeLabel: '3mo' },
 ]
+// A plan's hero image. Events do not carry their own art yet, so the
+// community's own photos stand in.
+export const eventImages: Record<string, string> = {
+  'catan-night': ddrCelebration,
+  'board-game-saturday': ddrHegemony,
+  'catan-next-wed': ddrWizard,
+  'catan-sep-8': ddrHall,
+  'catan-sep-2': ddrOrigins,
+  'catan-aug-26': ddrHall,
+  'sunrise-5k-thu': runClubCover,
+  'long-run-sat': runClubCover,
+  'pace-clinic': runClubCover,
+  'run-sep-6': runClubCover,
+  'run-aug-30': runClubCover,
+  'run-aug-23': runClubCover,
+}
+
 // ---- derivations ----
 
 export function communityEvents(communityId: string): TcEvent[] {
@@ -487,10 +506,27 @@ export function communityEvents(communityId: string): TcEvent[] {
 // carry a dateLabel instead.
 const UPCOMING_ORDER: Record<string, number> = { Tonight: 0, Tomorrow: 1, Sat: 2, Sun: 3, 'Next Wed': 4 }
 
+// Past plans, most recent first. Includes the ones you did not go to —
+// a community's history is not only the nights you turned up for.
+export function pastCommunityEvents(communityId: string): TcEvent[] {
+  const when = (e: TcEvent) => (e.startsAt ? new Date(e.startsAt).getTime() : 0)
+  return communityEvents(communityId)
+    .filter((e) => !(e.dayLabel in UPCOMING_ORDER))
+    .sort((a, b) => when(b) - when(a))
+}
+
 export function upcomingCommunityEvents(communityId: string): TcEvent[] {
   return communityEvents(communityId)
     .filter((e) => e.dayLabel in UPCOMING_ORDER)
     .sort((a, b) => UPCOMING_ORDER[a.dayLabel] - UPCOMING_ORDER[b.dayLabel])
+}
+
+// Which community a plan belongs to, so My Plans can say where it came from
+// and link back to the room that runs it.
+export function communityOf(eventId: string): Community | undefined {
+  return Object.values(communities).find((c) =>
+    communityEvents(c.id).some((e) => e.id === eventId),
+  )
 }
 
 export function postsFor(communityId: string): CommunityPost[] {
