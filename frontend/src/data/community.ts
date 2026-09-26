@@ -16,7 +16,7 @@ export const communities: Record<string, Community> = {
   'dice-district-regulars': {
     id: 'dice-district-regulars',
     name: 'Dice District Regulars',
-    memberCount: 64,
+    memberCount: 100,
     blurb: 'Board games every Wednesday, Koramangala',
     description:
       'We play Catan, Wingspan and whatever someone drags along, every Wednesday at Dice District. Turn up alone — someone will teach you the rules and you will not sit out a round. Games start at 7:30 sharp because the last round always runs long.',
@@ -164,7 +164,7 @@ export const lastReadAt: Record<string, number> = {
 // Plans this community runs but that are not on a series yet.
 const looseEventIds: Record<string, string[]> = {
   'dice-district-regulars': ['board-game-saturday', 'catan-sep-8'],
-  'cubbon-runners': ['long-run-sat', 'pace-clinic', 'run-sep-6', 'run-aug-30', 'run-aug-23'],
+  'cubbon-runners': ['pace-clinic', 'run-sep-6', 'run-aug-30', 'run-aug-23'],
   'sketchbook-bengaluru': ['sketchwalk', 'sketchwalk-aug-30'],
   'sarjapur-riders': ['cycle-loop'],
 }
@@ -466,6 +466,7 @@ export const posts: CommunityPost[] = [
 ]
 
 export const photos: CommunityPhoto[] = [
+  { id: 'ddr-p0', communityId: 'dice-district-regulars', src: boardGamesCover, color: '#15477C', caption: 'Wednesday at Dice District', byId: 'ananya', timeLabel: '2d' },
   { id: 'cpr-p1', communityId: 'cubbon-runners', src: runClubCover, color: '#2E7D4F', caption: 'Two hundred of us', byId: 'rahul', timeLabel: '3w' },
   { id: 'ddr-p1', communityId: 'dice-district-regulars', src: ddrCelebration, color: '#15477C', caption: 'Aditi, from last place', byId: 'rohan', timeLabel: '1d', eventId: 'catan-sep-8' },
   { id: 'ddr-p2', communityId: 'dice-district-regulars', src: ddrHegemony, color: '#0E3A68', caption: 'Hegemony, four hours in', byId: 'rohan', timeLabel: '1d' },

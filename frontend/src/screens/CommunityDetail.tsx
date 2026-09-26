@@ -11,6 +11,7 @@ import {
   upcomingCommunityEvents,
 } from '../data/community'
 import { events, people, priceLabel, venues } from '../data/mock'
+import { competitionsOf, standings } from '../data/leaderboard'
 import { useRsvp } from '../state/rsvp'
 import { useCommunities } from '../state/communities'
 import { TicketPass } from './Ticket'
@@ -31,7 +32,12 @@ import {
 import type { Community, CommunityPhoto, CommunityPost, TcEvent } from '../types'
 import { REACTION_PICKER } from '../types'
 
-type Tab = 'posts' | 'tickets' | 'photos' | 'about'
+type Tab = 'posts' | 'tickets' | 'photos' | 'board' | 'about'
+
+function nth(n: number): string {
+  if (n % 100 >= 11 && n % 100 <= 13) return 'th'
+  return ['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'
+}
 
 
 function PhotoTile({ photo, height = 92 }: { photo: CommunityPhoto; height?: number }) {
@@ -324,6 +330,17 @@ export function CommunityView({ community: c }: { community: Community }) {
   }
   if (fresh > 0 && !linePlaced) timeline.push({ sep: 'new' })
   const gallery = photosFor(c.id)
+  const comps = competitionsOf(c.id)
+  // The most recent competition is what the table means by default. The
+  // chosen scope belongs to one community, so switching rooms has to fall
+  // back rather than ask for a table that cannot exist.
+  const [picked, setPicked] = useState<string | null>(null)
+  const scope =
+    picked === 'all' || comps.some((x) => x.id === picked) ? picked! : (comps[0]?.id ?? 'all')
+  const setScope = setPicked
+  const table = standings(c.id, scope)
+  const you = table.find((r) => r.isYou)
+  const here = comps.find((x) => x.id === scope)
 
   // Tickets split three ways: what you already hold, what is still for sale,
   // and what has already happened — missed nights included.
@@ -385,6 +402,9 @@ export function CommunityView({ community: c }: { community: Community }) {
         </button>
         <button className={tab === 'photos' ? 'tab-link on' : 'tab-link'} onClick={() => setTab('photos')}>
           Photos
+        </button>
+        <button className={tab === 'board' ? 'tab-link on' : 'tab-link'} onClick={() => setTab('board')}>
+          Leaderboard
         </button>
         <button className={tab === 'about' ? 'tab-link on' : 'tab-link'} onClick={() => setTab('about')}>
           About
@@ -512,6 +532,76 @@ export function CommunityView({ community: c }: { community: Community }) {
               </div>
             </>
           )}
+        </div>
+      ) : null}
+
+      {tab === 'board' ? (
+        <div className="board" style={{ '--comm': c.color } as CSSProperties}>
+          {/* The month is the table. All-time sits behind it. */}
+          <div className="board-pick">
+            <select value={scope} onChange={(e) => setScope(e.target.value)} aria-label="Which table">
+              {comps.map((comp, i) => (
+                <option value={comp.id} key={comp.id}>
+                  {comp.name} · {comp.dateLabel}
+                  {i === 0 ? ' · latest' : ''}
+                </option>
+              ))}
+              <option value="all">All time · {comps.length} competitions</option>
+            </select>
+            <ChevronIcon size={14} color="#6B665A" />
+          </div>
+
+          <div className="board-head">
+            <span className="board-note">
+              {scope === 'all'
+                ? `Every competition so far, ${comps.length} of them. Ten points for a win, seven for second, five for third — and a point for entering.`
+                : `${here?.entrants ?? 0} entered. How they finished on the day.`}
+            </span>
+          </div>
+
+          <div className="podium">
+            {table.slice(0, 3).map((r) => (
+              <div className={`pod pod-${r.rank}${r.isYou ? ' you' : ''}`} key={r.person.id}>
+                <span className="pod-rank">{r.rank}</span>
+                <span className={`avatar avatar-${r.person.color}`}>{r.person.initials}</span>
+                <span className="pod-name">{r.person.name}</span>
+                <span className="pod-n">{scope === 'all' ? r.points : r.place}</span>
+                <span className="pod-l">{scope === 'all' ? 'points' : nth(r.place)}</span>
+                {scope === 'all' && r.wins > 0 ? <span className="pod-wins">{r.wins}× won</span> : null}
+              </div>
+            ))}
+          </div>
+
+          <div className="board-list">
+            {table.slice(3, 20).map((r) => (
+              <div className={r.isYou ? 'brow you' : 'brow'} key={r.person.id}>
+                <span className="brow-rank">{r.rank}</span>
+                <span className={`avatar avatar-${r.person.color}`}>{r.person.initials}</span>
+                <span className="brow-name">
+                  {r.person.name}
+                  {scope === 'all' && r.wins > 0 ? (
+                    <span className="brow-streak">{r.wins}× won</span>
+                  ) : null}
+                </span>
+                {scope === 'all' ? <span className="brow-sub">{r.entered} in</span> : null}
+                <span className="brow-n">{scope === 'all' ? r.points : r.place}</span>
+              </div>
+            ))}
+          </div>
+
+          {you && you.rank > 20 ? (
+            <div className="board-you">
+              <span className="brow-rank">{you.rank}</span>
+              <span className={`avatar avatar-${you.person.color}`}>{you.person.initials}</span>
+              <span className="brow-name">You</span>
+              {scope === 'all' ? <span className="brow-sub">{you.entered} in</span> : null}
+              <span className="brow-n">{scope === 'all' ? you.points : you.place}</span>
+            </div>
+          ) : null}
+
+          {scope !== 'all' && !you ? (
+            <p className="board-foot">You sat this one out.</p>
+          ) : null}
         </div>
       ) : null}
 

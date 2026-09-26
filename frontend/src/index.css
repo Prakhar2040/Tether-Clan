@@ -1192,6 +1192,8 @@ button {
   display: flex; flex-direction: column; gap: 1px;
   background: var(--paper); padding: 13px 14px;
 }
+/* An odd last tile spans the row rather than leaving a hole beside it. */
+.stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .stat-n {
   font-size: 22px; font-weight: 900; letter-spacing: -0.02em;
   color: color-mix(in srgb, var(--comm, #15477C) 88%, #000);
@@ -1500,3 +1502,243 @@ button {
 }
 .rate-title { font-size: 16px; font-weight: 800; color: var(--blue); line-height: 1.2; }
 .rate-card .stars { margin: 6px 0 4px; gap: 6px; }
+
+/* ---------- Leaderboard ---------- */
+/* A standing, not a schedule: how often people have turned up, never who is
+   coming to anything. */
+.board { flex: 1; padding: 10px 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+/* Which table you are looking at, and a way to reach the others. */
+.board-pick { position: relative; display: flex; align-items: center; }
+.board-pick select {
+  appearance: none; width: 100%;
+  font-family: Archivo, sans-serif; font-size: 14.5px; font-weight: 800; color: var(--blue);
+  background: #fff; border: 1px solid var(--line); border-radius: 11px;
+  padding: 11px 36px 11px 14px; outline: none;
+}
+.board-pick select:focus { border-color: var(--blue); }
+.board-pick svg { position: absolute; right: 13px; transform: rotate(90deg); pointer-events: none; }
+.board-head { display: flex; flex-direction: column; gap: 4px; }
+.board-note {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; line-height: 1.45; font-weight: 500; color: var(--faint);
+}
+
+/* Top three get the height, in that order: second, first, third. */
+.podium { display: grid; grid-template-columns: 1fr 1.16fr 1fr; gap: 8px; align-items: end; }
+.pod {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  border-radius: 14px; padding: 14px 8px 12px; text-align: center;
+  background: #fff; border: 1px solid var(--line);
+}
+.pod-1 {
+  order: 2; padding-top: 20px;
+  background: linear-gradient(to bottom, #FFF6E0, #fff);
+  border-color: var(--yellow); box-shadow: 0 4px 18px rgba(253,190,80,0.35);
+}
+.pod-2 { order: 1; }
+.pod-3 { order: 3; }
+.pod-rank {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11.5px; font-weight: 900; background: #ECE7DA; color: var(--muted-2);
+}
+.pod-1 .pod-rank { background: var(--yellow); color: var(--blue); }
+.pod .avatar { width: 40px; height: 40px; font-size: 14px; }
+.pod-1 .avatar { width: 50px; height: 50px; font-size: 17px; }
+.pod-name {
+  font-size: 12px; font-weight: 800; color: var(--blue); line-height: 1.2;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.pod-n {
+  font-size: 21px; font-weight: 900; letter-spacing: -0.02em; line-height: 1;
+  color: color-mix(in srgb, var(--comm, #15477C) 88%, #000);
+}
+.pod-1 .pod-n { font-size: 26px; }
+.pod-l {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--faint);
+}
+.pod-wins {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 9.5px; font-weight: 700; color: var(--warm-text);
+  background: var(--warm-chip); border-radius: 4px; padding: 2px 6px; margin-top: 2px;
+}
+
+.board-list {
+  display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+}
+.brow {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 13px; border-bottom: 1px solid var(--line);
+}
+.brow:last-child { border-bottom: none; }
+.brow.you, .board-you {
+  background: color-mix(in srgb, var(--comm, #15477C) 8%, #fff);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--comm, #15477C) 70%, transparent);
+}
+.brow-rank {
+  flex: 0 0 22px; text-align: center;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 800; color: var(--faint);
+}
+.brow .avatar, .board-you .avatar { width: 28px; height: 28px; font-size: 10px; }
+.brow-name {
+  flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 7px;
+  font-size: 13.5px; font-weight: 700; color: var(--blue);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.brow-streak {
+  flex: 0 0 auto;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em;
+  color: var(--orange-text); background: var(--orange-chip);
+  border-radius: 4px; padding: 2px 6px;
+}
+.brow-sub {
+  flex: 0 0 auto;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 600; color: var(--faint);
+}
+.brow-n {
+  flex: 0 0 34px; text-align: right;
+  font-size: 15px; font-weight: 900; letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--comm, #15477C) 85%, #000);
+}
+
+/* Your own row follows you down the page when you are far from the top. */
+.board-you {
+  position: sticky; bottom: 84px; z-index: 5;
+  display: flex; align-items: center; gap: 11px;
+  border: 1px solid color-mix(in srgb, var(--comm, #15477C) 35%, transparent);
+  border-radius: 12px; padding: 10px 13px;
+}
+.board-foot {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; line-height: 1.5; font-weight: 600; color: var(--muted-2);
+  margin: 0; padding: 0 2px;
+}
+/* Five tabs need the room. */
+.tab-bar { gap: 17px; overflow-x: auto; scrollbar-width: none; }
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-link { flex: 0 0 auto; }
+
+/* ---------- Your profile ---------- */
+.me-head {
+  display: flex; flex-direction: column; align-items: center; gap: 7px;
+  padding: 14px 20px 20px;
+}
+.me-avatar {
+  width: 78px; height: 78px; font-size: 27px;
+  box-shadow: 0 6px 22px rgba(233,113,42,0.28);
+}
+.me-name {
+  font-size: 26px; font-weight: 900; letter-spacing: -0.02em;
+  color: var(--blue); margin: 4px 0 0; line-height: 1.1;
+}
+.me-sub {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: var(--faint);
+}
+
+.me-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+}
+.me-stat { background: var(--paper); padding: 13px 16px; display: flex; flex-direction: column; gap: 1px; }
+.me-n { font-size: 24px; font-weight: 900; letter-spacing: -0.025em; color: var(--blue); line-height: 1.1; }
+.me-n.warn { color: var(--orange-text); }
+.me-l {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 600; line-height: 1.35; color: var(--muted-2);
+}
+
+.me-body { flex: 1; padding: 20px 20px 24px; display: flex; flex-direction: column; gap: 24px; }
+.me-block { display: flex; flex-direction: column; gap: 10px; }
+
+/* A community you are in, and how you are doing in it. */
+.me-comm {
+  display: flex; flex-direction: column; gap: 11px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 15px 16px; text-decoration: none;
+}
+.me-comm-top { display: flex; align-items: center; gap: 11px; }
+.me-mark {
+  flex: 0 0 auto; width: 40px; height: 40px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 900; color: #fff;
+}
+.me-comm-name { font-size: 16px; font-weight: 800; color: var(--blue); line-height: 1.2; }
+.me-comm-meta {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--faint);
+}
+.me-tier {
+  display: flex; flex-direction: column; gap: 2px; align-self: flex-start;
+  border-radius: 9px; padding: 8px 12px;
+  font-size: 13.5px; font-weight: 800;
+}
+.me-tier em {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 600; font-style: normal; opacity: 0.8;
+}
+.me-tier.old-hand { background: var(--blue); color: var(--yellow); }
+.me-tier.regular { background: var(--green-bg); color: var(--green); }
+.me-tier.new-face { background: var(--orange-chip); color: var(--orange-text); }
+
+/* The next rung, so a badge says what to do rather than only what you are. */
+.me-next {
+  display: flex; flex-direction: column; gap: 6px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--muted-2);
+}
+.me-bar { height: 5px; border-radius: 3px; background: #E7E1D2; overflow: hidden; }
+.me-fill { display: block; height: 100%; border-radius: 3px; }
+.me-rank {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 600; color: var(--faint);
+  border-top: 1px solid var(--line); padding-top: 10px;
+}
+.me-rank b { font-family: Archivo, sans-serif; font-size: 14px; font-weight: 900; color: var(--blue); }
+
+.me-results { display: flex; flex-direction: column; gap: 7px; }
+.me-res {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 13px;
+}
+.me-place {
+  flex: 0 0 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: baseline; justify-content: center; gap: 1px; padding-top: 9px;
+  font-size: 16px; font-weight: 900; background: #F2EFE7; color: var(--muted-2);
+}
+.me-place em { font-size: 9px; font-style: normal; font-weight: 700; }
+.me-place.p1 { background: var(--yellow); color: var(--blue); }
+.me-place.p2 { background: #E4EAF1; color: var(--blue); }
+.me-place.p3 { background: var(--orange-chip); color: var(--orange-text); }
+.me-res-name { font-size: 14px; font-weight: 800; color: var(--blue); line-height: 1.2; }
+.me-res-meta {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 600; color: var(--faint);
+}
+.me-res-of {
+  flex: 0 0 auto;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 600; color: var(--faint);
+}
+
+.me-list { display: flex; flex-direction: column; gap: 7px; }
+.me-row {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 14px; text-decoration: none;
+}
+.me-row-t { font-size: 14px; font-weight: 800; color: var(--blue); }
+.me-row-s {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; line-height: 1.45; font-weight: 500; color: var(--faint);
+}
+.me-privacy {
+  display: flex; gap: 12px; align-items: flex-start;
+  border: 1px dashed var(--outline); border-radius: 14px; padding: 14px 16px;
+}

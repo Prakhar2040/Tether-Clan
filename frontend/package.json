@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:standalone": "vite build --config vite.standalone.config.ts && node ../scripts/inline.mjs dist-standalone ../share/tether-clan-app.html \"Tether Clan\""
   },
   "dependencies": {
     "mapbox-gl": "^3.30.0",

@@ -5,3 +5,7 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Standalone build output — regenerate with `npm run build:standalone`
+dist-standalone/
+share/

@@ -216,7 +216,8 @@ export default function Tonight() {
     free: freeOnly,
     beginner: beginnerOnly,
     tags: selectedTags,
-    enabled: !quiet,
+    // Nothing to reach in a standalone build; local filtering covers it.
+    enabled: !quiet && !import.meta.env.VITE_STANDALONE,
   })
 
   const localFiltered = scoped.filter(
