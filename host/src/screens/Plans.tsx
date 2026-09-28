@@ -5,7 +5,9 @@ import { usePhotos } from '../state/photos'
 import { usePlans, seriesLabel } from '../state/plans'
 import type { Plan, PlanStatus } from '../state/plans'
 import PlanPreview from '../components/PlanPreview'
-import { BackIcon, PlusIcon, TicketIcon } from '../components/icons'
+import { useNavigate } from 'react-router-dom'
+import { BackIcon, ChatIcon, PlusIcon, ScanIcon, TicketIcon } from '../components/icons'
+import { NOW } from '@app/data/mock'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -22,7 +24,34 @@ const STATUS: Record<PlanStatus, { label: string; cls: string }> = {
   past: { label: 'Run', cls: 'past' },
 }
 
+// What to say about a night, in words. A percentage bar is precise and
+// silent; "3 places left" is the thing a host acts on.
+function urgency(p: Plan): { text: string; tone: string } {
+  const left = p.capacity - p.sold
+  if (p.status === 'draft') return { text: 'Draft · nobody can see this', tone: 'draft' }
+  if (p.status === 'closed') return { text: 'Sales closed', tone: 'shut' }
+  if (left <= 0) return { text: 'Sold out', tone: 'shut' }
+  if (left <= 3) return { text: `${left} place${left === 1 ? '' : 's'} left`, tone: 'tight' }
+  return { text: `${p.sold} of ${p.capacity} taken`, tone: 'ok' }
+}
+
+function daysOut(iso: string): number {
+  const d = new Date(`${iso}T00:00:00`).getTime()
+  const now = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate()).getTime()
+  return Math.round((d - now) / 86400000)
+}
+
+function whenWord(iso: string): string {
+  const n = daysOut(iso)
+  if (n < 0) return 'Past'
+  if (n === 0) return 'Tonight'
+  if (n === 1) return 'Tomorrow'
+  const { dow, day, mon } = stamp(iso)
+  return `${dow} ${day} ${mon}`
+}
+
 export default function Plans() {
+  const navigate = useNavigate()
   const { community } = useHostCommunity()
   const { photos, coverId } = usePhotos()
   const { plans, dirty, get, update, create, publish, close, reopen, duplicate, remove, revert, save } =
@@ -238,6 +267,17 @@ export default function Plans() {
   const live = plans.filter((p) => p.status !== 'past')
   const past = plans.filter((p) => p.status === 'past')
 
+  // Exactly one row matters today, and it is not the one at the top of an
+  // alphabetical list.
+  const byDate = [...live].sort((a, b) => a.date.localeCompare(b.date))
+  const next = byDate[0]
+  const rest = byDate.slice(1)
+
+  const groups: { label: string; plans: Plan[] }[] = [
+    { label: 'This week', plans: rest.filter((p) => daysOut(p.date) <= 7) },
+    { label: 'Later', plans: rest.filter((p) => daysOut(p.date) > 7) },
+  ].filter((g) => g.plans.length > 0)
+
   return (
     <div className="page">
       <div className="editor-head">
@@ -258,29 +298,86 @@ export default function Plans() {
         </div>
       </div>
 
-      <div className="section-head">
-        <span className="section-title">Coming up</span>
-        <span className="section-link">{live.length} plans</span>
-      </div>
-      <div className="panel">
-        {live.length === 0 ? (
-          <div className="row">
-            <span className="row-meta">Nothing scheduled. Start one.</span>
+      {next ? (
+        <section className={`nextplan ${STATUS[next.status].cls}`}>
+          <div className="nextplan-top">
+            <span className="nextplan-when">
+              {whenWord(next.date)} · {next.time}
+            </span>
+            <span className={`row-tag ${STATUS[next.status].cls}`}>{STATUS[next.status].label}</span>
           </div>
-        ) : (
-          live.map((p) => <Row key={p.id} p={p} onOpen={() => setOpenId(p.id)} />)
-        )}
-      </div>
 
-      <div className="section-head">
-        <span className="section-title">Already run</span>
-        <span className="section-link">{past.length} nights</span>
-      </div>
-      <div className="panel">
-        {past.map((p) => (
-          <Row key={p.id} p={p} onOpen={() => setOpenId(p.id)} />
-        ))}
-      </div>
+          <button className="nextplan-title" onClick={() => setOpenId(next.id)}>
+            {next.title || 'Untitled plan'}
+          </button>
+          <span className="nextplan-where">
+            {venues[next.venueId]?.name} · {venues[next.venueId]?.areaName} ·{' '}
+            {next.price === 0 ? 'Free' : `₹${next.price}`}
+          </span>
+
+          <div className="nextplan-fill">
+            <span className="nextplan-bar">
+              <span
+                className={next.sold >= next.capacity ? 'nextplan-run full' : 'nextplan-run'}
+                style={{ width: `${Math.round((next.sold / Math.max(1, next.capacity)) * 100)}%` }}
+              />
+            </span>
+            <span className={`urg ${urgency(next).tone}`}>{urgency(next).text}</span>
+          </div>
+
+          <div className="nextplan-do">
+            {next.status === 'draft' ? (
+              <button
+                className="btn btn-primary"
+                disabled={!next.title.trim()}
+                onClick={() => publish(next.id)}
+              >
+                Publish it
+              </button>
+            ) : (
+              <button className="btn btn-primary" onClick={() => navigate('/door')}>
+                <ScanIcon size={15} strokeWidth={2.1} /> Open the door
+              </button>
+            )}
+            <button className="btn btn-ghost" onClick={() => navigate('/posts')}>
+              <ChatIcon size={15} strokeWidth={2.1} /> Announce it
+            </button>
+            <button className="btn btn-ghost" onClick={() => setOpenId(next.id)}>
+              Edit
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {groups.map((g) => (
+        <div key={g.label}>
+          <div className="section-head">
+            <span className="section-title">{g.label}</span>
+            <span className="section-link">
+              {g.plans.length} plan{g.plans.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <div className="panel">
+            {g.plans.map((p) => (
+              <Row key={p.id} p={p} onOpen={() => setOpenId(p.id)} />
+            ))}
+          </div>
+        </div>
+      ))}
+
+      {past.length > 0 ? (
+        <>
+          <div className="section-head">
+            <span className="section-title">Already run</span>
+            <span className="section-link">{past.length} nights</span>
+          </div>
+          <div className="panel">
+            {past.map((p) => (
+              <Row key={p.id} p={p} onOpen={() => setOpenId(p.id)} />
+            ))}
+          </div>
+        </>
+      ) : null}
     </div>
   )
 }
@@ -289,8 +386,9 @@ function Row({ p, onOpen }: { p: Plan; onOpen: () => void }) {
   const { dow, day, mon } = stamp(p.date)
   const pct = p.capacity === 0 ? 0 : Math.round((p.sold / p.capacity) * 100)
   const s = STATUS[p.status]
+  const u = urgency(p)
   return (
-    <button className="row plan-row" onClick={onOpen}>
+    <button className={`row plan-row ${s.cls}`} onClick={onOpen}>
       <span className="row-stub">
         <span className="row-dow">{dow}</span>
         <span className="row-day">{day}</span>
@@ -307,9 +405,7 @@ function Row({ p, onOpen }: { p: Plan; onOpen: () => void }) {
         <span className="row-bar">
           <span className={pct >= 100 ? 'row-fill full' : 'row-fill'} style={{ width: `${pct}%` }} />
         </span>
-        <span className="row-count">
-          {p.sold} of {p.capacity}
-        </span>
+        <span className={`urg ${u.tone}`}>{u.text}</span>
       </span>
       <span className={`row-tag ${s.cls}`}>{s.label}</span>
     </button>

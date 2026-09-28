@@ -1747,3 +1747,51 @@ a { color: inherit; text-decoration: none; }
   .door-body { grid-template-columns: minmax(0, 1fr); }
   .door-head { flex-wrap: wrap; }
 }
+
+/* ---------- The next night ---------- */
+/* A host's list has exactly one row that matters today. */
+.nextplan {
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+  padding: 22px 24px; display: flex; flex-direction: column; gap: 7px;
+  margin-bottom: 26px; border-left: 5px solid var(--green);
+}
+.nextplan.draft { border-left-color: var(--yellow); background: #FFFDF7; }
+.nextplan.sold { border-left-color: var(--outline); }
+.nextplan-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.nextplan-when {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--orange);
+}
+.nextplan-title {
+  font-size: 26px; font-weight: 900; letter-spacing: -0.022em; color: var(--blue);
+  line-height: 1.12; text-align: left; padding: 0; margin-top: 2px;
+}
+.nextplan-title:hover { text-decoration: underline; text-underline-offset: 4px; }
+.nextplan-where {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: var(--faint);
+}
+.nextplan-fill { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.nextplan-bar { flex: 1; max-width: 340px; height: 9px; border-radius: 5px; background: #E7E1D2; overflow: hidden; }
+.nextplan-run { display: block; height: 100%; border-radius: 5px; background: var(--blue); }
+.nextplan-run.full { background: var(--green); }
+.nextplan-do { display: flex; gap: 9px; margin-top: 14px; }
+
+/* What to say about a night, in words rather than only a bar. */
+.urg {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; white-space: nowrap;
+}
+.urg.ok { color: var(--muted-2); }
+.urg.tight { color: var(--orange-text); }
+.urg.shut { color: var(--muted); }
+.urg.draft { color: var(--warm-text); }
+
+/* Status carries a stripe, not only a chip — a draft left unpublished for a
+   week should be impossible to miss. */
+.plan-row { border-left: 4px solid transparent; }
+.plan-row.draft { border-left-color: var(--yellow); background: #FFFDF9; }
+.plan-row.live { border-left-color: var(--green); }
+.plan-row.sold { border-left-color: var(--outline); }
+.plan-row.past { border-left-color: transparent; opacity: 0.66; }
