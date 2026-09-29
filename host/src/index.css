@@ -2025,6 +2025,31 @@ a { color: inherit; text-decoration: none; }
   font-size: 11px; font-weight: 600; color: var(--faint);
 }
 
+/* Shut by default, because the room's history is what you came to read. The
+   strip below is the whole composer until you ask for it. */
+.composer-open {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  padding: 14px 14px 14px 16px; cursor: pointer; text-align: left;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.composer-open:hover { border-color: var(--outline); box-shadow: 0 4px 14px rgba(21,71,124,0.07); }
+.composer-open:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.composer-open-av {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--blue); color: #fff;
+  font-family: 'Archivo Narrow', Archivo, sans-serif; font-size: 12px; font-weight: 800;
+}
+.composer-open-t { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 500; color: var(--faint); }
+.composer-open-btn {
+  flex: 0 0 auto; border-radius: 999px; padding: 8px 16px;
+  background: var(--paper); border: 1px solid var(--chip-line); color: var(--blue);
+  font-family: 'Archivo Narrow', Archivo, sans-serif; font-size: 13px; font-weight: 800;
+}
+.composer-open:hover .composer-open-btn { background: var(--blue); border-color: var(--blue); color: #fff; }
+.composer-foot-btns { display: flex; align-items: center; gap: 10px; }
+
 /* ---- The photographs ---- */
 
 /* The picture is the tile: full bleed, with a scrim so the label and the

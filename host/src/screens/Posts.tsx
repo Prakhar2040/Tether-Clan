@@ -25,6 +25,8 @@ export default function Posts() {
   const [options, setOptions] = useState<string[]>(['', ''])
   const [editing, setEditing] = useState<string | null>(null)
   const [notify, setNotify] = useState(true)
+  // Shut by default: the room's history is what you came to see.
+  const [writing, setWriting] = useState(false)
 
   const canPost =
     mode === 'note'
@@ -52,6 +54,8 @@ export default function Posts() {
       setQuestion('')
       setOptions(['', ''])
     }
+    // Posted, so the history comes back up.
+    setWriting(false)
   }
 
   return (
@@ -73,6 +77,13 @@ export default function Posts() {
         </div>
 
         {/* ---- Composer ---- */}
+        {!writing ? (
+          <button className="composer-open" onClick={() => setWriting(true)}>
+            <span className="composer-open-av">{owner?.initials}</span>
+            <span className="composer-open-t">Write something for the room…</span>
+            <span className="composer-open-btn">New post</span>
+          </button>
+        ) : (
         <section className="composer">
           <div className="composer-modes">
             <button className={mode === 'note' ? 'mode on' : 'mode'} onClick={() => setMode('note')}>
@@ -189,11 +200,17 @@ export default function Posts() {
 
           <div className="composer-foot">
             <span className="field-hint">Posting as {owner?.name}</span>
-            <button className="btn btn-primary" onClick={send} disabled={!canPost}>
-              {notify ? 'Post and notify' : 'Post quietly'}
-            </button>
+            <span className="composer-foot-btns">
+              <button className="btn btn-ghost" onClick={() => setWriting(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={send} disabled={!canPost}>
+                {notify ? 'Post and notify' : 'Post quietly'}
+              </button>
+            </span>
           </div>
         </section>
+        )}
 
         {/* ---- What is already up ---- */}
         <div className="section-head" style={{ marginTop: 18 }}>
