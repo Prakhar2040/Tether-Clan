@@ -16,6 +16,7 @@
   --line: #E8E2D2;
   --chip-line: #DDD6C3;
   --outline: #C9C2AE;
+  --red: #B23B22;
   --green: #2E7D4F;
   --green-bg: #DDF0E2;
   --warm-chip: #FFF6E0;
@@ -1815,9 +1816,9 @@ a { color: inherit; text-decoration: none; }
 /* One unit is 171px, so two of them plus the gap make 360: the night, the
    community and the channel are all the same height, and a pair of stacked
    stat tiles beside the channel comes out level with it. */
-.tl-night, .tl-money, .tl-msg, .tl-wall { grid-column: span 6; grid-row: span 2; }
-/* The line wants width, so the community reads as a wide band underneath. */
-.tl-people { grid-column: span 12; grid-row: span 1; }
+.tl-night, .tl-msg, .tl-wall { grid-column: span 6; grid-row: span 2; }
+.tl-money { grid-column: span 6; grid-row: span 2; }
+.tl-people { grid-column: span 6; grid-row: span 2; }
 
 .tl {
   min-height: 0; overflow: hidden;
@@ -1848,9 +1849,11 @@ a { color: inherit; text-decoration: none; }
 .tl-foot.bare { justify-content: flex-end; }
 /* No footer here: the whole tile is the link, so the chart owns the
    bottom edge instead of floating above a "View" row. */
-.tl-people { cursor: pointer; padding: 18px 24px 14px; flex-direction: row; align-items: stretch; gap: 26px; }
-.tl-people-side { flex: 0 0 auto; display: flex; flex-direction: column; min-width: 236px; }
-.tl-people .grow { flex: 1 1 auto; min-width: 0; height: 100%; width: auto; margin: 0; }
+.tl-people { cursor: pointer; padding: 22px 24px 16px; }
+.tl-people-side { flex: 0 0 auto; display: flex; flex-direction: column; }
+.tl-people-chart { flex: 1 1 auto; min-width: 0; min-height: 0; width: 100%; margin-top: 10px; }
+.cjs { position: relative; width: 100%; }
+.cjs canvas { display: block; }
 .tl-people:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 /* Two icons stacked; the arrow takes over when the tile is hovered. */
 .tl-chip-swap { position: relative; }
@@ -1935,76 +1938,92 @@ a { color: inherit; text-decoration: none; }
 /* ---- The month's takings ---- */
 
 .tl-money { cursor: pointer; padding: 22px 24px 16px; }
+/* The figure with the month sitting under it, tight to the heading above.
+   The -14px is optical, not structural: the chip is 38px tall and the label
+   is half that, so the row leaves a hole that is not real space. */
+.tl-money-head { display: flex; flex-direction: column; gap: 7px; margin-top: -14px; }
+.tl-money-when {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--faint); letter-spacing: 0.01em;
+}
 .tl-money-n {
-  margin-top: 0; font-size: clamp(40px, 4.2vw, 54px); font-weight: 900;
+  margin-top: 0; font-size: clamp(40px, 4vw, 54px); font-weight: 900;
   letter-spacing: -0.045em; line-height: 1; color: var(--blue);
   font-variant-numeric: tabular-nums;
 }
-/* The figure and what makes it up down the left; the pie and its legend
-   holding the right, which was reading empty. */
-/* Stretched, not centred: the tile is a fixed 360 and the content was
-   pooling in the middle of it. */
-.tl-money-body { flex: 1 1 auto; min-height: 0; display: flex; align-items: stretch; gap: 26px; }
+/* The figure, what makes it up, then the ring. */
+.tl-money { cursor: pointer; padding: 16px 22px 10px; }
+/* The figure with the month sitting under it, tight to the heading above.
+   The -14px is optical, not structural: the chip is 38px tall and the label
+   is half that, so the row leaves a hole that is not real space. */
+.tl-money-head { display: flex; flex-direction: column; gap: 7px; margin-top: -14px; }
+.tl-money-when {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 13px; font-weight: 600; color: var(--faint); letter-spacing: 0.01em;
+}
+.tl-money-n {
+  margin-top: 0; font-size: clamp(40px, 4vw, 54px); font-weight: 900;
+  letter-spacing: -0.045em; line-height: 1; color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+/* Four readings, two across, figure over label. */
+.tl-money-facts {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  /* Off the floor of the tile, but still the lower of the two blocks. */
+  margin-bottom: 80px;
+}
+.tl-money-facts span { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.tl-money-facts b {
+  font-size: 27px; font-weight: 900; letter-spacing: -0.03em; color: var(--blue);
+  line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.tl-money-facts i {
+  font-style: normal; font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 14px; font-weight: 600; color: var(--faint); line-height: 1.25;
+}
+
+/* The figure at the top, the readings on the floor, the slack between them
+   rather than under them. */
+.tl-money-body { flex: 1 1 auto; min-height: 0; display: flex; align-items: stretch; gap: 20px; }
 .tl-money-left {
   flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column;
-  justify-content: flex-start; padding-right: 4px;
+  justify-content: space-between; padding-bottom: 2px;
 }
+/* Nudged off the right edge, not recentred. */
+.tl-money-ring { flex: 0 0 auto; display: flex; align-items: center; margin-right: 68px; }
 
-/* What the figure is made of, one point a line. */
-.tl-money-pts { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
-.tl-money-pts li {
-  position: relative; padding-left: 16px;
+/* ---- The ring ---- */
+
+.donut { position: relative; flex: 0 0 auto; }
+.donut canvas { position: relative; z-index: 1; }
+.donut-hole {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; padding: 22%;
+}
+/* At rest: what the ring is made of. */
+.donut-key { display: flex; flex-direction: column; gap: 9px; }
+.donut-key span {
+  display: flex; align-items: center; gap: 8px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13.5px; font-weight: 600; color: var(--muted-2); white-space: nowrap;
+  font-size: 13.5px; font-weight: 700; color: var(--muted-2); white-space: nowrap;
 }
-.tl-money-pts li::before {
-  content: ''; position: absolute; left: 0; top: 7px;
-  width: 5px; height: 5px; border-radius: 50%; background: var(--outline);
-}
-
-/* The pie, and what each wedge is worth beside it. */
-.tl-mix { flex: 0 0 auto; display: flex; align-items: center; gap: 22px; }
-.tl-pie { flex: 0 0 auto; height: 100%; max-height: 244px; width: auto; overflow: visible; align-self: center; }
-.pie-w { stroke: var(--card); stroke-width: 1.5; }
-/* Earned, and the part left on the table — hollow, because it never arrived. */
-.pie-a { fill: var(--blue); }
-.pie-b { fill: var(--yellow); }
-.pie-c { fill: var(--paper); stroke: var(--outline); stroke-dasharray: 3 3; }
-.pie-d { fill: #B23B22; }
-
-.tl-mix-key {
-  flex: 0 0 auto; display: flex; flex-direction: column;
-  justify-content: center; gap: 12px;
-}
-.tl-mix-key span {
-  display: grid; grid-template-columns: 10px 1fr; grid-template-rows: auto auto;
-  align-items: center; column-gap: 9px; row-gap: 2px; min-width: 0;
-}
-.tl-mix-key em {
-  grid-row: 1; align-self: center;
-  width: 10px; height: 10px; border-radius: 3px; border: 1px solid transparent;
-}
-.tl-mix-key em.pie-a { background: var(--blue); }
-.tl-mix-key em.pie-b { background: var(--yellow); }
-.tl-mix-key em.pie-c {
-  background: var(--paper); border: 1px dashed var(--outline); border-radius: 3px;
-}
-.tl-mix-key em.pie-d { background: #B23B22; }
-.tl-mix-key i {
-  grid-column: 2; grid-row: 1; font-style: normal;
+.donut-key i { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 3px; }
+/* Hovered: that one figure, exactly. */
+.donut-one { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.donut-one i { width: 22px; height: 3px; border-radius: 2px; }
+.donut-one u {
+  text-decoration: none; margin-top: 3px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13.5px; font-weight: 600; color: var(--faint);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 12.5px; font-weight: 700; color: var(--faint);
 }
-.tl-mix-key b {
-  grid-column: 2; grid-row: 2;
-  font-size: 17px; font-weight: 900; letter-spacing: -0.02em; color: var(--blue);
-  font-variant-numeric: tabular-nums; line-height: 1;
+.donut-one b {
+  font-size: 27px; font-weight: 900; letter-spacing: -0.03em; line-height: 1;
+  color: var(--blue); font-variant-numeric: tabular-nums;
 }
-.tl-mix-key b.off { color: var(--muted-2); }
-.tl-mix-key b.neg { color: #B23B22; }
-/* Spending is not a slice, so it sits under a rule, not among them. */
-.tl-mix-key .out { border-top: 1px solid var(--line); margin-top: 1px; padding-top: 9px; }
+.donut-one em {
+  font-style: normal; font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 600; color: var(--faint);
+}
 
 /* ---- The photographs ---- */
 
@@ -2053,7 +2072,7 @@ a { color: inherit; text-decoration: none; }
   font-style: normal; font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.66);
 }
-/* Where you are in the roll, and how long the current one has left. */
+/* Where you are in the roll. */
 .tl-wall-dots { flex: 0 0 auto; display: flex; align-items: center; gap: 5px; padding-bottom: 3px; }
 .tl-wall-dots button {
   width: 6px; height: 6px; padding: 0; border: none; border-radius: 50%; cursor: pointer;
@@ -2064,8 +2083,8 @@ a { color: inherit; text-decoration: none; }
 
 /* Back and forward, sitting on the picture, quiet until you are over it. */
 .tl-wall-step {
-  position: absolute; z-index: 3; top: 50%; margin-top: -19px; width: 38px; height: 38px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  position: absolute; z-index: 3; top: 50%; margin-top: -19px; width: 38px; height: 38px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;
   background: rgba(9,34,61,0.42); border: 1px solid rgba(255,255,255,0.28); color: #fff;
   backdrop-filter: blur(6px);
   opacity: 0; transition: opacity 0.18s ease, background 0.18s ease;
@@ -2081,19 +2100,33 @@ a { color: inherit; text-decoration: none; }
   .tl-wall .tl-wall-step { opacity: 1; }
 }
 
+/* A smaller ring needs a roomier hole, or the longest label will not sit in it. */
+.donut.sm .donut-hole { padding: 19%; }
+.donut.sm .donut-key { gap: 6px; }
+.donut.sm .donut-key span { font-size: 11.5px; gap: 7px; }
+.donut.sm .donut-key i { width: 8px; height: 8px; }
+.donut.sm .donut-one b { font-size: 21px; }
+.donut.sm .donut-one u { font-size: 11px; }
+.donut.sm .donut-one em { font-size: 10px; }
+
 /* ---- The channel ---- */
 
 .tl-msg { cursor: pointer; padding: 22px 24px 16px; }
 /* The thread takes the slack; the facts strip stays pinned to the floor. */
 /* The room keeps going past the bottom of the tile, so it scrolls. */
 .tl-thread {
-  flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-  display: flex; flex-direction: column; gap: 9px; margin-top: 6px;
-  scrollbar-width: thin; scrollbar-color: var(--chip-line) transparent;
+  flex: 1 1 auto; min-height: 0; overflow-y: scroll; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 9px; margin-top: 6px; padding-right: 12px;
 }
-.tl-thread::-webkit-scrollbar { width: 6px; }
-.tl-thread::-webkit-scrollbar-thumb { background: var(--chip-line); border-radius: 3px; }
-.tl-thread::-webkit-scrollbar-track { background: transparent; }
+/* No `scrollbar-width`: setting it makes Chrome use the overlay bar, which
+   fades out and takes the hint that there is more to read with it. The
+   pseudo-elements below draw a bar that stays put. */
+.tl-thread::-webkit-scrollbar { width: 7px; }
+.tl-thread::-webkit-scrollbar-track { background: var(--paper); border-radius: 4px; }
+.tl-thread::-webkit-scrollbar-thumb {
+  background: var(--outline); border-radius: 4px; min-height: 28px;
+}
+.tl-thread::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 /* The app's own bubble: tinted, with the top-left corner squared into a tail
    so it reads as something Robin said, not as a card. */
@@ -2176,10 +2209,10 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ---- Members, at the size of the night ---- */
-.tl-people-head { display: flex; align-items: center; gap: 12px; margin-top: auto; }
+.tl-people-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 8px; }
 .tl-people-n {
   display: flex; align-items: baseline; gap: 9px;
-  font-size: clamp(34px, 3.2vw, 44px); font-weight: 900; letter-spacing: -0.04em;
+  font-size: clamp(36px, 3.6vw, 46px); font-weight: 900; letter-spacing: -0.04em;
   color: var(--blue); line-height: 1; font-variant-numeric: tabular-nums;
 }
 .tl-people-n em {
@@ -2205,28 +2238,11 @@ a { color: inherit; text-decoration: none; }
 }
 .tl-range select:hover { border-color: var(--outline); color: var(--blue); }
 .tl-range select:focus { border-color: var(--blue); }
-.grow { width: 100%; height: auto; display: block; margin-top: 2px; }
-.grow rect { cursor: crosshair; }
-/* The reading, riding with the point. */
-.grow-tip { fill: var(--blue); }
-.grow-tip.down { fill: #B23B22; }
-.grow-tip-t {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11px; font-weight: 700; fill: #fff;
-}
-.grow-line { fill: none; stroke: var(--blue); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.grow-dot { fill: var(--blue); stroke: var(--card); stroke-width: 2; }
-.grow-lbl {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11px; font-weight: 600; fill: var(--faint);
-}
-.grow-lbl.on { fill: var(--blue); font-weight: 800; }
-.grow-cross { stroke: var(--outline); stroke-width: 1; stroke-dasharray: 3 3; }
 
 @media (max-width: 1080px) {
   .dash-grid { grid-template-columns: repeat(6, 1fr); }
   .tl-night, .tl-msg, .tl-money, .tl-wall { grid-column: span 6; }
-  .tl-people { grid-column: span 12; }
+  .tl-people { grid-column: span 6; }
   }
 @media (prefers-reduced-motion: reduce) {
   .tl, .tl-view svg, .tl-go svg { transition: none; }

@@ -10,6 +10,7 @@
     "build:standalone": "vite build --config vite.standalone.config.ts && node ../scripts/inline.mjs dist-standalone ../share/tether-clan-host.html \"Tether Clan Host\""
   },
   "dependencies": {
+    "chart.js": "^4.5.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3"

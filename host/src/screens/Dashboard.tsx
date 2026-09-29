@@ -10,6 +10,9 @@ import { usePhotos } from '../state/photos'
 import { salesFor } from '../lib/sales'
 import { tierOf, useBadges } from '../state/badges'
 import { ChatIcon, ChevronIcon, ImageIcon, OutIcon, PeopleIcon, ScanIcon, TagIcon } from '../components/icons'
+import { DonutChart } from '../components/DonutChart'
+import { LineChart } from '../components/LineChart'
+import { leftInMonth } from '../lib/churn'
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -50,74 +53,81 @@ function clock(hhmm: string): string {
 
 // How the room grew. Total members at the end of each month, derived from
 // how long each person has been here.
-/* Where the month's money came from, and what it left on the table. Three
-   wedges, each pushed out along its own angle so they read as parts that were
-   taken apart rather than as one ring. */
-function RevenueMix({
-  parts,
-  aside,
-  currency,
-}: {
-  parts: { key: string; label: string; value: number; tone: string }[]
-  aside: { label: string; value: number }
-  currency: (n: number) => string
-}) {
-  const total = parts.reduce((n, p) => n + p.value, 0)
-  if (total <= 0) return null
+type SalesOf = ReturnType<typeof salesFor>
 
-  const R = 52
-  const C = 66 // centre, with room for the explode offset
-  const live = parts.filter((p) => p.value > 0)
+/* The month's takings: the figure and its readings down the left, the ring
+   they came from on the right with its key in the hole. */
+function MoneyTile({ sales, onOpen }: { sales: SalesOf; onOpen: () => void }) {
+  const price =
+    sales.monthPriceLow === sales.monthPriceHigh
+      ? sales.currency(sales.monthPerTicket)
+      : `${sales.currency(sales.monthPriceLow)}–${sales.currency(sales.monthPriceHigh)}`
 
-  let a = -Math.PI / 2
-  const wedges = live.map((p) => {
-    const sweep = (p.value / total) * Math.PI * 2
-    const a0 = a
-    const a1 = a + sweep
-    a = a1
-    const mid = (a0 + a1) / 2
-    // A full circle has no wedge to draw, so it stays a plain disc.
-    const d =
-      live.length === 1
-        ? `M${C},${C - R} A${R},${R} 0 1 1 ${C - 0.01},${C - R} Z`
-        : `M${C},${C} L${C + R * Math.cos(a0)},${C + R * Math.sin(a0)} ` +
-          `A${R},${R} 0 ${sweep > Math.PI ? 1 : 0} 1 ${C + R * Math.cos(a1)},${C + R * Math.sin(a1)} Z`
-    const off = p.key === 'spent' ? 11 : 4
-    return { ...p, d, dx: Math.cos(mid) * off, dy: Math.sin(mid) * off }
-  })
-
-  return (
-    <div className="tl-mix">
-      <svg viewBox={`0 0 ${C * 2} ${C * 2}`} className="tl-pie" role="img" aria-label="Where the month's money came from">
-        {wedges.map((w) => (
-          <path
-            key={w.key}
-            d={w.d}
-            className={`pie-w pie-${w.tone}`}
-            transform={`translate(${w.dx.toFixed(2)}, ${w.dy.toFixed(2)})`}
-          >
-            <title>{`${w.label} · ${currency(w.value)}`}</title>
-          </path>
-        ))}
-      </svg>
-
-      <div className="tl-mix-key">
-        {parts.map((p) => (
-          <span key={p.key}>
-            <em className={`pie-${p.tone}`} />
-            <i>{p.label}</i>
-            <b className={p.key === 'spent' ? 'neg' : undefined}>{currency(p.value)}</b>
-          </span>
-        ))}
-        {/* Never arrived, so it is no part of the circle: it sits under a
-            rule, outside the three wedges that make up the month. */}
-        <span className="out">
-          <em className="pie-c" />
-          <i>{aside.label}</i>
-          <b className="off">{currency(aside.value)}</b>
+  const figures = (
+    <>
+      <div className="tl-money-head">
+        <span className="tl-money-n">{sales.currency(sales.monthRevenue)}</span>
+        <span className="tl-money-when">{sales.monthLabel}</span>
+      </div>
+      <div className="tl-money-facts">
+        <span>
+          <b>{sales.monthEvents}</b>
+          <i>{sales.monthEvents === 1 ? 'event' : 'events'}</i>
+        </span>
+        <span>
+          <b>{sales.monthTickets}</b>
+          <i>tickets sold</i>
+        </span>
+        <span>
+          <b>{price}</b>
+          <i>a ticket</i>
+        </span>
+        <span>
+          <b>{Math.round(sales.monthFill * 100)}%</b>
+          <i>average fill</i>
         </span>
       </div>
+    </>
+  )
+
+  const ring = (
+    <div className="tl-money-ring">
+      <DonutChart
+        currency={sales.currency}
+        size={284}
+        slices={[
+          { key: 'regulars', label: 'Regulars', value: sales.monthKeptRegulars, color: 'var(--blue)' },
+          { key: 'new', label: 'New faces', value: sales.monthKeptNew, color: 'var(--yellow)' },
+          {
+            key: 'spent',
+            label: 'Spent on the room',
+            value: sales.monthExpense,
+            color: 'var(--red)',
+            out: true,
+            negative: true,
+          },
+          // Never arrived, so it is grey and stands off from the money that did.
+          { key: 'unsold', label: 'Unsold seats', value: sales.monthForgone, color: 'var(--outline)', out: true },
+        ]}
+      />
     </div>
+  )
+
+  return (
+    <button className="tl tl-money" onClick={onOpen}>
+      <div className="tl-top">
+        <span className="tl-label">Revenue</span>
+        <span className="tl-chip tl-chip-swap">
+          <TagIcon size={16} strokeWidth={2.2} />
+          <OutIcon size={15} strokeWidth={2.4} />
+        </span>
+      </div>
+
+      <div className="tl-money-body">
+        <div className="tl-money-left">{figures}</div>
+        {ring}
+      </div>
+    </button>
   )
 }
 
@@ -207,105 +217,6 @@ function PhotoWall({
   )
 }
 
-function MembersChart({
-  points,
-  hover,
-  onHover,
-}: {
-  points: { label: string; total: number; joined: number }[]
-  hover: number | null
-  onHover: (i: number | null) => void
-}) {
-  const W = 460
-  const H = 108
-  const PAD = { t: 24, r: 10, b: 22, l: 10 }
-  const lo = Math.min(...points.map((p) => p.total))
-  const hi = Math.max(...points.map((p) => p.total))
-  const span = Math.max(1, hi - lo)
-  const iw = W - PAD.l - PAD.r
-  const ih = H - PAD.t - PAD.b
-  const x = (i: number) => PAD.l + (i / Math.max(1, points.length - 1)) * iw
-  const y = (v: number) => PAD.t + ih - ((v - lo) / span) * ih
-
-  const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(p.total).toFixed(1)}`).join(' ')
-  const area = `${line} L${x(points.length - 1).toFixed(1)},${PAD.t + ih} L${x(0).toFixed(1)},${PAD.t + ih} Z`
-  const last = points.length - 1
-  const at = hover ?? last
-  // Net movement, so a month that lost people reads as a loss rather than
-  // as no joins.
-  const change = at === 0 ? points[0].joined : points[at].total - points[at - 1].total
-  const sign = change > 0 ? `+${change}` : change < 0 ? `−${Math.abs(change)}` : null
-  const tipW = sign ? 104 : 78
-  const tipX = Math.min(W - PAD.r - tipW / 2, Math.max(PAD.l + tipW / 2, x(at)))
-
-  return (
-    // No preserveAspectRatio override: stretching the box is what made the
-    // strokes and labels look soft.
-    <svg
-      className="grow"
-      viewBox={`0 0 ${W} ${H}`}
-      role="img"
-      onMouseLeave={() => onHover(null)}
-      aria-label={`Members by month: ${points.map((p) => `${p.label} ${p.total}`).join(', ')}`}
-    >
-      <defs>
-        <linearGradient id="growfill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="var(--blue)" stopOpacity="0.24" />
-          <stop offset="100%" stopColor="var(--blue)" stopOpacity="0.01" />
-        </linearGradient>
-      </defs>
-
-      <path d={area} fill="url(#growfill)" />
-      <path d={line} className="grow-line" />
-
-      {/* At rest the line just ends in a point; the reading only appears
-          when you go looking for it. */}
-      {hover === null ? (
-        <circle cx={x(last)} cy={y(points[last].total)} r="4.5" className="grow-dot" />
-      ) : (
-        <>
-          <line x1={x(at)} x2={x(at)} y1={PAD.t - 2} y2={PAD.t + ih} className="grow-cross" />
-          <circle cx={x(at)} cy={y(points[at].total)} r="5" className="grow-dot" />
-          <g transform={`translate(${tipX}, 0)`}>
-            <rect
-              x={-tipW / 2}
-              y="1"
-              width={tipW}
-              height="18"
-              rx="6"
-              className={change < 0 ? 'grow-tip down' : 'grow-tip'}
-            />
-            <text x="0" y="13.8" className="grow-tip-t" textAnchor="middle">
-              {points[at].label} · {points[at].total}
-              {sign ? ` · ${sign}` : ''}
-            </text>
-          </g>
-        </>
-      )}
-
-      {points.map((p, i) => (
-        <g key={p.label + i}>
-          <text
-            x={x(i)}
-            y={H - 6}
-            className={hover === i ? 'grow-lbl on' : 'grow-lbl'}
-            textAnchor="middle"
-          >
-            {p.label}
-          </text>
-          <rect
-            x={x(i) - iw / (points.length * 2)}
-            y={0}
-            width={iw / points.length}
-            height={PAD.t + ih}
-            fill="transparent"
-            onMouseEnter={() => onHover(i)}
-          />
-        </g>
-      ))}
-    </svg>
-  )
-}
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -316,14 +227,12 @@ export default function Dashboard() {
   const { posts } = usePosts()
   const { photos, coverId } = usePhotos()
   const [range, setRange] = useState<3 | 6 | 12>(6)
-  const [hover, setHover] = useState<number | null>(null)
 
   // Whatever this community is fronted by — the starred gallery photo, or
   // its cover. Never a hardcoded picture.
   const cover = photos.find((p) => p.id === coverId)?.src ?? community.coverImage
   const sales = salesFor(community.id)
   const members = membersOf(community.id)
-  const joinedThisMonth = members.filter((m) => m.monthsIn === 0).length
 
   const next = [...plans]
     .filter((p) => p.status !== 'past')
@@ -357,17 +266,21 @@ export default function Dashboard() {
   const allReacts = posts.reduce((a, p) => a + totalReacts(p.reactions), 0)
   const polls = posts.filter((p) => p.poll).length
 
-  // The room's size, month by month. Nobody leaves in this data, so the
-  // line only climbs — a real one would dip.
+  // Who arrived and who went, month by month. The joins are real rows; the
+  // departures come from lib/churn, because a membership has no end date yet.
   const growth = Array.from({ length: range }, (_, i) => {
     const back = range - 1 - i
     const d = new Date(NOW.getFullYear(), NOW.getMonth() - back, 1)
+    const joined = members.filter((m) => m.monthsIn === back).length
     return {
       label: MON[d.getMonth()],
       total: members.filter((m) => m.monthsIn >= back).length,
-      joined: members.filter((m) => m.monthsIn === back).length,
+      joined,
+      left: leftInMonth(community.id, back, joined),
     }
   })
+  // Net, so the pill agrees with the two lines beneath it.
+  const netThisMonth = growth.length === 0 ? 0 : growth[growth.length - 1].joined - growth[growth.length - 1].left
 
   return (
     <div className="page dash">
@@ -534,47 +447,8 @@ export default function Dashboard() {
           </div>
         </button>
 
-        {/* The month's takings: the figure and what makes it up down the
-            left, the pie taking the right so the tile isn't hollow there. */}
-        <button className="tl tl-money" onClick={() => navigate('/sales')}>
-          <div className="tl-top">
-            <span className="tl-label">{sales.monthLabel} revenue</span>
-            <span className="tl-chip tl-chip-swap">
-              <TagIcon size={16} strokeWidth={2.2} />
-              <OutIcon size={15} strokeWidth={2.4} />
-            </span>
-          </div>
+        <MoneyTile sales={sales} onOpen={() => navigate('/sales')} />
 
-          <div className="tl-money-body">
-            <div className="tl-money-left">
-              <span className="tl-money-n">{sales.currency(sales.monthRevenue)}</span>
-
-              {/* What the figure is made of, in points rather than a strip. */}
-              <ul className="tl-money-pts">
-                <li>
-                  {sales.monthEvents} {sales.monthEvents === 1 ? 'event' : 'events'}
-                </li>
-                <li>{sales.monthTickets} tickets sold</li>
-                <li>
-                  {sales.monthPriceLow === sales.monthPriceHigh
-                    ? `${sales.currency(sales.monthPerTicket)} a ticket`
-                    : `${sales.currency(sales.monthPriceLow)}–${sales.currency(sales.monthPriceHigh)} a ticket`}
-                </li>
-                <li>{Math.round(sales.monthFill * 100)}% average fill</li>
-              </ul>
-            </div>
-
-            <RevenueMix
-              currency={sales.currency}
-              aside={{ label: 'Unsold seats', value: sales.monthForgone }}
-              parts={[
-                { key: 'regulars', label: 'Regulars', value: sales.monthKeptRegulars, tone: 'a' },
-                { key: 'new', label: 'New faces', value: sales.monthKeptNew, tone: 'b' },
-                { key: 'spent', label: 'Spent on the room', value: sales.monthExpense, tone: 'd' },
-              ]}
-            />
-          </div>
-        </button>
 
         {/* The only tile here that is not a number: the room's own photographs,
             drifting, so the page has something alive on it. */}
@@ -611,10 +485,10 @@ export default function Dashboard() {
                 <em>members</em>
               </span>
               <span
-                className={joinedThisMonth > 0 ? 'tl-pill up' : joinedThisMonth < 0 ? 'tl-pill down' : 'tl-pill flat'}
+                className={netThisMonth > 0 ? 'tl-pill up' : netThisMonth < 0 ? 'tl-pill down' : 'tl-pill flat'}
               >
-                {joinedThisMonth > 0 ? '▲' : joinedThisMonth < 0 ? '▼' : '–'} {joinedThisMonth > 0 ? '+' : ''}
-                {joinedThisMonth} this month
+                {netThisMonth > 0 ? '▲' : netThisMonth < 0 ? '▼' : '–'} {netThisMonth > 0 ? '+' : ''}
+                {netThisMonth} this month
               </span>
             </div>
 
@@ -623,7 +497,6 @@ export default function Dashboard() {
                 value={range}
                 onChange={(e) => {
                   setRange(Number(e.target.value) as 3 | 6 | 12)
-                  setHover(null)
                 }}
                 aria-label="How far back"
               >
@@ -634,7 +507,18 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <MembersChart points={growth} hover={hover} onHover={setHover} />
+          <div className="tl-people-chart">
+            <LineChart
+              title="Who came and who went"
+              zero
+              labels={growth.map((g) => g.label)}
+              lines={[
+                { label: 'Joined', values: growth.map((g) => g.joined), color: 'var(--blue)' },
+                { label: 'Left', values: growth.map((g) => g.left), color: 'var(--red)' },
+              ]}
+              height={196}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -12,6 +12,12 @@ export const REGULAR_AT = 5
 // until the host can enter it.
 export const SPEND_A_MONTH = 2000
 
+// Capacities in the mock data are generous, so the real unsold figure dwarfs
+// everything else in the ring and the shape stops being readable. Pinned small
+// until capacities are real. The per-plan `forgone` the sales page shows is
+// untouched — this only flattens the month's total.
+export const UNSOLD_A_MONTH = 200
+
 // Demand, not accounting. What moved, how full it got, and what the empty
 // places would have taken. Everything comes from capacity, going and price —
 // the three numbers a plan already carries. Nothing is deducted here.
@@ -187,7 +193,7 @@ export function salesFor(communityId: string): Sales {
 
     monthFromRegulars,
     monthFromNew,
-    monthForgone: thisMonth.reduce((n, p) => n + p.forgone, 0),
+    monthForgone: thisMonth.length === 0 ? 0 : UNSOLD_A_MONTH,
     monthExpense,
     monthKeptRegulars: monthRevenue - monthExpense - keptNew,
     monthKeptNew: keptNew,
