@@ -1,6 +1,16 @@
 import { pastCommunityEvents, upcomingCommunityEvents } from '@app/data/community'
 import { NOW, venues } from '@app/data/mock'
 import type { TcEvent } from '@app/types'
+import { memberHoldersFor } from '../state/door'
+
+// Where a night's money came from. Somebody who has been five times or more
+// is a regular; anyone under that is still new to the room. A real one would
+// read the sale log — this reads who holds the tickets.
+export const REGULAR_AT = 5
+
+// Nothing in the data records what a night actually costs, so this stands in
+// until the host can enter it.
+export const SPEND_A_MONTH = 2000
 
 // Demand, not accounting. What moved, how full it got, and what the empty
 // places would have taken. Everything comes from capacity, going and price —
@@ -61,6 +71,15 @@ export interface Sales {
   // next to a calendar month would be two clocks on one wall.
   monthSoldOut: number
   monthFill: number
+
+  monthFromRegulars: number
+  monthFromNew: number
+  monthForgone: number
+  monthExpense: number
+  // The two above, less their share of the spend, so the three add up to the
+  // month's revenue exactly and the pie closes on the headline figure.
+  monthKeptRegulars: number
+  monthKeptNew: number
 
   currency: (n: number) => string
 }
@@ -140,6 +159,18 @@ export function salesFor(communityId: string): Sales {
   const monthTickets = thisMonth.reduce((n, p) => n + p.sold, 0)
   const soldPrices = thisMonth.filter((p) => p.sold > 0).map((p) => p.price)
 
+  const monthExpense = thisMonth.length === 0 ? 0 : SPEND_A_MONTH
+
+  // Split the month's takings by who paid them.
+  let monthFromRegulars = 0
+  for (const p of thisMonth) {
+    const regulars = memberHoldersFor(communityId, p.id, p.sold).filter((m) => m.attended >= REGULAR_AT)
+    monthFromRegulars += regulars.length * p.price
+  }
+  const monthFromNew = monthRevenue - monthFromRegulars
+  const keptNew =
+    monthRevenue === 0 ? 0 : Math.round((monthFromNew / monthRevenue) * (monthRevenue - monthExpense))
+
   return {
     onSale,
     months: [...groups.values()],
@@ -153,6 +184,13 @@ export function salesFor(communityId: string): Sales {
     monthPriceLow: soldPrices.length === 0 ? 0 : Math.min(...soldPrices),
     monthPriceHigh: soldPrices.length === 0 ? 0 : Math.max(...soldPrices),
     monthPerTicket: monthTickets === 0 ? 0 : Math.round(monthRevenue / monthTickets),
+
+    monthFromRegulars,
+    monthFromNew,
+    monthForgone: thisMonth.reduce((n, p) => n + p.forgone, 0),
+    monthExpense,
+    monthKeptRegulars: monthRevenue - monthExpense - keptNew,
+    monthKeptNew: keptNew,
 
     monthSoldOut: thisMonth.filter((p) => p.soldOut).length,
     monthFill:

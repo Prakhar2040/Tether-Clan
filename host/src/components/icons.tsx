@@ -191,6 +191,13 @@ export const PencilIcon = (p: IconProps) => (
   </svg>
 )
 
+export const OutIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M8 16L16 8" />
+    <path d="M9.5 8H16v6.5" />
+  </svg>
+)
+
 export const BackIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M15 5l-7 7 7 7" />

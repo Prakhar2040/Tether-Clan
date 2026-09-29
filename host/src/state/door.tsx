@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { membersOf, roster } from '@app/data/roster'
+import type { Member } from '@app/data/roster'
 import type { Person } from '@app/types'
 
 // Who is expected at the door, and who has actually walked through it.
@@ -17,19 +18,33 @@ export interface Holder {
 
 export type DoorState = Record<string, { at: string }> // personId -> arrival
 
-// Who holds a ticket for a plan. Derived so the same plan always shows the
-// same faces; a real one would come from the sale log.
-export function holdersFor(communityId: string, planId: string, sold: number): Holder[] {
-  const members = membersOf(communityId)
+function hashOf(planId: string) {
   let h = 0
   for (const ch of planId) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  const start = members.length === 0 ? 0 : h % members.length
+  return h
+}
 
-  return Array.from({ length: Math.min(sold, members.length) }, (_, i) => {
-    const m = members[(start + i * 7) % members.length]
-    const ref = ((h + i * 2654435761) >>> 0).toString(36).toUpperCase().slice(0, 6)
-    return { person: roster[m.personId], ticket: `TC-${ref}`, walkIn: false }
-  }).filter((x) => x.person)
+// Which members hold a ticket for a plan. Derived so the same plan always
+// picks the same people; a real one would come from the sale log. Sales reads
+// this too, to tell a regular's money from a newcomer's.
+export function memberHoldersFor(communityId: string, planId: string, sold: number): Member[] {
+  const members = membersOf(communityId)
+  if (members.length === 0) return []
+  const start = hashOf(planId) % members.length
+  return Array.from(
+    { length: Math.min(sold, members.length) },
+    (_, i) => members[(start + i * 7) % members.length],
+  )
+}
+
+export function holdersFor(communityId: string, planId: string, sold: number): Holder[] {
+  const h = hashOf(planId)
+  return memberHoldersFor(communityId, planId, sold)
+    .map((m, i) => {
+      const ref = ((h + i * 2654435761) >>> 0).toString(36).toUpperCase().slice(0, 6)
+      return { person: roster[m.personId], ticket: `TC-${ref}`, walkIn: false }
+    })
+    .filter((x) => x.person)
 }
 
 interface DoorValue {
