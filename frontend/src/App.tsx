@@ -31,6 +31,7 @@ const MapScreen = lazy(() =>
 )
 
 import { BottomBar } from './components/shared'
+import { Splash } from './components/Splash'
 import Tonight from './screens/Tonight'
 import EventDetail from './screens/EventDetail'
 import Community from './screens/Community'
@@ -58,6 +59,7 @@ export default function App() {
       <LocationProvider>
       <CommunitiesProvider>
       <div className="shell">
+        <Splash />
         <Routes>
           <Route element={<TabLayout />}>
             <Route path="/" element={<Community />} />

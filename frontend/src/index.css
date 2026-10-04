@@ -4,8 +4,21 @@
   --yellow: #FDBE50;
   --orange: #E9712A;
   --ink: #070808;
-  --paper: #F8F5EC;
+  /* Warm sand: the brand amber at full strength was a flat slab over half a
+     screen. Amber is an accent again; this is what the cards sit on. The
+     neutral ramp still mostly fails here (--muted 2.9:1, --faint 2.1:1), so
+     text on the ground takes the token below. */
+  --paper: #F7E3BC;
   --card: #FFFFFF;
+  /* Soft fills *inside* cards, where the ground's own colour would shout. */
+  --inset: #F8F5EC;
+  /* Secondary text on sand: a warm brown at 4.9:1 — on-palette in a way a
+     grey is not, and it keeps its distance from the blue. */
+  --on-paper-soft: #7E5C1A;
+  /* A hairline on the ground, tinted from the primary rather than the ramp. */
+  --paper-line: rgba(21, 71, 124, 0.18);
+  /* A white card on sand separates at only 1.26:1, so cards get an edge. */
+  --card-edge: #E4D0A4;
   --muted: #8A8577;
   --muted-2: #6B665A;
   --faint: #A79F8C;
@@ -44,6 +57,7 @@ button {
 
 /* App shell — phone-width column */
 .shell {
+  position: relative;
   max-width: 430px;
   margin: 0 auto;
   min-height: 100dvh;
@@ -259,7 +273,11 @@ button {
 }
 .icebreaker-text { font-size: 14.5px; font-weight: 700; line-height: 1.4; color: #fff; }
 .tile-row { display: flex; gap: 9px; }
-.tile { flex: 1; background: var(--card); border-radius: 12px; padding: 11px 12px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 3px 14px rgba(21,71,124,0.08); }
+.tile {
+  flex: 1; background: var(--card); border: 1px solid var(--card-edge); border-radius: 12px;
+  padding: 11px 12px; display: flex; flex-direction: column; gap: 2px;
+  box-shadow: 0 4px 16px rgba(92, 60, 12, 0.11);
+}
 .tile-label {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; color: var(--muted);
@@ -433,13 +451,14 @@ button {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* 3D logo: gentle lift on hover */
+/* The mark is flat now, so it lifts rather than tumbling. */
 .brand svg {
-  transition: transform 0.35s ease;
-  transform-origin: 50% 80%;
+  transition: transform 0.3s ease;
+  transform-origin: 50% 85%;
 }
-.brand:hover svg {
-  transform: translateY(-2px) rotate(-5deg) scale(1.06);
+.brand:hover svg { transform: translateY(-2px) scale(1.05); }
+@media (prefers-reduced-motion: reduce) {
+  .brand svg, .brand:hover svg { transition: none; transform: none; }
 }
 
 /* Search bar */
@@ -468,7 +487,12 @@ button {
 .search-bar input::placeholder { color: var(--faint); }
 
 /* Bigger brand lockup */
-.brand.big { font-size: 18px; gap: 10px; }
+/* The mark is three separate figures with tails; below about 36px the
+   flanking pair closes up into a blur, so the lockup is sized off the mark
+   and the wordmark follows it rather than the other way round. The wordmark
+   is drawn, not set, so nothing here needs a font size or tracking. */
+.brand.big { gap: 12px; }
+.brand.big svg { display: block; }
 
 /* No-results card */
 .no-match {
@@ -656,7 +680,7 @@ button {
   position: absolute; top: 0; left: 0; right: 0; z-index: 3;
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px 12px;
-  background: linear-gradient(to bottom, var(--paper) 62%, rgba(248,245,236,0));
+  background: linear-gradient(to bottom, var(--paper) 62%, rgba(247, 227, 188, 0));
   pointer-events: none;
 }
 .map-header > * { pointer-events: auto; }
@@ -809,7 +833,7 @@ button {
 .venue-line {
   display: flex; align-items: center; gap: 7px;
   width: 100%; min-height: 40px;
-  background: var(--paper);
+  background: var(--inset);
   border-radius: 9px; padding: 8px 11px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 12.5px; font-weight: 700; color: var(--blue);
@@ -849,7 +873,10 @@ button {
 .comm-tile {
   display: flex; flex-direction: column;
   background: var(--card); border-radius: 18px; overflow: hidden;
-  text-decoration: none; box-shadow: 0 6px 22px rgba(21,71,124,0.10);
+  text-decoration: none;
+  /* On sand a white card is 1.26:1, so it needs an edge as well as a lift. */
+  border: 1px solid var(--card-edge);
+  box-shadow: 0 8px 24px rgba(92, 60, 12, 0.14);
 }
 .comm-cover {
   position: relative; height: 176px;
@@ -919,7 +946,7 @@ button {
 }
 .comm-banner::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(248,245,236,0.96) 0%, rgba(248,245,236,0) 58%);
+  background: linear-gradient(to top, rgba(247, 227, 188, 0.96) 0%, rgba(247, 227, 188, 0) 58%);
 }
 .comm-banner .comm-kicker { display: none; }
 
@@ -1111,12 +1138,12 @@ button {
   position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
   width: 100%; max-width: 430px; z-index: 15;
   display: flex; align-items: center; gap: 8px;
-  padding: 13px 20px; border-top: 1px solid var(--line); background: var(--paper);
+  padding: 13px 20px; border-top: 1px solid var(--paper-line); background: var(--paper);
 }
 .composer-lock svg { flex: 0 0 auto; }
 .composer-hint {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--muted);
+  font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--on-paper-soft);
 }
 
 .gallery-count {
@@ -1190,7 +1217,7 @@ button {
 }
 .stat {
   display: flex; flex-direction: column; gap: 1px;
-  background: var(--paper); padding: 13px 14px;
+  background: var(--card); padding: 13px 14px;
 }
 /* An odd last tile spans the row rather than leaving a hole beside it. */
 .stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
@@ -1646,7 +1673,7 @@ button {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
   background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
 }
-.me-stat { background: var(--paper); padding: 13px 16px; display: flex; flex-direction: column; gap: 1px; }
+.me-stat { background: var(--card); padding: 13px 16px; display: flex; flex-direction: column; gap: 1px; }
 .me-n { font-size: 24px; font-weight: 900; letter-spacing: -0.025em; color: var(--blue); line-height: 1.1; }
 .me-n.warn { color: var(--orange-text); }
 .me-l {
@@ -1741,4 +1768,152 @@ button {
 .me-privacy {
   display: flex; gap: 12px; align-items: flex-start;
   border: 1px dashed var(--outline); border-radius: 14px; padding: 14px 16px;
+}
+
+/* ---------- Text that sits on the amber ground ---------- */
+
+/* The neutral ramp was mixed for cream and none of it survives amber:
+   --muted is 2.2:1, --faint 1.6:1, --line 1.3:1. Everything below is page
+   chrome rather than card content, so it takes the ground's own token.
+   Anything inside a card keeps the ramp, where the ramp still works. */
+.page-sub,
+.me-sub,
+.comm-head-stats,
+.comm-rate-n,
+.empty-sub,
+.stub p,
+.stub-empty .s,
+.no-match .s,
+.footer-note,
+.consent-note,
+.ticket-kicker,
+.past-kicker,
+.gallery-count,
+.board-note,
+.tab-link {
+  color: var(--on-paper-soft);
+}
+/* The chosen tab is the primary, not a darker version of the ground. */
+.tab-link.on { color: var(--blue); }
+
+/* ---------- Launch ---------- */
+
+/* The three figures hop in from three directions, the name lands under them,
+   then the whole lockup takes its seat in the header. Nothing else is on
+   screen while it happens; the ground is the app's own, so the handover is a
+   logo settling into place rather than a screen being swapped. */
+.splash {
+  position: absolute; inset: 0; z-index: 60; overflow: hidden;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color 0.9s ease;
+}
+.splash.sp-fly, .splash.sp-done { background-color: transparent; pointer-events: none; }
+.splash.sp-done { opacity: 0; transition: opacity 0.2s ease; }
+
+/* The box is the mark alone. A flex row would reserve the wordmark's width —
+   wider than the 430 column — and shove the mark off to the left. */
+.splash-lock {
+  position: relative; display: block; line-height: 0;
+  transition: transform 1.9s cubic-bezier(0.42, 0, 0.18, 1);
+}
+
+/* Authored at 2.2x the header throughout — mark 88, name 44, gap 26.4 — so
+   one uniform scale lands every part of it in the right seat. */
+.splash-name {
+  position: absolute; left: 100%; top: 50%; margin-left: 26.4px;
+  line-height: 0;
+  /* Resting place: beside the mark, where the header wants it. */
+  transform: translateY(-50%);
+  transition: transform 1.9s cubic-bezier(0.42, 0, 0.18, 1), opacity 0.92s ease;
+}
+/* Under the mark: back past its own width, the gap, and half the mark. */
+.sp-in .splash-name,
+.sp-hop .splash-name,
+.sp-name .splash-name {
+  transform: translate(calc(-50% - 65.1px), calc(-50% + 76px));
+}
+.sp-in .splash-name,
+.sp-hop .splash-name {
+  opacity: 0;
+  transform: translate(calc(-50% - 65.1px), calc(-50% + 116px));
+}
+
+/* The SVG clips to its own viewport by default, which is why the figures
+   appeared out of a small square — anything outside the viewBox was cut off.
+   With this they can start well outside the mark and travel in. */
+.splash-lock svg { overflow: visible; }
+
+/* Distances below are viewBox user units, not CSS pixels: a CSS transform on
+   an SVG child works in the local coordinate system. The mark renders 185.33
+   units across 77.4px, so one unit is 0.418px — 340 units is about 142px,
+   which stands them apart inside the column rather than half off its edge.
+   They are already here; the hop is them converging, not arriving. */
+
+/* First they fade up where they are, spread apart and still. */
+.sp-in .mk-left { animation: wait-left 1.1s ease both; }
+.sp-in .mk-right { animation: wait-right 1.1s ease 0.18s both; }
+.sp-in .mk-mid { animation: wait-mid 1.1s ease 0.36s both; }
+@keyframes wait-left {
+  from { transform: translate(-340px, -40px); opacity: 0; }
+  to { transform: translate(-340px, -40px); opacity: 1; }
+}
+@keyframes wait-right {
+  from { transform: translate(340px, -340px); opacity: 0; }
+  to { transform: translate(340px, -340px); opacity: 1; }
+}
+@keyframes wait-mid {
+  from { transform: translate(0, 380px); opacity: 0; }
+  to { transform: translate(0, 380px); opacity: 1; }
+}
+
+/* Then they hop in on their own feet: a long bound, two shorter ones, and a
+   last little settle. The timing function stays linear so the hops are not
+   smoothed back into a glide — the arc lives in the keyframes. */
+.sp-hop .mk-left { animation: hop-in-left 1.24s linear both; }
+.sp-hop .mk-right { animation: hop-in-right 1.24s linear 0.16s both; }
+.sp-hop .mk-mid { animation: hop-in-mid 1.16s linear 0.34s both; }
+.sp-name .splash-lock g, .sp-fly .splash-lock g, .sp-done .splash-lock g { animation: none; }
+
+@keyframes hop-in-left {
+  0% { transform: translate(-340px, -40px); }
+  14% { transform: translate(-272px, -140px); }
+  28% { transform: translate(-206px, -40px); }
+  42% { transform: translate(-148px, -108px); }
+  56% { transform: translate(-98px, -20px); }
+  70% { transform: translate(-58px, -58px); }
+  82% { transform: translate(-27px, 0); }
+  91% { transform: translate(-9px, -20px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes hop-in-right {
+  0% { transform: translate(340px, -340px); }
+  16% { transform: translate(276px, -378px); }
+  30% { transform: translate(214px, -262px); }
+  44% { transform: translate(158px, -292px); }
+  58% { transform: translate(106px, -168px); }
+  72% { transform: translate(62px, -192px); }
+  84% { transform: translate(28px, -54px); }
+  92% { transform: translate(10px, -70px); }
+  100% { transform: translate(0, 0); }
+}
+/* The big one arrives last, hopping up into the space the other two left. */
+@keyframes hop-in-mid {
+  0% { transform: translate(0, 380px); }
+  20% { transform: translate(0, 182px); }
+  33% { transform: translate(0, 244px); }
+  49% { transform: translate(0, 79px); }
+  62% { transform: translate(0, 123px); }
+  77% { transform: translate(0, 6px); }
+  87% { transform: translate(0, 32px); }
+  95% { transform: translate(0, -8px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* The real header holds its place so its box can be measured, but stays out
+   of sight until the splash has handed over. */
+body.splashing .brand.big { visibility: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash { display: none; }
 }

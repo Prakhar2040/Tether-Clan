@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import type { Community, Person } from '../types'
-import { CalendarIcon, CircleIcon, HomeIcon, LogoMark3D, PersonIcon, PinIcon } from './icons'
+import { CalendarIcon, CircleIcon, HomeIcon, LogoMark, PersonIcon, PinIcon, WordMark } from './icons'
 
 export function Brand() {
   return (
     <span className="brand big">
-      <LogoMark3D size={38} /> TETHER CLAN
+      <LogoMark size={40} decorative />
+      <WordMark height={17} />
     </span>
   )
 }
