@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { NOW, people, venues } from '@app/data/mock'
+import { NOW, venues } from '@app/data/mock'
 import { membersOf } from '@app/data/roster'
 import { useHostCommunity } from '../state/host'
 import { usePlans } from '../state/plans'
 import { holdersFor, useDoor } from '../state/door'
-import { usePosts } from '../state/posts'
 import { usePhotos } from '../state/photos'
 import { salesFor } from '../lib/sales'
 import { tierOf, useBadges } from '../state/badges'
-import { ChatIcon, ChevronIcon, ImageIcon, OutIcon, PeopleIcon, ScanIcon, TagIcon } from '../components/icons'
+import { ChevronIcon, ImageIcon, OutIcon, PeopleIcon, ScanIcon, StarIcon, TagIcon } from '../components/icons'
+import { lifetimeOf } from '@app/data/history'
 import { DonutChart } from '../components/DonutChart'
+import { LifeTile } from '../components/LifeTile'
 import { LineChart } from '../components/LineChart'
 import { leftInMonth } from '../lib/churn'
 
@@ -220,11 +221,10 @@ function PhotoWall({
 
 export default function Dashboard() {
   const navigate = useNavigate()
-  const { community, owner } = useHostCommunity()
+  const { community } = useHostCommunity()
   const { config } = useBadges()
   const { plans } = usePlans()
   const { arrivals } = useDoor()
-  const { posts } = usePosts()
   const { photos, coverId } = usePhotos()
   const [range, setRange] = useState<3 | 6 | 12>(6)
 
@@ -232,6 +232,7 @@ export default function Dashboard() {
   // its cover. Never a hardcoded picture.
   const cover = photos.find((p) => p.id === coverId)?.src ?? community.coverImage
   const sales = salesFor(community.id)
+  const life = lifetimeOf(community.id, NOW)
   const members = membersOf(community.id)
 
   const next = [...plans]
@@ -255,16 +256,6 @@ export default function Dashboard() {
   const pct = next && next.capacity > 0
     ? Math.round(((isToday ? arrived : next.sold) / (isToday ? Math.max(1, holders.length) : next.capacity)) * 100)
     : 0
-
-  // Newest first, pins ignored — this is the rhythm of the room, not its
-  // reference material.
-  const recent = [...posts].sort((a, b) => a.sortKey - b.sortKey).slice(0, 6)
-  const latest = recent[0]
-  const author = latest ? (latest.authorId ? people[latest.authorId] : owner) : undefined
-  const reactions = latest ? Object.entries(latest.reactions).filter(([, n]) => n > 0) : []
-  const totalReacts = (r: Record<string, number>) => Object.values(r).reduce((a, b) => a + b, 0)
-  const allReacts = posts.reduce((a, p) => a + totalReacts(p.reactions), 0)
-  const polls = posts.filter((p) => p.poll).length
 
   // Who arrived and who went, month by month. The joins are real rows; the
   // departures come from lib/churn, because a membership has no end date yet.
@@ -359,93 +350,25 @@ export default function Dashboard() {
           </button>
         )}
 
-        {/* The room as members see it, beside the night: the latest post in the
-            app's own bubble, the rest beneath, then how the room is used. */}
-        <button className="tl tl-msg" onClick={() => navigate('/posts')}>
-          <div className="tl-top">
-            <span className="tl-label">The channel</span>
-            <span className="tl-chip tl-chip-swap">
-              <ChatIcon size={16} strokeWidth={2.2} />
-              <OutIcon size={15} strokeWidth={2.4} />
-            </span>
-          </div>
-
-          {latest ? (
-            <div className="tl-thread">
-              <div className="tl-bub">
-                <span className="tl-bub-by">
-                  <span className={`av av-${author?.color ?? 'tint'}`} style={{ width: 24, height: 24, fontSize: 10 }}>
-                    {author?.initials}
-                  </span>
-                  <b>{author?.name}</b>
-                  <i>{latest.timeLabel} ago</i>
-                  {latest.poll ? <u>Poll</u> : null}
-                </span>
-
-                <span className="tl-bub-title">
-                  {latest.emoji ? <em>{latest.emoji}</em> : null}
-                  {latest.title ?? latest.poll?.question ?? 'A note to the room'}
-                </span>
-                <p className="tl-bub-body">
-                  {latest.body ||
-                    (latest.poll
-                      ? `${latest.poll.options.length} options · ${latest.poll.closesLabel}`
-                      : '')}
-                </p>
-
-                {reactions.length > 0 ? (
-                  <span className="tl-bub-r">
-                    {reactions.slice(0, 4).map(([e, n]) => (
-                      <span key={e}>
-                        {e} {n}
-                      </span>
-                    ))}
-                    {reactions.length > 4 ? <span className="more">+{reactions.length - 4}</span> : null}
-                  </span>
-                ) : null}
-              </div>
-
-              {/* What came before, quieter, and scrollable: the room keeps
-                  going past the bottom of the tile. */}
-              {recent.slice(1).map((p) => {
-                const who = p.authorId ? people[p.authorId] : owner
-                return (
-                  <div className="tl-bub prev" key={p.id}>
-                    <span className="tl-bub-title">
-                      {p.emoji ? <em>{p.emoji}</em> : null}
-                      {p.title ?? p.poll?.question ?? p.body}
-                    </span>
-                    <span className="tl-bub-by">
-                      <b>{who?.name.split(' ')[0]}</b>
-                      <i>{p.timeLabel} ago</i>
-                      <span className="tl-bub-r">
-                        <span>{totalReacts(p.reactions)} reactions</span>
-                      </span>
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="tl-bub-body">Nothing has been posted to this room yet.</p>
-          )}
-
-          {/* Three facts, evenly spaced, the way the sales tile reads. */}
-          <div className="tl-msg-facts">
-            <span>
-              <b>{posts.length}</b>
-              <i>posts</i>
-            </span>
-            <span>
-              <b>{allReacts}</b>
-              <i>reactions</i>
-            </span>
-            <span>
-              <b>{polls}</b>
-              <i>{polls === 1 ? 'poll' : 'polls'}</i>
-            </span>
-          </div>
-        </button>
+        {/* Everything the room has done, around the mark that made it. */}
+        <div className="tl tl-life">
+          <LifeTile
+            since={life.sinceLabel}
+            chip={
+              <span className="tl-chip">
+                <StarIcon size={15} filled />
+              </span>
+            }
+            figures={[
+              { n: String(life.nights), label: 'nights held' },
+              { n: life.seats.toLocaleString('en-IN'), label: 'seats filled' },
+              { n: String(members.length), label: 'members' },
+              { n: String(life.rooms), label: 'rooms used' },
+              { n: String(photos.length), label: 'photographs' },
+              { n: String(life.months), label: 'months running' },
+            ]}
+          />
+        </div>
 
         <MoneyTile sales={sales} onOpen={() => navigate('/sales')} />
 

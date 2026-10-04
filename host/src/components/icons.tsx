@@ -210,6 +210,57 @@ export const ChevronIcon = (p: IconProps) => (
   </svg>
 )
 
+// The app's mark, lifted from the phone so the console wears the same face.
+// Gradient ids are namespaced: two copies on one page would otherwise fight
+// over `tch-blue` and the second would render with the first's ramp.
+export const LogoMark3D = ({ size = 28 }: { size?: number }) => (
+  <svg width={size} height={(size * 54) / 48} viewBox="0 0 48 54" fill="none">
+    <defs>
+      <linearGradient id="tch-blue" x1="0" y1="0" x2="0.25" y2="1">
+        <stop offset="0" stopColor="#3F7DBE" />
+        <stop offset="0.5" stopColor="#15477C" />
+        <stop offset="1" stopColor="#0D3260" />
+      </linearGradient>
+      <linearGradient id="tch-orange" x1="0" y1="0" x2="0.25" y2="1">
+        <stop offset="0" stopColor="#F79A5B" />
+        <stop offset="0.5" stopColor="#E9712A" />
+        <stop offset="1" stopColor="#BC5316" />
+      </linearGradient>
+      <radialGradient id="tch-sheen" cx="0.32" cy="0.22" r="0.95">
+        <stop offset="0" stopColor="#FFFFFF" stopOpacity="0.5" />
+        <stop offset="0.45" stopColor="#FFFFFF" stopOpacity="0.12" />
+        <stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+
+    <ellipse cx="24" cy="50" rx="17" ry="3.2" fill="#070808" opacity="0.16" />
+
+    <g transform="translate(0 2.4)" opacity="0.95">
+      <circle cx="22" cy="9" r="6" fill="#0A2A4D" />
+      <path d="M13 24c0-5 4-9 9-9s9 4 9 9v10c0 4-3 7-7 7h-1l-3 5-1-5c-3.5-0.5-6-3.5-6-7V24z" fill="#0A2A4D" />
+      <circle cx="9" cy="17" r="3.4" fill="#8F3E0F" />
+      <path d="M4 26c0-3 2.2-5 5-5s5 2 5 5v4.5c0 2.5-2 4.5-4.5 4.5h-0.4L7 38l-0.6-3.1C4.9 34.3 4 32.8 4 31v-5z" fill="#8F3E0F" />
+      <circle cx="38" cy="15" r="3.8" fill="#8F3E0F" />
+      <path d="M32.5 25c0-3.2 2.4-5.5 5.5-5.5s5.5 2.3 5.5 5.5v5c0 2.7-2.1 4.8-4.8 4.8h-0.5l-2.4 4-0.6-4.1c-1.6-0.7-2.7-2.3-2.7-4.2V25z" fill="#8F3E0F" />
+    </g>
+
+    <circle cx="9" cy="17" r="3.4" fill="url(#tch-orange)" />
+    <path d="M4 26c0-3 2.2-5 5-5s5 2 5 5v4.5c0 2.5-2 4.5-4.5 4.5h-0.4L7 38l-0.6-3.1C4.9 34.3 4 32.8 4 31v-5z" fill="url(#tch-orange)" />
+    <circle cx="38" cy="15" r="3.8" fill="url(#tch-orange)" />
+    <path d="M32.5 25c0-3.2 2.4-5.5 5.5-5.5s5.5 2.3 5.5 5.5v5c0 2.7-2.1 4.8-4.8 4.8h-0.5l-2.4 4-0.6-4.1c-1.6-0.7-2.7-2.3-2.7-4.2V25z" fill="url(#tch-orange)" />
+
+    <circle cx="22" cy="9" r="6" fill="url(#tch-blue)" />
+    <path d="M13 24c0-5 4-9 9-9s9 4 9 9v10c0 4-3 7-7 7h-1l-3 5-1-5c-3.5-0.5-6-3.5-6-7V24z" fill="url(#tch-blue)" />
+
+    <circle cx="22" cy="9" r="6" fill="url(#tch-sheen)" />
+    <path d="M13 24c0-5 4-9 9-9s9 4 9 9v10c0 4-3 7-7 7h-1l-3 5-1-5c-3.5-0.5-6-3.5-6-7V24z" fill="url(#tch-sheen)" />
+    <ellipse cx="20" cy="6.8" rx="2.1" ry="1.4" fill="#FFFFFF" opacity="0.65" transform="rotate(-18 20 6.8)" />
+    <ellipse cx="7.7" cy="15.6" rx="1.1" ry="0.75" fill="#FFFFFF" opacity="0.55" transform="rotate(-18 7.7 15.6)" />
+    <ellipse cx="36.6" cy="13.5" rx="1.2" ry="0.8" fill="#FFFFFF" opacity="0.55" transform="rotate(-18 36.6 13.5)" />
+  </svg>
+)
+
+
 // The app's 3D logo mark, at rail size.
 export const LogoMark = ({ size = 30 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" fill="none">

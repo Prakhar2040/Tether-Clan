@@ -1816,7 +1816,8 @@ a { color: inherit; text-decoration: none; }
 /* One unit is 171px, so two of them plus the gap make 360: the night, the
    community and the channel are all the same height, and a pair of stacked
    stat tiles beside the channel comes out level with it. */
-.tl-night, .tl-msg, .tl-wall { grid-column: span 6; grid-row: span 2; }
+.tl-night, .tl-wall { grid-column: span 6; grid-row: span 2; }
+.tl-life { grid-column: span 6; grid-row: span 2; }
 .tl-money { grid-column: span 6; grid-row: span 2; }
 .tl-people { grid-column: span 6; grid-row: span 2; }
 
@@ -2050,6 +2051,73 @@ a { color: inherit; text-decoration: none; }
 .composer-open:hover .composer-open-btn { background: var(--blue); border-color: var(--blue); color: #fff; }
 .composer-foot-btns { display: flex; align-items: center; gap: 10px; }
 
+/* ---- Everything the room has done ---- */
+
+/* Light, not another dark slab: the photographs below are already a dark
+   tile, and two of them stacked down the right made that column heavy. */
+.tl-life {
+  padding: 0; overflow: hidden; border-color: var(--line); color: var(--ink);
+  background:
+    radial-gradient(110% 95% at 14% 2%, rgba(253,190,80,0.30) 0%, rgba(253,190,80,0) 56%),
+    radial-gradient(120% 110% at 90% 98%, rgba(63,125,190,0.24) 0%, rgba(63,125,190,0) 62%),
+    linear-gradient(150deg, #FFFFFF 0%, #F4F8FC 54%, #E9F1F9 100%);
+}
+.life { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+.life-top {
+  position: relative; z-index: 3; display: flex; align-items: flex-start;
+  justify-content: space-between; padding: 20px 22px 0;
+}
+.life-label {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--faint);
+}
+.tl-life .tl-chip { width: 34px; height: 34px; color: var(--yellow); background: var(--card); }
+
+/* The stage holds the perspective; the plate inside it is what turns. */
+.life-stage {
+  flex: 1 1 auto; min-height: 0; padding: 6px 20px 20px;
+  perspective: 900px; perspective-origin: 50% 50%;
+}
+.life-turn {
+  position: relative; width: 100%; height: 100%;
+  transform-style: preserve-3d; will-change: transform;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* While the cursor is on it the plate must follow, not ease — the easing is
+   only there to settle it back when the cursor leaves. */
+.life-turn.on { transition: transform 0.08s linear; }
+
+.life-glow {
+  position: absolute; left: 50%; top: 50%; width: 168px; height: 168px;
+  margin: -84px 0 0 -84px; border-radius: 50%; transform: translateZ(-30px);
+  background: radial-gradient(circle, rgba(21,71,124,0.10) 0%, rgba(21,71,124,0) 70%);
+}
+.life-mark {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -52%) translateZ(26px);
+  filter: drop-shadow(0 14px 24px rgba(21,71,124,0.26));
+}
+
+/* Further forward than the mark, so they swing wider than it does. That
+   parallax is the depth; the rotation on its own reads as a flat card. */
+.life-fig {
+  position: absolute; transform: translate(-50%, -50%) translateZ(58px);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  white-space: nowrap; text-align: center;
+}
+.life-fig b {
+  font-size: 28px; font-weight: 900; letter-spacing: -0.035em; line-height: 1;
+  color: var(--blue); font-variant-numeric: tabular-nums;
+}
+.life-fig i {
+  font-style: normal; font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.03em; color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .life-turn { transition: none; transform: none !important; }
+}
+
 /* ---- The photographs ---- */
 
 /* The picture is the tile: full bleed, with a scrim so the label and the
@@ -2134,105 +2202,6 @@ a { color: inherit; text-decoration: none; }
 .donut.sm .donut-one u { font-size: 11px; }
 .donut.sm .donut-one em { font-size: 10px; }
 
-/* ---- The channel ---- */
-
-.tl-msg { cursor: pointer; padding: 22px 24px 16px; }
-/* The thread takes the slack; the facts strip stays pinned to the floor. */
-/* The room keeps going past the bottom of the tile, so it scrolls. */
-.tl-thread {
-  flex: 1 1 auto; min-height: 0; overflow-y: scroll; overscroll-behavior: contain;
-  display: flex; flex-direction: column; gap: 9px; margin-top: 6px; padding-right: 12px;
-}
-/* No `scrollbar-width`: setting it makes Chrome use the overlay bar, which
-   fades out and takes the hint that there is more to read with it. The
-   pseudo-elements below draw a bar that stays put. */
-.tl-thread::-webkit-scrollbar { width: 7px; }
-.tl-thread::-webkit-scrollbar-track { background: var(--paper); border-radius: 4px; }
-.tl-thread::-webkit-scrollbar-thumb {
-  background: var(--outline); border-radius: 4px; min-height: 28px;
-}
-.tl-thread::-webkit-scrollbar-thumb:hover { background: var(--muted); }
-
-/* The app's own bubble: tinted, with the top-left corner squared into a tail
-   so it reads as something Robin said, not as a card. */
-.tl-bub {
-  flex: 0 0 auto; min-height: 0; padding: 13px 15px 12px;
-  background: color-mix(in srgb, var(--blue) 7%, var(--paper));
-  border: 1px solid color-mix(in srgb, var(--blue) 12%, transparent);
-  border-radius: 16px; border-top-left-radius: 4px;
-  display: flex; flex-direction: column; min-width: 0;
-}
-/* The one before it: flatter, smaller, clearly behind the latest. */
-.tl-bub.prev {
-  padding: 10px 14px 11px; background: var(--paper);
-  border-color: var(--line); border-radius: 14px; border-top-left-radius: 4px;
-}
-.tl-bub.prev .tl-bub-title { margin-top: 0; font-size: 13.5px; font-weight: 800; }
-.tl-bub.prev .tl-bub-title em { font-size: 15px; }
-.tl-bub.prev .tl-bub-by { margin-top: 5px; color: var(--faint); }
-.tl-bub.prev .tl-bub-by b { color: var(--muted-2); font-weight: 700; }
-
-.tl-bub-by {
-  display: flex; align-items: center; gap: 8px; min-width: 0; line-height: 1;
-  font-family: 'Archivo Narrow', Archivo, sans-serif; font-size: 12px;
-}
-.tl-bub-by b { font-weight: 800; color: var(--blue); }
-.tl-bub-by i, .tl-bub-by u { font-style: normal; text-decoration: none; flex: 0 0 auto; }
-.tl-bub-by i { font-weight: 600; color: var(--faint); }
-.tl-bub-by u {
-  margin-left: auto; font-weight: 800; color: var(--blue); letter-spacing: 0.03em;
-  background: var(--card); border-radius: 999px; padding: 3px 9px;
-}
-.tl-bub-title {
-  display: flex; align-items: baseline; gap: 8px; margin-top: 9px; min-width: 0;
-  font-size: 17px; font-weight: 900; line-height: 1.25; letter-spacing: -0.02em; color: var(--blue);
-}
-.tl-bub-title em { font-style: normal; font-size: 19px; flex: 0 0 auto; }
-/* The words are the one part allowed to give: the name, the headline and the
-   reactions never clip, however long the post runs. */
-.tl-bub-body {
-  flex: 0 1 auto; min-height: 0;
-  margin: 5px 0 0; font-size: 13px; line-height: 1.5; font-weight: 500; color: var(--muted-2);
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
-}
-.tl-bub-r { display: flex; flex-wrap: nowrap; gap: 5px; margin-top: 11px; overflow: hidden; }
-.tl-bub.prev .tl-bub-r { margin-top: 0; margin-left: auto; }
-.tl-bub-r span {
-  flex: 0 0 auto;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11.5px; font-weight: 700; color: var(--muted-2); line-height: 1.25;
-  background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px;
-}
-.tl-bub-r .more { color: var(--faint); }
-
-/* How the room is being used, three ways, evenly spaced. */
-.tl-msg-facts {
-  flex: 0 0 auto;
-  display: grid; grid-template-columns: repeat(3, 1fr); align-items: end;
-  padding-top: 14px; margin-top: 2px; border-top: 1px solid var(--line);
-}
-.tl-msg-facts span { display: flex; align-items: baseline; gap: 6px; }
-.tl-msg-facts b {
-  font-size: 19px; font-weight: 900; letter-spacing: -0.03em; color: var(--blue);
-  font-variant-numeric: tabular-nums; line-height: 1;
-}
-.tl-msg-facts i {
-  font-style: normal; font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11.5px; font-weight: 600; color: var(--faint);
-}
-
-.tl-by {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 700; color: var(--muted-2);
-}
-.tl-reacts { display: inline-flex; gap: 5px; }
-.tl-reacts span {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 11.5px; font-weight: 700; color: var(--muted-2);
-  background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px;
-}
-
 /* ---- Members, at the size of the night ---- */
 .tl-people-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 8px; }
 .tl-people-n {
@@ -2266,7 +2235,7 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 1080px) {
   .dash-grid { grid-template-columns: repeat(6, 1fr); }
-  .tl-night, .tl-msg, .tl-money, .tl-wall { grid-column: span 6; }
+  .tl-night, .tl-money, .tl-wall, .tl-life { grid-column: span 6; }
   .tl-people { grid-column: span 6; }
   }
 @media (prefers-reduced-motion: reduce) {
