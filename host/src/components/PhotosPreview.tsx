@@ -1,5 +1,5 @@
-import { people } from '@app/data/mock'
-import type { Community } from '@app/types'
+import { people } from '@shared/mock'
+import type { Community } from '@shared/types'
 import type { PhotoDraft } from '../state/photos'
 
 // The app's Photos tab, at phone width. Every fifth tile runs full bleed —

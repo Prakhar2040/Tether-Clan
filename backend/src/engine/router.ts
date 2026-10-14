@@ -1,6 +1,6 @@
 import { areas } from '../data/areas'
 import { activities, DATE_TERMS, FILTER_TERMS } from '../data/taxonomy'
-import { communities, venues } from '../data/seed'
+import type { World } from '../db/repo'
 import { editDistance, tokenize } from './normalize'
 
 // Point 4: rule-based intent router. Runs before any retrieval, in a fixed
@@ -46,7 +46,7 @@ function matchPhrase(
   return null
 }
 
-export function route(normalized: string): RoutedQuery {
+export function route(normalized: string, w: World): RoutedQuery {
   const tokens = tokenize(normalized)
   const used = new Array(tokens.length).fill(false)
   const intents: Intent[] = []
@@ -76,14 +76,14 @@ export function route(normalized: string): RoutedQuery {
     })),
   )
   // 5. Venues and communities → entity jump
-  const venuePhrases = Object.values(venues).flatMap((v) => {
+  const venuePhrases = Object.values(w.venues).flatMap((v) => {
     const short = v.name.toLowerCase().replace(/ (board game )?caf.*$/, '')
     return [v.name.toLowerCase(), short].map((phrase) => ({
       phrase,
       payload: { kind: 'venue', id: v.id, label: v.name, matched: '' } as Intent,
     }))
   })
-  const communityPhrases = Object.values(communities).map((c) => ({
+  const communityPhrases = Object.values(w.communities).map((c) => ({
     phrase: c.name.toLowerCase(),
     payload: { kind: 'community', id: c.id, label: c.name, matched: '' } as Intent,
   }))

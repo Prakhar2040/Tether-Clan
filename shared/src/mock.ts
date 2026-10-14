@@ -1,4 +1,4 @@
-import type { Person, Series, TcEvent, Venue } from '../types'
+import type { Person, Series, TcEvent, Venue } from './types'
 
 // All sample data. Wed 9 Sep 2026, 17:50 IST, Bengaluru.
 export const NOW = new Date('2026-09-09T17:50:00+05:30')
@@ -875,9 +875,6 @@ export const events: Record<string, TcEvent> = {
   },
 }
 
-export const tonightEventIds = ['catan-night', 'kannada-english', 'sketchwalk', 'late-doubles']
-
-// Events shown in the "worth the ride" list when browsing a quiet area.
 export const worthTheRideIds = ['catan-night', 'sunrise-5k-thu']
 
 export function seatsLeft(e: TcEvent): number {

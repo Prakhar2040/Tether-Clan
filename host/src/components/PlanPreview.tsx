@@ -1,5 +1,5 @@
-import { venues } from '@app/data/mock'
-import type { Community } from '@app/types'
+import { venues } from '@shared/mock'
+import type { Community } from '@shared/types'
 import type { Plan } from '../state/plans'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']

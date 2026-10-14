@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { communities, photosFor } from '@app/data/community'
-import type { CommunityPhoto } from '@app/types'
+import type { CommunityPhoto } from '@shared/types'
 
 // The gallery, as something the host edits. Seeded from what the app already
 // ships, then kept per community. Uploads are object URLs — they live as long

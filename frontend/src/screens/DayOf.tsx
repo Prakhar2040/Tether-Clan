@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { events, people, venues } from '../data/mock'
+import { events, people, venues } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
 import { useCircle } from '../state/circle'
 import { Avatar } from '../components/shared'

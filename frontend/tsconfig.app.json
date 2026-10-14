@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+
+    /* The world and its types live in ../shared, which the backend seeds from
+       and both apps read. */
+    "paths": { "@shared/*": ["../shared/src/*"] },
+
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",

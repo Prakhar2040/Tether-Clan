@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { venues } from '@app/data/mock'
+import { venues } from '@shared/mock'
 import { useHostCommunity } from '../state/host'
 import { usePlans } from '../state/plans'
 import { holdersFor, useDoor } from '../state/door'

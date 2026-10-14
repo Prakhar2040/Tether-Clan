@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { communities } from '@app/data/community'
-import { people } from '@app/data/mock'
-import type { Community, Person } from '@app/types'
+import { people } from '@shared/mock'
+import type { Community, Person } from '@shared/types'
 
 // Who is signed in, and which of their rooms they are looking at. Robin owns
 // the board games community; Rahul owns the run club. For now the console

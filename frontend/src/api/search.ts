@@ -1,4 +1,4 @@
-import type { TcEvent } from '../types'
+import type { TcEvent } from '@shared/types'
 
 // Client for the search engine. Everything here is written against the
 // permanent API contract, so swapping the engine's internals changes nothing.

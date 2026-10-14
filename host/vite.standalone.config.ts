@@ -7,7 +7,7 @@ const appSrc = fileURLToPath(new URL('../frontend/src', import.meta.url))
 export default defineConfig({
   plugins: [react()],
   base: './',
-  resolve: { alias: { '@app': appSrc } },
+  resolve: { alias: { '@shared': fileURLToPath(new URL('../shared/src', import.meta.url)), '@app': appSrc } },
   define: { 'import.meta.env.VITE_STANDALONE': 'true' },
   build: {
     outDir: 'dist-standalone',

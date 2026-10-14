@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { CONNECT_WINDOW_HOURS, events, NOW } from '../data/mock'
+import { CONNECT_WINDOW_HOURS, events, NOW } from '@shared/mock'
 
 // Connections come from events you were at. There is no directory and no
 // browsable roster of strangers: you add people from a specific plan, only

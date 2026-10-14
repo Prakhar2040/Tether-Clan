@@ -1,5 +1,5 @@
 import { photosFor } from '@app/data/community'
-import type { Community, Person } from '@app/types'
+import type { Community, Person } from '@shared/types'
 import type { AboutDraft } from '../state/about'
 
 // A faithful copy of the app's About tab, rendered at phone width so the

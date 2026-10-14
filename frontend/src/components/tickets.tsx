@@ -1,7 +1,7 @@
 import { useRsvp } from '../state/rsvp'
-import { priceLabel, venues } from '../data/mock'
+import { priceLabel, venues } from '@shared/mock'
 import { CheckIcon, ChevronIcon } from './icons'
-import type { TcEvent } from '../types'
+import type { TcEvent } from '@shared/types'
 
 // The row shapes shared by a community's Tickets tab and My Plans, so both
 // pages speak the same language: a date stub, the plan, one action. Never a

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { events, series } from '../data/mock'
+import { events, series } from '@shared/mock'
 import { communityOf } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { Brand } from '../components/shared'

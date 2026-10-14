@@ -1,5 +1,5 @@
-import { people } from '../data/mock'
-import type { TcEvent } from '../types'
+import { people } from '@shared/mock'
+import type { TcEvent } from '@shared/types'
 import { useCircle } from '../state/circle'
 import { Avatar, AvatarStack } from './shared'
 import { ChevronIcon } from './icons'

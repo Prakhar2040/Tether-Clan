@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { events, priceLabel, seatsLeft, venues, worthTheRideIds } from '../data/mock'
+import { events, priceLabel, seatsLeft, venues, worthTheRideIds } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
 import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
@@ -19,7 +19,7 @@ import {
   SearchIcon,
   SlidersIcon,
 } from '../components/icons'
-import type { TcEvent } from '../types'
+import type { TcEvent } from '@shared/types'
 
 
 
@@ -87,6 +87,33 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
         ) : null}
       </div>
     </article>
+  )
+}
+
+/* A paid placement, and labelled as one.
+ *
+ * It lives here rather than on the Community tab on purpose: Events is a
+ * discovery surface, people arrive expecting to be shown things they do not
+ * know about, and a promoted plan here is honest. The Community tab is the
+ * one screen that is only the rooms somebody chose, and selling space on it
+ * would turn a home into a marketplace.
+ *
+ * It sits after the first few real results, never at the top — a promoted
+ * item ahead of what somebody actually searched for is an advert wearing the
+ * interface's clothes.
+ */
+function Promoted({ e }: { e: TcEvent }) {
+  return (
+    <Link to={`/event/${e.id}`} className="card promoted">
+      <span className="promoted-tag">Promoted</span>
+      <span className="stack-2" style={{ flex: 1 }}>
+        <span className="event-title">{e.title}</span>
+        <span className="event-meta">
+          {e.dayLabel} {e.timeLabel} · {venues[e.venueId]?.areaName} · {priceLabel(e).toLowerCase()}
+        </span>
+      </span>
+      <ChevronIcon size={16} color="#15477C" />
+    </Link>
   )
 }
 
@@ -220,6 +247,14 @@ export default function Tonight() {
     enabled: !quiet && !import.meta.env.VITE_STANDALONE,
   })
 
+  /* A plan somebody paid to place. Deliberately drawn from outside what the
+     filters returned — a promoted item that was going to appear anyway is not
+     a placement, it is a label on a coincidence. */
+  const promoted = useMemo(() => {
+    const shown = new Set(scoped.map((e) => e.id))
+    return Object.values(events).find((e) => !shown.has(e.id) && !e.liveNow && e.price > 0)
+  }, [scoped])
+
   const localFiltered = scoped.filter(
     (e) =>
       (!freeOnly || e.price === 0) &&
@@ -342,9 +377,12 @@ export default function Tonight() {
                 ) : null}
               </div>
             ) : (
-              filtered.map((e) =>
-                e.liveNow ? (
-                  <Link key={e.id} to={`/event/${e.id}`} className="card compact-card">
+              filtered.map((e, i) => (
+                <Fragment key={e.id}>
+                  {/* Third slot down, so it never outranks a real result. */}
+                  {i === 3 && promoted ? <Promoted e={promoted} /> : null}
+                  {e.liveNow ? (
+                  <Link to={`/event/${e.id}`} className="card compact-card">
                     <span className="live-dot" />
                     <span className="stack-2" style={{ flex: 1 }}>
                       <span className="event-title">{e.title}</span>
@@ -354,10 +392,11 @@ export default function Tonight() {
                     </span>
                     <ChevronIcon size={16} color="#15477C" />
                   </Link>
-                ) : (
-                  <EventFeedCard key={e.id} e={e} onWho={setWhoFor} />
-                ),
-              )
+                  ) : (
+                    <EventFeedCard e={e} onWho={setWhoFor} />
+                  )}
+                </Fragment>
+              ))
             )}
           </div>
         </>

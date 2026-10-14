@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import { membersOf, roster } from '@app/data/roster'
-import type { Member } from '@app/data/roster'
-import type { Person } from '@app/types'
+import { membersOf, roster } from '@shared/roster'
+import type { Member } from '@shared/roster'
+import type { Person } from '@shared/types'
 
 // Who is expected at the door, and who has actually walked through it.
 //

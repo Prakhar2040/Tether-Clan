@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { events, venues } from '../data/mock'
+import { events, venues } from '@shared/mock'
 import { matchesWhen, useFilters, whenTitle } from '../state/filters'
 import { useLocation } from '../state/location'
 import { LocationSheet } from '../components/LocationPicker'
 import { Brand } from '../components/shared'
 import { PinIcon, SlidersIcon } from '../components/icons'
-import type { TcEvent } from '../types'
+import type { TcEvent } from '@shared/types'
 
 const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
 // Fallback when location is denied or unavailable: a sensible city default,

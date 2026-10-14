@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { communities } from '../data/community'
-import { competitionsOf, standings } from '../data/leaderboard'
-import { events } from '../data/mock'
-import { joinedLabel, me, myArea, nextRung, nightsIn, TIER, tierFor } from '../data/me'
+import { events } from '@shared/mock'
+import { joinedLabel, me, myArea, nextRung, nightsIn, TIER, tierFor } from '@shared/me'
+import { fetchBoards, fetchMyResults, localBoards, localMyResults } from '../api/leaderboard'
+import { useRemote } from '../hooks/useRemote'
 import { useCommunities } from '../state/communities'
 import { useRsvp } from '../state/rsvp'
 import { useLocation } from '../state/location'
@@ -26,17 +27,19 @@ export default function Profile() {
   const missed = history.filter((s) => s === 'no-showed').length
   const coming = history.filter((s) => s === 'going' || s === 'checked-in').length
 
-  // Every competition you have a placing in, newest first.
-  const results = mine
-    .flatMap((c) =>
-      competitionsOf(c.id)
-        .map((comp) => ({ comp, community: c, mine: comp.results.find((r) => r[0] === 'you') }))
-        .filter((r) => r.mine),
-    )
-    .sort((a, b) => b.comp.date.localeCompare(a.comp.date))
+  /* Every competition you have a placing in, newest first, and where you
+     stand all-time in each room. Both come from the server, which is the
+     only side that can see anybody's results but your own. */
+  const joinedKey = joinedIds.join(',')
+  const { data: results } = useRemote(fetchMyResults, localMyResults(mine), [joinedKey])
+  const { data: boards } = useRemote(
+    (signal) => fetchBoards(joinedIds, signal),
+    localBoards(joinedIds),
+    [joinedKey],
+  )
 
-  const wins = results.filter((r) => r.mine![1] === 1).length
-  const podiums = results.filter((r) => r.mine![1] <= 3).length
+  const wins = results.filter((r) => r.place === 1).length
+  const podiums = results.filter((r) => r.place <= 3).length
 
   return (
     <div className="screen">
@@ -81,7 +84,7 @@ export default function Profile() {
             const nights = nightsIn[c.id] ?? 0
             const tier = tierFor(nights)
             const next = nextRung(nights)
-            const table = standings(c.id)
+            const table = boards[c.id]?.standings ?? []
             const you = table.find((r) => r.isYou)
             return (
               <Link to={`/community/${c.id}`} className="me-comm" key={c.id}>
@@ -135,19 +138,19 @@ export default function Profile() {
           <section className="me-block">
             <span className="about-label">Your results</span>
             <div className="me-results">
-              {results.slice(0, 6).map(({ comp, community, mine: r }) => (
-                <div className="me-res" key={comp.id}>
-                  <span className={`me-place p${r![1] <= 3 ? r![1] : 'x'}`}>
-                    {r![1]}
-                    <em>{nth(r![1])}</em>
+              {results.slice(0, 6).map((r) => (
+                <div className="me-res" key={r.competitionId}>
+                  <span className={`me-place p${r.place <= 3 ? r.place : 'x'}`}>
+                    {r.place}
+                    <em>{nth(r.place)}</em>
                   </span>
                   <span className="stack-2" style={{ flex: 1, minWidth: 0 }}>
-                    <span className="me-res-name">{comp.name}</span>
+                    <span className="me-res-name">{r.name}</span>
                     <span className="me-res-meta">
-                      {comp.dateLabel} · {community.name}
+                      {r.dateLabel} · {r.communityName}
                     </span>
                   </span>
-                  <span className="me-res-of">of {comp.entrants}</span>
+                  <span className="me-res-of">of {r.entrants}</span>
                 </div>
               ))}
             </div>

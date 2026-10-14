@@ -1,8 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { communityEvents } from '@app/data/community'
-import { series, venues } from '@app/data/mock'
-import type { TcEvent } from '@app/types'
+import { series, venues } from '@shared/mock'
+import type { TcEvent } from '@shared/types'
 
 // A plan, as the host holds it. Seeded from what the community already runs,
 // then edited here. Status is the thing the shared model never had: a plan

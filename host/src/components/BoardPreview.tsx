@@ -1,22 +1,28 @@
-import { competitionsOf, standings } from '@app/data/leaderboard'
-import { people } from '@app/data/mock'
-import { roster } from '@app/data/roster'
-import type { Community } from '@app/types'
+import type { Board } from '@app/api/leaderboard'
+import type { Community } from '@shared/types'
 import type { BoardConfig } from '../state/board'
 
+/* The preview is handed the board rather than fetching one. It renders what
+   the member sees, and that has to be the very rows the page beside it is
+   showing — two fetches could land a month apart. */
 export default function BoardPreview({
   community: c,
+  board,
   config,
   cover,
 }: {
   community: Community
+  board: Board
   config: BoardConfig
   cover?: string
 }) {
-  const comps = competitionsOf(c.id)
-  const scope = config.opensOn === 'all' && config.allowAllTime ? 'all' : (comps[0]?.id ?? 'all')
+  /* Whichever table it was handed is the one it shows — the screen decides
+     from the settings whether that is the season or the latest month, and
+     the server says which it actually sent. */
+  const comps = board.competitions
+  const scope = board.scope
   const season = scope === 'all'
-  const table = standings(c.id, scope)
+  const table = board.standings
   const here = comps.find((x) => x.id === scope)
 
   return (
@@ -102,8 +108,8 @@ export default function BoardPreview({
               Also in the dropdown
             </span>
             {comps.slice(season ? 0 : 1, season ? 3 : 4).map((comp) => {
-              const w = comp.results.find((r) => r[1] === 1)
-              const name = w ? (w[0] === 'you' ? 'You' : (people[w[0]] ?? roster[w[0]])?.name) : '—'
+              const w = comp.podium.find((p) => p.place === 1)
+              const name = w ? (w.personId === 'you' ? 'You' : w.name) : '—'
               return (
                 <div className="b-comp" key={comp.id}>
                   <span className="b-comp-m">{comp.dateLabel.replace(/^\w+ /, '')}</span>

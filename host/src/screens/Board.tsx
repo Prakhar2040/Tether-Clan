@@ -1,6 +1,5 @@
-import { competitionsOf, standings } from '@app/data/leaderboard'
-import { people } from '@app/data/mock'
-import { roster } from '@app/data/roster'
+import { fetchBoard, localBoard } from '@app/api/leaderboard'
+import { useRemote } from '@app/hooks/useRemote'
 import { useHostCommunity } from '../state/host'
 import { usePhotos } from '../state/photos'
 import { useBoard } from '../state/board'
@@ -11,8 +10,28 @@ export default function Board() {
   const { community } = useHostCommunity()
   const { photos, coverId } = usePhotos()
   const { config, dirty, set, revert, save } = useBoard()
-  const table = standings(community.id)
-  const comps = competitionsOf(community.id)
+  /* The same table the members see, from the same endpoint — the console
+     showing a different ranking from the app would be worse than showing
+     none. All time, because this page is about the season. */
+  const { data: board } = useRemote(
+    (signal) => fetchBoard(community.id, 'all', signal),
+    localBoard(community.id, 'all'),
+    [community.id],
+  )
+  const table = board.standings
+  const comps = board.competitions
+
+  /* What a member would actually open the tab on. The settings can send
+     them to the latest month instead of the season, and that is a different
+     table — so the preview is shown the one it is previewing. The server
+     resolves "latest"; the newest competition's id is not known until it
+     answers. */
+  const opensOnSeason = config.opensOn === 'all' && config.allowAllTime
+  const { data: monthBoard } = useRemote(
+    (signal) => fetchBoard(community.id, 'latest', signal),
+    localBoard(community.id, 'latest'),
+    [community.id],
+  )
 
   return (
     <div className="page split">
@@ -231,9 +250,7 @@ export default function Board() {
         </div>
         <div className="panel">
           {comps.map((comp) => {
-            const podium = [1, 2, 3]
-              .map((pl) => comp.results.find((r) => r[1] === pl))
-              .filter(Boolean) as [string, number][]
+            const podium = comp.podium
             return (
               <div className="row" key={comp.id}>
                 <span className="row-stub">
@@ -245,10 +262,10 @@ export default function Board() {
                   <span className="row-meta">{comp.entrants} entered</span>
                 </span>
                 <span className="medals">
-                  {podium.map(([pid, place]) => (
-                    <span className={`medal m${place}`} key={pid}>
-                      <b>{place}</b>
-                      {pid === 'you' ? 'You' : (people[pid] ?? roster[pid])?.name.split(' ')[0]}
+                  {podium.map((p) => (
+                    <span className={`medal m${p.place}`} key={p.personId}>
+                      <b>{p.place}</b>
+                      {p.personId === 'you' ? 'You' : p.name.split(' ')[0]}
                     </span>
                   ))}
                 </span>
@@ -281,6 +298,7 @@ export default function Board() {
         </div>
         <BoardPreview
           community={community}
+          board={opensOnSeason ? board : monthBoard}
           config={config}
           cover={photos.find((p) => p.id === coverId)?.src}
         />

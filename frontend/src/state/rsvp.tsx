@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { RsvpState } from '../types'
-import { events, seatsLeft } from '../data/mock'
+import type { RsvpState } from '@shared/types'
+import { events, seatsLeft } from '@shared/mock'
 
 // The RSVP lifecycle as an explicit state machine. Illegal transitions are
 // ignored rather than thrown — UI affordances should already prevent them.

@@ -1,4 +1,4 @@
-import type { Person } from '../types'
+import type { Person } from './types'
 
 // You. The one person in the app who is not a row in somebody else's list —
 // which is why the badges and the record on this page are yours alone, and

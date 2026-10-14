@@ -1,5 +1,8 @@
 import { membersOf, roster } from './roster'
-import type { Person } from '../types'
+import type { Person } from './types'
+// The scoring rule lives on its own: the server applies it too.
+export { POINTS, POINTS_FOR_ENTERING, pointsFor } from './points'
+import { pointsFor } from './points'
 
 // The leaderboard is a competition table, not an attendance register. Each
 // community runs one competition a month; the standing is what those results
@@ -19,14 +22,6 @@ export interface Competition {
   results: [string, number][] // [personId, place]
 }
 
-// What a placing is worth. A podium should matter more than the gap between
-// seventh and eighth, and turning up at all should be worth something.
-export const POINTS: Record<number, number> = { 1: 10, 2: 7, 3: 5, 4: 3, 5: 2 }
-export const POINTS_FOR_ENTERING = 1
-
-export function pointsFor(place: number): number {
-  return POINTS[place] ?? POINTS_FOR_ENTERING
-}
 
 export const competitions: Competition[] = [
   { id: 'dice-c0', communityId: 'dice-district-regulars', name: 'Catan Cup', monthLabel: 'Sep 2026', monthsAgo: 0, date: '2026-09-12', dateLabel: 'Sat 12 Sep 2026', entrants: 14, results: [['aditya-saxena', 1], ['manav-khanna', 2], ['rishi-shetty', 3], ['you', 4], ['rohan-kapoor', 5], ['siddharth-desai', 6], ['yash-subramanian', 7], ['kunal-mehta', 8]] },
@@ -128,8 +123,4 @@ export function standings(communityId: string, scope: Scope = 'all'): Standing[]
         : a.place - b.place,
     )
     .map((r, i) => ({ ...r, rank: scope === 'all' ? i + 1 : r.place }))
-}
-
-export function latestCompetition(communityId: string): Competition | undefined {
-  return competitionsOf(communityId)[0]
 }

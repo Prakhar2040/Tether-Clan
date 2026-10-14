@@ -1,4 +1,4 @@
-import type { AvatarColor, Person } from '../types'
+import type { AvatarColor, Person } from './types'
 import { people } from './mock'
 
 // The roster. A community that claims 64 members should have 64 people in

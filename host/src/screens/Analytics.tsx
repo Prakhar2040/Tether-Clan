@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
 import { useHostCommunity } from '../state/host'
 import { analyticsFor, pct } from '../lib/analytics'
+import { useMembers } from '../state/members'
 import JoinsChart from '../components/JoinsChart'
 import { ChevronIcon } from '../components/icons'
 
 export default function Analytics() {
   const { community } = useHostCommunity()
-  const a = analyticsFor(community.id)
+  const { members } = useMembers()
+  const a = analyticsFor(community.id, members)
 
 
   return (

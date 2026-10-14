@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { fetchNullState, searchEvents } from '../api/search'
-import type { NullState, SearchResult } from '../api/search'
+import { searchEvents } from '../api/search'
+import type { SearchResult } from '../api/search'
 
 // Debounced search with in-flight cancellation, and a hard rule: if the
 // engine is unreachable, the caller falls back to local filtering. Search
@@ -51,17 +51,4 @@ export function useSearch(opts: Options) {
   useEffect(() => () => abortRef.current?.abort(), [])
 
   return { result, loading, offline }
-}
-
-export function useNullState(enabled: boolean) {
-  const [state, setState] = useState<NullState | null>(null)
-  useEffect(() => {
-    if (!enabled || state) return
-    const controller = new AbortController()
-    fetchNullState(controller.signal)
-      .then(setState)
-      .catch(() => undefined)
-    return () => controller.abort()
-  }, [enabled, state])
-  return state
 }

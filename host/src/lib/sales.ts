@@ -1,6 +1,6 @@
 import { pastCommunityEvents, upcomingCommunityEvents } from '@app/data/community'
-import { NOW, venues } from '@app/data/mock'
-import type { TcEvent } from '@app/types'
+import { NOW, venues } from '@shared/mock'
+import type { TcEvent } from '@shared/types'
 import { memberHoldersFor } from '../state/door'
 
 // Where a night's money came from. Somebody who has been five times or more

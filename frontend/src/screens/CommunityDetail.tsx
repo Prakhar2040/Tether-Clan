@@ -10,8 +10,10 @@ import {
   postsFor,
   upcomingCommunityEvents,
 } from '../data/community'
-import { events, people, priceLabel, venues } from '../data/mock'
-import { competitionsOf, standings } from '../data/leaderboard'
+import { events, people, priceLabel, venues } from '@shared/mock'
+import { fetchBoard, localBoard } from '../api/leaderboard'
+import { fetchPhotos } from '../api/photos'
+import { useRemote } from '../hooks/useRemote'
 import { useRsvp } from '../state/rsvp'
 import { useCommunities } from '../state/communities'
 import { TicketPass } from './Ticket'
@@ -29,8 +31,9 @@ import {
   SmileyIcon,
   StarIcon,
 } from '../components/icons'
-import type { Community, CommunityPhoto, CommunityPost, TcEvent } from '../types'
-import { REACTION_PICKER } from '../types'
+import type { ReactNode } from 'react'
+import type { Community, CommunityPhoto, CommunityPost, TcEvent } from '@shared/types'
+import { REACTION_PICKER } from '@shared/types'
 
 type Tab = 'posts' | 'tickets' | 'photos' | 'board' | 'about'
 
@@ -291,7 +294,16 @@ function PostCard({ post }: { post: CommunityPost }) {
   )
 }
 
-export function CommunityView({ community: c }: { community: Community }) {
+export function CommunityView({
+  community: c,
+  switcher,
+}: {
+  community: Community
+  /* Rendered in place of the back button when this is the Community tab
+     itself rather than a screen somebody navigated into — there is nothing
+     to go back to from a tab. */
+  switcher?: ReactNode
+}) {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const tab = (params.get('tab') as Tab) ?? 'posts'
@@ -329,16 +341,35 @@ export function CommunityView({ community: c }: { community: Community }) {
     timeline.push({ post: p })
   }
   if (fresh > 0 && !linePlaced) timeline.push({ sep: 'new' })
-  const gallery = photosFor(c.id)
-  const comps = competitionsOf(c.id)
-  // The most recent competition is what the table means by default. The
-  // chosen scope belongs to one community, so switching rooms has to fall
-  // back rather than ask for a table that cannot exist.
+  /* The gallery, from the server, with this room's mock underneath it. The
+     fallback is only the first render's, so it is filtered again by room:
+     this view stays mounted when you switch rooms from the tab, and last
+     room's pictures must not sit under the new one's name. */
+  const { data: shot } = useRemote((signal) => fetchPhotos(c.id, signal), photosFor(c.id), [c.id])
+  const gallery = shot.filter((p) => p.communityId === c.id)
+  /* The month is what the table means by default, and the server decides
+     which month that is — asking for a competition this room never ran gets
+     the latest one back rather than an error. So `picked` is what we asked
+     for and `scope` is what we were given; a scope left in the URL from
+     another room resolves itself on the next answer. */
   const [picked, setPicked] = useState<string | null>(null)
-  const scope =
-    picked === 'all' || comps.some((x) => x.id === picked) ? picked! : (comps[0]?.id ?? 'all')
+  const { data: board } = useRemote(
+    (signal) => fetchBoard(c.id, picked ?? 'latest', signal),
+    localBoard(c.id, picked ?? 'latest'),
+    [c.id, picked],
+  )
+  const comps = board.competitions
+  const scope = board.scope
   const setScope = setPicked
-  const table = standings(c.id, scope)
+  /* The dropdown answers to the click, not to the round trip: it shows what
+     you chose while the table underneath is still being fetched. It falls
+     back to the server's scope when what you chose is not on this room's
+     list — otherwise the control would go blank. */
+  const shownScope =
+    picked && (picked === 'all' || board.competitions.some((x) => x.id === picked))
+      ? picked
+      : board.scope
+  const table = board.standings
   const you = table.find((r) => r.isYou)
   const here = comps.find((x) => x.id === scope)
 
@@ -355,9 +386,11 @@ export function CommunityView({ community: c }: { community: Community }) {
   return (
     <div className="screen">
       <div className="top-row">
-        <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back">
-          <BackIcon size={20} color="#15477C" />
-        </button>
+        {switcher ?? (
+          <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back">
+            <BackIcon size={20} color="#15477C" />
+          </button>
+        )}
         <button className="icon-btn" aria-label="Share community">
           <ShareIcon size={18} color="#15477C" />
         </button>
@@ -539,7 +572,7 @@ export function CommunityView({ community: c }: { community: Community }) {
         <div className="board" style={{ '--comm': c.color } as CSSProperties}>
           {/* The month is the table. All-time sits behind it. */}
           <div className="board-pick">
-            <select value={scope} onChange={(e) => setScope(e.target.value)} aria-label="Which table">
+            <select value={shownScope} onChange={(e) => setScope(e.target.value)} aria-label="Which table">
               {comps.map((comp, i) => (
                 <option value={comp.id} key={comp.id}>
                   {comp.name} · {comp.dateLabel}

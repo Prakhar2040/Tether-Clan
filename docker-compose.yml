@@ -1,0 +1,24 @@
+# Postgres, because that is what Render runs and render.yaml is already here.
+# Developing on anything else means finding the differences at deploy time.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: tetherclan-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tetherclan
+      POSTGRES_PASSWORD: tetherclan
+      POSTGRES_DB: tetherclan
+    ports:
+      # 5433 on the host, so a Postgres you already run on 5432 is left alone.
+      - '5433:5432'
+    volumes:
+      - tetherclan-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tetherclan -d tetherclan']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  tetherclan-pgdata:

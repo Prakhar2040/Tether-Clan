@@ -1,0 +1,7 @@
+{
+  "name": "@tetherclan/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The seed corpus and the types both apps and the server agree on."
+}

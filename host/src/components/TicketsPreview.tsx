@@ -1,6 +1,6 @@
 import { pastCommunityEvents, upcomingCommunityEvents } from '@app/data/community'
-import { venues } from '@app/data/mock'
-import type { Community, TcEvent } from '@app/types'
+import { venues } from '@shared/mock'
+import type { Community, TcEvent } from '@shared/types'
 import type { TicketSettings } from '../state/tickets'
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']

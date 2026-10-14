@@ -1,10 +1,10 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { events, priceLabel, series, venues } from '../data/mock'
+import { events, priceLabel, series, venues } from '@shared/mock'
 import { communities } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { BackIcon } from '../components/icons'
 import type { CSSProperties } from 'react'
-import type { TcEvent } from '../types'
+import type { TcEvent } from '@shared/types'
 
 // What a ticket is and is not. It proves you hold a seat and it tells you
 // what tonight is about. It does not list who else is coming — that is

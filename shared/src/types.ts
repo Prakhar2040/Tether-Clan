@@ -25,12 +25,6 @@ export interface Venue {
   pastEventCount?: number
 }
 
-export interface Community {
-  id: string
-  name: string
-  memberCount: number
-}
-
 export interface Series {
   id: string
   title: string
@@ -141,9 +135,6 @@ export interface Community {
   houseRules: string[]
 }
 
-// Reactions are an open set, the way Slack and Discord do it: a post carries
-// only the emoji people actually used, and a picker adds new ones.
-export type ReactionKind = string
 
 export const REACTION_PICKER = [
   '👍', '❤️', '🎉', '👏', '🔥', '😂',

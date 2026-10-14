@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { people } from '@app/data/mock'
+import { people } from '@shared/mock'
 import { useHostCommunity } from '../state/host'
 import { usePosts } from '../state/posts'
 import { usePhotos } from '../state/photos'
 import PostsPreview from '../components/PostsPreview'
 import { CheckIcon, PencilIcon, PinIcon, TrashIcon } from '../components/icons'
-import type { PollOption } from '@app/types'
+import type { PollOption } from '@shared/types'
 
 const EMOJI = ['🎲', '🗳️', '📦', '🪑', '🎉', '⚠️', '☀️', '🚧', '👋', '🏃', '📣', '🥂', '💡', '🔥']
 

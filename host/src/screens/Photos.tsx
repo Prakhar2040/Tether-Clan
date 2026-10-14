@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { people } from '@app/data/mock'
+import { people } from '@shared/mock'
 import { useHostCommunity } from '../state/host'
 import { usePhotos } from '../state/photos'
 import PhotosPreview from '../components/PhotosPreview'

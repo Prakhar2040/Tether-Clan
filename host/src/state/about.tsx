@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { communities } from '@app/data/community'
-import type { Community } from '@app/types'
+import type { Community } from '@shared/types'
 
 // The About tab, as something the host owns rather than something the app
 // hardcodes. Each section can be switched off, and what is left is what

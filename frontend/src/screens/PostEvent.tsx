@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { events, people } from '../data/mock'
+import { events, people } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
 import { Avatar } from '../components/shared'
 import { BackIcon, CheckIcon, PlusIcon, ShareIcon, StarIcon } from '../components/icons'

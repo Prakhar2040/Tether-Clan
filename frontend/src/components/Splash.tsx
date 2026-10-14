@@ -49,13 +49,20 @@ export function Splash() {
            scaled coordinate space. */
         const seat = document.querySelector('.brand.big svg')?.getBoundingClientRect()
         const here = mark.current?.getBoundingClientRect()
-        if (seat && here && here.width > 0) {
+        if (seat && here && here.width > 0 && seat.width > 0) {
           const k = seat.width / here.width
           setLand(
             `translate(${(seat.left - here.left).toFixed(1)}px, ${(seat.top - here.top).toFixed(1)}px) scale(${k.toFixed(4)})`,
           )
+          setPhase('fly')
+          return
         }
-        setPhase('fly')
+        /* No seat on this screen — some route may not carry the lockup. There
+           is nowhere to fly to, so hand over straight away rather than leaving
+           a full-size logo sitting in the middle for the length of a flight
+           that is never going to happen. */
+        document.body.classList.remove('splashing')
+        setPhase('done')
       }, BEATS.fly),
       setTimeout(() => {
         document.body.classList.remove('splashing')

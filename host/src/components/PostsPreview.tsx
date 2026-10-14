@@ -1,5 +1,5 @@
-import { people } from '@app/data/mock'
-import type { Community, CommunityPost, Person } from '@app/types'
+import { people } from '@shared/mock'
+import type { Community, CommunityPost, Person } from '@shared/types'
 
 // The app's Posts tab, at phone width. Messages, not article blocks — the
 // avatar in the gutter and the tail on the bubble are what make it read as

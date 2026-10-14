@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { venues } from '@app/data/mock'
+import { venues } from '@shared/mock'
 import { useHostCommunity } from '../state/host'
 import { usePhotos } from '../state/photos'
 import { usePlans, seriesLabel } from '../state/plans'
@@ -7,7 +7,7 @@ import type { Plan, PlanStatus } from '../state/plans'
 import PlanPreview from '../components/PlanPreview'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon, ChatIcon, PlusIcon, ScanIcon, TicketIcon } from '../components/icons'
-import { NOW } from '@app/data/mock'
+import { NOW } from '@shared/mock'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']

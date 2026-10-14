@@ -21,6 +21,7 @@ import { BoardProvider } from './state/board'
 import { PlansProvider } from './state/plans'
 import { DoorProvider } from './state/door'
 import { HostProvider, useHostCommunity } from './state/host'
+import { MembersProvider } from './state/members'
 import { PlusIcon } from './components/icons'
 
 const PAGES: Record<string, { title: string; sub: string; soon?: { title: string; body: string; points: string[] } }> = {
@@ -63,6 +64,7 @@ function Shell() {
             </button>
           </div>
         </header>
+        <MembersProvider>
         <AboutProvider communityId={community.id}>
           <PhotosProvider communityId={community.id}>
             <PostsProvider communityId={community.id}>
@@ -80,6 +82,7 @@ function Shell() {
             </PostsProvider>
           </PhotosProvider>
         </AboutProvider>
+        </MembersProvider>
       </main>
     </div>
   )

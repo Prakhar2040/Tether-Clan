@@ -1,0 +1,1 @@
+ALTER TABLE "events" ALTER COLUMN "community_id" DROP NOT NULL;

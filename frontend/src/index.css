@@ -4,21 +4,22 @@
   --yellow: #FDBE50;
   --orange: #E9712A;
   --ink: #070808;
-  /* Warm sand: the brand amber at full strength was a flat slab over half a
-     screen. Amber is an accent again; this is what the cards sit on. The
-     neutral ramp still mostly fails here (--muted 2.9:1, --faint 2.1:1), so
-     text on the ground takes the token below. */
-  --paper: #F7E3BC;
+  /* The brand amber, at the hex page 6 specifies. Nothing in the neutral ramp
+     survives on it — --muted is 2.2:1, --line 1.3:1 — so everything the eye
+     reads sits on a card above it, and text on the ground takes the token
+     below. */
+  --paper: #FDBE50;
   --card: #FFFFFF;
   /* Soft fills *inside* cards, where the ground's own colour would shout. */
   --inset: #F8F5EC;
-  /* Secondary text on sand: a warm brown at 4.9:1 — on-palette in a way a
-     grey is not, and it keeps its distance from the blue. */
-  --on-paper-soft: #7E5C1A;
+  /* Secondary text on amber: a deep amber-brown at 4.8:1, on-palette in a way
+     a grey is not. */
+  --on-paper-soft: #6B4A12;
   /* A hairline on the ground, tinted from the primary rather than the ramp. */
-  --paper-line: rgba(21, 71, 124, 0.18);
-  /* A white card on sand separates at only 1.26:1, so cards get an edge. */
-  --card-edge: #E4D0A4;
+  --paper-line: rgba(21, 71, 124, 0.22);
+  /* A white card on amber separates at 1.66:1 — better than sand's 1.26, but
+     still close enough that cards keep an edge. */
+  --card-edge: #E8B64A;
   --muted: #8A8577;
   --muted-2: #6B665A;
   --faint: #A79F8C;
@@ -43,7 +44,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.nrw { font-family: 'Archivo Narrow', Archivo, sans-serif; }
+
 
 button {
   font-family: inherit;
@@ -149,7 +150,7 @@ button {
 .chip.active { background: var(--blue); border-color: var(--blue); color: var(--yellow); }
 
 /* Cards */
-.feed { flex: 1; padding: 0 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+.feed { flex: 1; padding: 2px 20px 16px; display: flex; flex-direction: column; gap: 14px; }
 .card {
   background: var(--card);
   border-radius: 16px;
@@ -175,7 +176,7 @@ button {
   font-size: 11px; font-weight: 700; border-radius: 4px; padding: 4px 8px;
 }
 .badge-seats { background: var(--orange-chip); color: var(--orange-text); }
-.badge-free { color: var(--green); }
+
 .badge-going { background: var(--green-bg); color: var(--green); letter-spacing: 0.08em; padding: 5px 9px; }
 .badge-full { background: #F2EFE7; color: var(--muted); }
 
@@ -680,7 +681,7 @@ button {
   position: absolute; top: 0; left: 0; right: 0; z-index: 3;
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px 20px 12px;
-  background: linear-gradient(to bottom, var(--paper) 62%, rgba(247, 227, 188, 0));
+  background: linear-gradient(to bottom, var(--paper) 62%, rgba(253, 190, 80, 0));
   pointer-events: none;
 }
 .map-header > * { pointer-events: auto; }
@@ -788,18 +789,7 @@ button {
 .map-canvas { width: 100%; }
 
 
-/* Location status chip: always visible, always tappable */
-.loc-chip {
-  position: absolute; top: 92px; left: 20px; right: 20px; z-index: 5;
-  display: flex; align-items: center; justify-content: center; gap: 7px;
-  background: var(--orange-chip);
-  border: 1.5px solid #F3D6BE;
-  border-radius: 999px;
-  min-height: 40px; padding: 0 14px;
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 700; color: var(--orange-text);
-  box-shadow: 0 3px 12px rgba(7,8,8,0.1);
-}
+
 .loc-chip.ok {
   background: var(--green-bg); border-color: #BFE0CB; color: var(--green);
 }
@@ -843,22 +833,9 @@ button {
 .venue-line:hover { background: #EFEBE0; }
 
 
-/* Card for the plan the map was opened for */
-.map-focus-card {
-  position: absolute; left: 16px; right: 16px; z-index: 6;
-  bottom: calc(92px + env(safe-area-inset-bottom));
-  background: var(--card);
-  border-radius: 16px; padding: 14px 16px;
-  display: flex; flex-direction: column; gap: 5px;
-  box-shadow: 0 8px 26px rgba(7,8,8,0.2);
-}
+
 .map-focus-card .btn { margin-top: 6px; }
-.map-focus-close {
-  position: absolute; top: 8px; right: 10px;
-  width: 30px; height: 30px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--faint); font-size: 14px;
-}
+
 
 /* ---------- Community ---------- */
 /* The list row is the whole surface: who posted, what they said, how long
@@ -879,13 +856,12 @@ button {
   box-shadow: 0 8px 24px rgba(92, 60, 12, 0.14);
 }
 .comm-cover {
-  position: relative; height: 176px;
-  background-size: cover; background-position: center 30%;
+  position: relative; height: 212px; overflow: hidden;
   display: flex; align-items: flex-end;
 }
 .comm-cover::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(7,8,8,0.82) 0%, rgba(7,8,8,0.42) 38%, rgba(7,8,8,0) 72%);
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(to top, rgba(7,8,8,0.9) 0%, rgba(7,8,8,0.66) 24%, rgba(7,8,8,0.2) 56%, rgba(7,8,8,0) 82%);
 }
 /* No photo yet: the brand colour carries it, with the mark washed in behind. */
 .comm-cover.no-photo::after {
@@ -923,22 +899,24 @@ button {
   width: 3px; height: 3px; border-radius: 50%;
   background: rgba(255,255,255,0.5); margin: 0 3px;
 }
-.comm-tile-dot {
-  position: absolute; z-index: 1; top: 14px; right: 14px;
-  width: 11px; height: 11px; border-radius: 50%;
-  background: var(--orange); box-shadow: 0 0 0 3px rgba(233,113,42,0.28);
-}
 
-.comm-tile-body { display: flex; flex-direction: column; padding: 13px 16px 14px; }
+/* The plan sits on the picture under a hairline, so the card is one object.
+   A band of flat colour below a photograph — white or blue — reads as two
+   things stacked, which is what felt wrong about it. */
+.comm-tile-plan {
+  margin-top: 11px; padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.22);
+}
 /* The next plan is the reason to open the tile, so it gets its own line. */
 .comm-next {
   display: flex; align-items: center; gap: 8px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13px; font-weight: 700; color: var(--blue);
+  font-size: 13px; font-weight: 700; color: #fff;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.comm-next.quiet { color: var(--faint); font-weight: 600; }
-.comm-next-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--orange); flex: 0 0 auto; }
+.comm-next.quiet { color: rgba(255,255,255,0.62); font-weight: 600; }
+/* Orange is only 3.1:1 on the blue band; amber is 5.7:1. */
+.comm-next-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); flex: 0 0 auto; }
 
 .comm-banner {
   position: relative; height: 164px; margin: 0 0 -24px;
@@ -946,7 +924,7 @@ button {
 }
 .comm-banner::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to top, rgba(247, 227, 188, 0.96) 0%, rgba(247, 227, 188, 0) 58%);
+  background: linear-gradient(to top, rgba(253, 190, 80, 0.96) 0%, rgba(253, 190, 80, 0) 58%);
 }
 .comm-banner .comm-kicker { display: none; }
 
@@ -1917,3 +1895,132 @@ body.splashing .brand.big { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .splash { display: none; }
 }
+
+/* ---------- Community: what else is on this page ---------- */
+
+/* Tonight gets a badge. It used to be set in the same weight as a plan three
+   weeks away, which made the most urgent line on the screen read as a note. */
+.comm-next.now { color: #fff; }
+.comm-now-badge {
+  flex: 0 0 auto; border-radius: 999px; padding: 4px 10px;
+  background: var(--yellow); color: #4A3408;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+/* The unread count, drawn as one of the mark's own speech bubbles — tail and
+   all. Brand orange kept exactly, with ink rather than white on it: white is
+   3.1:1 on #E9712A and would have meant darkening the brand's own hex. */
+/* The unread count, drawn as one of the mark's own speech bubbles. It says
+   what is new rather than just how much: a bare number on a card could be
+   members, plans or photos. Brand orange kept exactly, with ink rather than
+   white on it — white is 3.1:1 on #E9712A, and making white work would mean
+   darkening the brand's own hex. */
+/* The unread count, in one of the mark's own bubbles. Brand orange kept
+   exactly, with ink rather than white on it — white is 3.1:1 on #E9712A, and
+   making white work would mean darkening the brand's own hex. */
+.comm-bubble {
+  position: absolute; top: 12px; right: 12px; z-index: 3;
+  background: var(--orange); color: var(--ink);
+  border-radius: 13px 13px 13px 3px; padding: 6px 12px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 800; letter-spacing: 0.01em; white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(7, 8, 8, 0.3);
+}
+.comm-bubble::after {
+  content: ''; position: absolute; left: 0; bottom: -7px;
+  width: 0; height: 0;
+  border-left: 9px solid var(--orange);
+  border-bottom: 8px solid transparent;
+}
+
+/* ---- the tile's own gallery ---- */
+
+/* Every picture stays mounted and cross-fades, so the browser has already
+   fetched the next one by the time it is needed. */
+.comm-shot {
+  position: absolute; inset: 0; display: block;
+  background-size: cover; background-position: center 30%;
+  opacity: 0; transition: opacity 0.85s ease;
+}
+.comm-shot.on { opacity: 1; }
+
+/* The link is a layer over the photograph rather than a wrapper around it, so
+   the arrows can sit above it without an anchor containing a button. */
+.comm-hit { position: absolute; inset: 0; z-index: 1; }
+.comm-cover-text { z-index: 2; pointer-events: none; }
+
+.shot-step {
+  position: absolute; z-index: 2; top: 50%; margin-top: -17px;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(7, 8, 8, 0.44); border: 1px solid rgba(255,255,255,0.3); color: #fff;
+  backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity 0.18s ease, background 0.18s ease;
+}
+.comm-tile:hover .shot-step, .shot-step:focus-visible { opacity: 1; }
+.shot-step:hover { background: rgba(7, 8, 8, 0.72); }
+.shot-step.back { left: 10px; }
+.shot-step.back svg { transform: rotate(180deg); }
+.shot-step.fwd { right: 10px; }
+
+.shot-dots {
+  position: absolute; z-index: 2; left: 16px; top: 14px;
+  display: flex; align-items: center; gap: 5px;
+}
+.shot-dots b {
+  width: 5px; height: 5px; border-radius: 3px;
+  background: rgba(255,255,255,0.42);
+  transition: width 0.35s cubic-bezier(0.3, 0, 0.2, 1);
+}
+/* The live one stretches out and then fills across its turn, so the change is
+   something you watch arrive rather than something that happens to you. */
+.shot-dots b.on { width: 22px; position: relative; overflow: hidden; }
+.shot-dots b.on i {
+  position: absolute; inset: 0; display: block; background: #fff;
+  transform-origin: left center;
+  animation: dot-fill var(--roll, 4200ms) linear forwards;
+}
+.shot-dots.held b.on i { animation-play-state: paused; }
+@keyframes dot-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comm-shot, .shot-step, .shot-dots b { transition: none; }
+  .shot-dots b.on i { animation: none; transform: scaleX(1); }
+  .comm-tile .shot-step { opacity: 1; }
+}
+
+/* The three of them, sitting where the page runs out. */
+.end-mark {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 20px 20px 16px; opacity: 0.85;
+}
+.end-mark span {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: var(--on-paper-soft);
+}
+
+/* A paid placement, and plainly labelled as one. Nothing about it borrows the
+   authority of a real result: the tag reads before the title, the card carries
+   a dashed edge rather than the solid one every other card has, and it is
+   never the first thing in the list. */
+.promoted { position: relative; border: 1.5px dashed var(--outline); box-shadow: none; }
+.promoted-tag {
+  position: absolute; top: -9px; left: 14px;
+  background: var(--inset); border: 1px solid var(--outline); border-radius: 999px;
+  padding: 2px 9px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- The room switch ---------- */
+
+
+
+.room-switch-b.on { background: var(--card); color: var(--blue); font-weight: 800; box-shadow: 0 1px 3px rgba(92,60,12,0.14); }
+
+

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { membersOf, roster } from '@app/data/roster'
-import type { Member } from '@app/data/roster'
+import type { Person } from '@shared/types'
 import { useHostCommunity } from '../state/host'
+import { useMembers, type HostMember } from '../state/members'
 import { CogIcon, PeopleIcon, SearchIcon } from '../components/icons'
 import { TIER_MEANING, tierOf, useBadges } from '../state/badges'
 import type { Tier } from '../state/badges'
@@ -26,8 +26,7 @@ const SLICES: { id: Slice; label: string; hint: string }[] = [
   { id: 'admins', label: 'Runs it', hint: 'You and your admins' },
 ]
 
-function Avatar({ id, size = 34 }: { id: string; size?: number }) {
-  const p = roster[id]
+function Avatar({ p, size = 34 }: { p?: Person; size?: number }) {
   return (
     <span
       className={`av av-${p?.color ?? 'tint'}`}
@@ -40,6 +39,7 @@ function Avatar({ id, size = 34 }: { id: string; size?: number }) {
 
 export default function Members() {
   const { community } = useHostCommunity()
+  const { members: all, offline } = useMembers()
   const [slice, setSlice] = useState<Slice>('all')
   const [q, setQ] = useState('')
   const [picked, setPicked] = useState<string | null>(null)
@@ -53,8 +53,6 @@ export default function Members() {
     setSort((s) =>
       s.col === col ? { col, desc: !s.desc } : { col, desc: COLS.find((c) => c.id === col)!.numeric },
     )
-
-  const all = useMemo(() => membersOf(community.id), [community.id])
 
   const counts = useMemo(
     () => ({
@@ -78,13 +76,13 @@ export default function Members() {
     })
     const needle = q.trim().toLowerCase()
     const byName = needle
-      ? bySlice.filter((m) => roster[m.personId]?.name.toLowerCase().includes(needle))
+      ? bySlice.filter((m) => m.person.name.toLowerCase().includes(needle))
       : bySlice
 
-    const key = (m: Member): number | string => {
+    const key = (m: HostMember): number | string => {
       switch (sort.col) {
         case 'name':
-          return roster[m.personId]?.name ?? m.personId
+          return m.person.name
         case 'attended':
           return m.attended
         case 'noShows':
@@ -106,8 +104,8 @@ export default function Members() {
     })
   }, [all, slice, q, sort, config.regularAt])
 
-  const one: Member | undefined = picked ? all.find((m) => m.personId === picked) : undefined
-  const person = one ? roster[one.personId] : undefined
+  const one: HostMember | undefined = picked ? all.find((m) => m.personId === picked) : undefined
+  const person = one?.person
 
   return (
     <div className="page split">
@@ -308,7 +306,7 @@ export default function Members() {
             </div>
           ) : (
             shown.map((m) => {
-              const p = roster[m.personId]
+              const p = m.person
               const tier = tierOf(m.attended, config)
               return (
                 <button
@@ -317,7 +315,7 @@ export default function Members() {
                   onClick={() => setPicked(picked === m.personId ? null : m.personId)}
                 >
                   <span className="mrow-who">
-                    <Avatar id={m.personId} />
+                    <Avatar p={p} />
                     <span className="mrow-name">
                       {p?.name ?? m.personId}
                       {m.role !== 'member' ? (
@@ -346,6 +344,7 @@ export default function Members() {
         <p className="roster-foot">
           Showing {shown.length} of {counts.all}. This list exists here and nowhere else — members
           never see who else is in the room.
+          {offline ? ' Offline — this is the last roster we had.' : ''}
         </p>
       </div>
 
@@ -353,7 +352,7 @@ export default function Members() {
         {one && person ? (
           <div className="card-person">
             <div className="cp-head">
-              <Avatar id={one.personId} size={56} />
+              <Avatar p={person} size={56} />
               <div className="cp-text">
                 <span className="cp-name">{person.name}</span>
                 <span className="cp-role">

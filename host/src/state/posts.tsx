@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { postsFor } from '@app/data/community'
-import type { CommunityPost, Poll } from '@app/types'
+import type { CommunityPost, Poll } from '@shared/types'
 
 // Loudness is a host-side property: the app renders every post the same, but
 // only some of them are worth interrupting 64 people for. It lives here

@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { NOW, venues } from '@app/data/mock'
-import { membersOf } from '@app/data/roster'
+import { NOW, venues } from '@shared/mock'
 import { useHostCommunity } from '../state/host'
+import { useMembers } from '../state/members'
 import { usePlans } from '../state/plans'
 import { holdersFor, useDoor } from '../state/door'
 import { usePhotos } from '../state/photos'
 import { salesFor } from '../lib/sales'
 import { tierOf, useBadges } from '../state/badges'
 import { ChevronIcon, ImageIcon, OutIcon, PeopleIcon, ScanIcon, StarIcon, TagIcon } from '../components/icons'
-import { lifetimeOf } from '@app/data/history'
+import { lifetimeOf } from '@shared/history'
 import { DonutChart } from '../components/DonutChart'
 import { LifeTile } from '../components/LifeTile'
 import { LineChart } from '../components/LineChart'
@@ -233,7 +233,7 @@ export default function Dashboard() {
   const cover = photos.find((p) => p.id === coverId)?.src ?? community.coverImage
   const sales = salesFor(community.id)
   const life = lifetimeOf(community.id, NOW)
-  const members = membersOf(community.id)
+  const { members } = useMembers()
 
   const next = [...plans]
     .filter((p) => p.status !== 'past')

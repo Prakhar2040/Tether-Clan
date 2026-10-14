@@ -1,7 +1,7 @@
-import { membersOf, roster } from '@app/data/roster'
-import { competitionsOf } from '@app/data/leaderboard'
+import { competitionsOf } from '@shared/leaderboard'
 import { pastCommunityEvents, postsFor, upcomingCommunityEvents } from '@app/data/community'
-import type { Person } from '@app/types'
+import type { Person } from '@shared/types'
+import type { HostMember } from '../api/members'
 
 // Everything here is derived from the same rows the rest of the console
 // reads, so the numbers cannot quietly disagree with the lists they came
@@ -72,8 +72,10 @@ function monthLabel(back: number): string {
   return MON[((idx % 12) + 12) % 12]
 }
 
-export function analyticsFor(communityId: string): Analytics {
-  const all = membersOf(communityId)
+/* The roster is passed in rather than fetched here. It is the server's
+   list now, and one request shared by every screen — a lib that went and
+   got its own copy could quietly disagree with the table beside it. */
+export function analyticsFor(communityId: string, all: HostMember[]): Analytics {
   const attendees = all.filter((m) => m.attended > 0)
   const cameOnce = all.filter((m) => m.attended === 1).length
   const cameAgain = all.filter((m) => m.attended >= 2).length
@@ -105,8 +107,6 @@ export function analyticsFor(communityId: string): Analytics {
   const comps = competitionsOf(communityId)
   const compEntrants = comps.length === 0 ? 0 : comps.reduce((n, c) => n + c.entrants, 0) / comps.length
 
-  const name = (id: string) => roster[id]?.name ?? id
-
   const bands = [20, 15, 10, 5, 1]
   const ladder: Rung[] = bands.map((min) => ({
     min,
@@ -132,14 +132,14 @@ export function analyticsFor(communityId: string): Analytics {
     neverCame: all
       .filter((m) => m.attended === 0)
       .slice(0, 6)
-      .map((m) => ({ person: roster[m.personId], detail: `joined ${m.joinedLabel}` })),
+      .map((m) => ({ person: m.person, detail: `joined ${m.joinedLabel}` })),
 
     drifted: all
       .filter((m) => m.attended > 0 && m.lastSeenWeeks >= 8)
       .sort((a, b) => b.attended - a.attended)
       .slice(0, 6)
       .map((m) => ({
-        person: roster[m.personId],
+        person: m.person,
         detail: `${m.attended} nights · last seen ${m.lastSeenLabel}`,
       })),
 
@@ -147,7 +147,7 @@ export function analyticsFor(communityId: string): Analytics {
     peak: Math.max(1, ...growth.map((b) => b.joined)),
 
     coreShare,
-    coreNames: top.slice(0, 3).map((m) => name(m.personId).split(' ')[0]),
+    coreNames: top.slice(0, 3).map((m) => m.person.name.split(' ')[0]),
 
     nightsRun: past.length,
     avgFill,

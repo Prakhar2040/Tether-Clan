@@ -1,7 +1,8 @@
 import type { RankedEvent, SearchResponse, SuggestionGroup, TcEvent } from '../types'
 import { activities } from '../data/taxonomy'
 import { areaById, areas } from '../data/areas'
-import { communities, DEFAULT_LOCATION, events, NOW, people, venues, yourCircle } from '../data/seed'
+import { DEFAULT_LOCATION, now, yourCircle } from '../world'
+import type { World } from '../db/repo'
 import { normalize, tokenMatches } from './normalize'
 import { route } from './router'
 import { logQuery } from './log'
@@ -58,10 +59,10 @@ interface Doc {
   fields: { text: string; weight: number }[]
 }
 
-function composeDoc(e: TcEvent): Doc {
-  const venue = venues[e.venueId]
-  const community = e.communityId ? communities[e.communityId] : undefined
-  const host = people[e.hostId]
+function composeDoc(e: TcEvent, w: World): Doc {
+  const venue = w.venues[e.venueId]
+  const community = e.communityId ? w.communities[e.communityId] : undefined
+  const host = w.people[e.hostId]
   // Synonyms for this event's activity join the document, so a half-typed
   // synonym ("sh" → shuttle → badminton) matches like any other token.
   const synonyms = activities
@@ -113,14 +114,14 @@ interface Scored {
 
 const W = { relevance: 0.3, time: 0.25, geo: 0.2, social: 0.15, scarcity: 0.1 }
 
-function scoreEvent(doc: Doc, queryTokens: string[]): Scored {
+function scoreEvent(doc: Doc, queryTokens: string[], w: World): Scored {
   const e = doc.event
-  const venue = venues[e.venueId]
+  const venue = w.venues[e.venueId]
 
   const relevance = textRelevance(doc, queryTokens)
 
   // time proximity: sooner is better, decaying over a week
-  const hoursAway = (new Date(e.startsAt).getTime() - NOW.getTime()) / 3_600_000
+  const hoursAway = (new Date(e.startsAt).getTime() - now().getTime()) / 3_600_000
   const time = Math.max(0, 1 - Math.min(hoursAway, 168) / 168)
 
   // geo proximity by travel time (Bangalore: km lies, minutes don't)
@@ -159,6 +160,7 @@ function buildGroups(
   intents: ReturnType<typeof route>['intents'],
   queryTokens: string[],
   candidates: TcEvent[],
+  w: World,
 ): SuggestionGroup[] {
   const groups: SuggestionGroup[] = []
 
@@ -196,14 +198,14 @@ function buildGroups(
       id: a.id,
       label: a.name,
       sublabel: 'Area',
-      count: candidates.filter((e) => venues[e.venueId].areaId === a.id).length,
+      count: candidates.filter((e) => w.venues[e.venueId].areaId === a.id).length,
     }))
   if (areaItems.length) groups.push({ type: 'area', items: areaItems })
 
   // Venues
   const venueIds = new Set(intents.filter((i) => i.kind === 'venue').map((i) => i.id))
   if (venueIds.size === 0 && queryTokens.length > 0) {
-    for (const v of Object.values(venues)) {
+    for (const v of Object.values(w.venues)) {
       const name = normalize(v.name)
       if (queryTokens.some((qt) => qt.length >= 2 && name.split(' ').some((w) => w.startsWith(qt)))) {
         venueIds.add(v.id)
@@ -211,7 +213,7 @@ function buildGroups(
     }
   }
   const venueItems = [...venueIds]
-    .map((id) => venues[id])
+    .map((id) => w.venues[id])
     .filter(Boolean)
     .map((v) => ({
       id: v.id,
@@ -224,7 +226,7 @@ function buildGroups(
   // Communities
   const communityIds = new Set(intents.filter((i) => i.kind === 'community').map((i) => i.id))
   if (communityIds.size === 0 && queryTokens.length > 0) {
-    for (const c of Object.values(communities)) {
+    for (const c of Object.values(w.communities)) {
       const name = normalize(c.name)
       if (queryTokens.some((qt) => qt.length >= 3 && name.split(' ').some((w) => w.startsWith(qt)))) {
         communityIds.add(c.id)
@@ -232,7 +234,7 @@ function buildGroups(
     }
   }
   const communityItems = [...communityIds]
-    .map((id) => communities[id])
+    .map((id) => w.communities[id])
     .filter(Boolean)
     .map((c) => ({ id: c.id, label: c.name, sublabel: `${c.memberCount} members` }))
   if (communityItems.length) groups.push({ type: 'community', items: communityItems })
@@ -240,11 +242,11 @@ function buildGroups(
   return groups
 }
 
-export function search(params: SearchParams): SearchResponse {
+export function search(params: SearchParams, w: World): SearchResponse {
   const started = performance.now()
   const raw = params.q ?? ''
   const normalized = normalize(raw)
-  const { intents, residual } = route(normalized)
+  const { intents, residual } = route(normalized, w)
 
   // Intents refine the explicit params (explicit params win).
   const when = params.when ?? intents.find((i) => i.kind === 'when')?.id
@@ -260,12 +262,12 @@ export function search(params: SearchParams): SearchResponse {
     : { lat: params.lat ?? DEFAULT_LOCATION.lat, lng: params.lng ?? DEFAULT_LOCATION.lng }
   const radiusKm = params.radiusKm ?? (areaId ? areaById[areaId].radiusKm : DEFAULT_RADIUS_KM)
 
-  const all = Object.values(events)
+  const all = Object.values(w.events)
 
   // --- hard prefilters: status, time, geo. No score rescues a violator. ---
-  const withinTime = all.filter((e) => e.status === 'live' && new Date(e.endsAt) > NOW)
+  const withinTime = all.filter((e) => e.status === 'live' && new Date(e.endsAt) > now())
   const prefiltered = withinTime.filter((e) => {
-    const v = venues[e.venueId]
+    const v = w.venues[e.venueId]
     return distanceKm(origin.lat, origin.lng, v.lat, v.lng) <= radiusKm
   })
 
@@ -288,13 +290,13 @@ export function search(params: SearchParams): SearchResponse {
   const queryTokens = residual
   if (queryTokens.length > 0) {
     const matched = candidates
-      .map((e) => ({ e, rel: textRelevance(composeDoc(e), queryTokens) }))
+      .map((e) => ({ e, rel: textRelevance(composeDoc(e, w), queryTokens) }))
       .filter((x) => x.rel > 0.15)
     candidates = matched.map((x) => x.e)
   }
 
   const scored = candidates
-    .map((e) => scoreEvent(composeDoc(e), queryTokens))
+    .map((e) => scoreEvent(composeDoc(e, w), queryTokens, w))
     .sort((a, b) => b.score - a.score)
 
   // --- point 9: zero-result fallback — nearest matches beyond the radius ---
@@ -305,9 +307,9 @@ export function search(params: SearchParams): SearchResponse {
         if (activityCategories.size > 0 && !activityCategories.has(e.categoryLabel)) return false
         if (free && e.price !== 0) return false
         if (queryTokens.length === 0) return true
-        return textRelevance(composeDoc(e), queryTokens) > 0.15
+        return textRelevance(composeDoc(e, w), queryTokens) > 0.15
       })
-      .map((e) => scoreEvent(composeDoc(e), queryTokens))
+      .map((e) => scoreEvent(composeDoc(e, w), queryTokens, w))
       .sort((a, b) => b.score - a.score)
       .slice(0, 3)
     if (wider.length > 0) {
@@ -315,7 +317,7 @@ export function search(params: SearchParams): SearchResponse {
     }
   }
 
-  const groups = buildGroups(intents, queryTokens, candidates)
+  const groups = buildGroups(intents, queryTokens, candidates, w)
   const response: SearchResponse = {
     groups,
     events: toRanked(scored, Boolean(params.debug)),
@@ -350,9 +352,9 @@ export function search(params: SearchParams): SearchResponse {
 
 // ---------- Point 9: null state (search opened, nothing typed) ----------
 
-export function nullState() {
-  const upcoming = Object.values(events)
-    .filter((e) => e.status === 'live' && new Date(e.endsAt) > NOW)
+export function nullState(w: World) {
+  const upcoming = Object.values(w.events)
+    .filter((e) => e.status === 'live' && new Date(e.endsAt) > now())
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
 
   const byActivity = activities
@@ -379,7 +381,7 @@ export function nullState() {
       .map((a) => ({
         id: a.id,
         label: a.name,
-        count: upcoming.filter((e) => venues[e.venueId].areaId === a.id).length,
+        count: upcoming.filter((e) => w.venues[e.venueId].areaId === a.id).length,
       }))
       .filter((x) => x.count > 0)
       .sort((a, b) => b.count - a.count)

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import type { Community, Person } from '../types'
+import type { Community, Person } from '@shared/types'
 import { CalendarIcon, CircleIcon, HomeIcon, LogoMark, PersonIcon, PinIcon, WordMark } from './icons'
 
 export function Brand() {
