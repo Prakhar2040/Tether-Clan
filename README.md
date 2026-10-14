@@ -14,6 +14,9 @@ Three surfaces over one server:
 
 ## Running it
 
+[`SETUP.md`](SETUP.md) has the full walkthrough — prerequisites, the environment file,
+and what to do when something looks broken. The short version:
+
 ```sh
 cd backend
 npm install
