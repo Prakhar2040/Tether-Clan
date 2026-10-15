@@ -1,27 +1,89 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { venues } from '@shared/mock'
+import { useRemote } from '@app/hooks/useRemote'
 import { useHostCommunity } from '../state/host'
 import { usePlans } from '../state/plans'
-import { holdersFor, useDoor } from '../state/door'
+import { DoorDenied, fetchDoor, hostUserId, scanTicket } from '../api/door'
+import type { DoorTicket, DoorView, ScanOutcome } from '../api/door'
 import { CheckIcon, PeopleIcon, ScanIcon, SearchIcon } from '../components/icons'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
+type DoorData = DoorView & { denied?: string }
+
+const EMPTY: DoorData = {
+  event: { id: '', title: '', capacity: 0 },
+  tickets: [],
+  sold: 0,
+  walkIns: [],
+}
+
+const clock = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''
+
+const initialsOf = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+
+/* What a scan said, in words a person at a door can read at a glance. */
+function describe(o: ScanOutcome): { tone: 'ok' | 'warn' | 'bad'; text: string } {
+  switch (o.kind) {
+    case 'ok':
+      return {
+        tone: 'ok',
+        text:
+          o.qty > 1
+            ? `Scanned ✓ ${o.name} · seat ${o.scanned} of ${o.qty}`
+            : `Scanned ✓ ${o.name}`,
+      }
+    case 'already':
+      return {
+        tone: 'warn',
+        text: `Already scanned at ${clock(o.scannedAt) || 'an earlier time'} · ${o.name}`,
+      }
+    case 'refused':
+      return { tone: 'bad', text: o.message }
+    case 'unreachable':
+      return { tone: 'bad', text: 'Cannot reach the server. Nothing was scanned, try again.' }
+  }
+}
+
+const TONES = {
+  ok: { background: 'var(--green-bg)', color: 'var(--green)' },
+  warn: { background: '#FFF3D6', color: '#8A5A00' },
+  bad: { background: '#FCE4E0', color: '#A32A1A' },
+}
+
 export default function Door() {
-  const { community } = useHostCommunity()
+  const { owner } = useHostCommunity()
   const { plans } = usePlans()
-  const { arrivals, walkIns, closed, checkIn, undo, closeDoor, reopen } = useDoor()
+  const as = hostUserId(owner?.id)
 
   const doorable = plans.filter((p) => p.status !== 'draft')
   const [planId, setPlanId] = useState(doorable[0]?.id ?? '')
   const plan = doorable.find((p) => p.id === planId) ?? doorable[0]
 
   const [q, setQ] = useState('')
+  const [ref, setRef] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState<ScanOutcome | null>(null)
+  const [tick, setTick] = useState(0)
 
-  const holders = useMemo(
-    () => (plan ? [...holdersFor(community.id, plan.id, plan.sold), ...walkIns] : []),
-    [community.id, plan, walkIns],
+  // The door's one source of truth is the server; every scan refreshes it.
+  const { data, offline } = useRemote<DoorData>(
+    (signal) =>
+      fetchDoor(plan?.id ?? '', as, signal).catch((e) => {
+        if (e instanceof DoorDenied) return { ...EMPTY, denied: e.message }
+        throw e
+      }),
+    EMPTY,
+    [plan?.id, as, tick],
   )
 
   if (!plan) {
@@ -36,31 +98,64 @@ export default function Door() {
     )
   }
 
-  const here = holders.filter((h) => arrivals[h.person.id])
-  const waiting = holders.filter((h) => !arrivals[h.person.id])
-  const needle = q.trim().toLowerCase()
-  const match = (h: (typeof holders)[number]) =>
-    !needle ||
-    h.person.name.toLowerCase().includes(needle) ||
-    h.ticket.toLowerCase().includes(needle)
+  const submit = async (e: FormEvent) => {
+    e.preventDefault()
+    const typed = ref.trim()
+    if (!typed || busy) return
+    setBusy(true)
+    const out = await scanTicket(plan.id, typed, as)
+    setBusy(false)
+    setResult(out)
+    if (out.kind !== 'unreachable') {
+      setRef('')
+      setTick((t) => t + 1)
+    }
+  }
 
+  const tickets = data.tickets
+  const here = tickets.filter((t) => t.scannedAt)
+  const waiting = tickets.filter((t) => !t.scannedAt)
+  const needle = q.trim().toLowerCase()
+  const match = (t: DoorTicket) =>
+    !needle || t.name.toLowerCase().includes(needle) || t.ref.toLowerCase().includes(needle)
   const shown = waiting.filter(match)
   const shownHere = here.filter(match)
 
   const d = new Date(`${plan.date}T00:00:00`)
-  const pct = holders.length === 0 ? 0 : Math.round((here.length / holders.length) * 100)
+  const pct = tickets.length === 0 ? 0 : Math.round((here.length / tickets.length) * 100)
+  const said = result ? describe(result) : null
 
-  // Scanning, without a camera: takes the next person still outside.
-  const scanNext = () => {
-    const next = waiting[0]
-    if (next) checkIn(next.person.id)
-  }
+  const row = (t: DoorTicket, inside: boolean) => (
+    <div className={inside ? 'door-row in' : 'door-row'} key={t.ref}>
+      <span className="av av-tint" style={{ width: 30, height: 30, fontSize: 11 }}>
+        {initialsOf(t.name)}
+      </span>
+      <span className="door-who">
+        <span className="door-name">{t.name}</span>
+        <span className="door-ref">{t.ref}</span>
+      </span>
+      {inside ? (
+        <span className="door-state in">
+          <CheckIcon size={13} strokeWidth={2.8} /> In at {clock(t.scannedAt)}
+        </span>
+      ) : (
+        <span className="door-state">Yet to arrive</span>
+      )}
+    </div>
+  )
 
   return (
     <div className="page door">
       <div className="door-head">
         <div className="door-plan">
-          <select value={plan.id} onChange={(e) => setPlanId(e.target.value)} aria-label="Which night">
+          <select
+            value={plan.id}
+            onChange={(e) => {
+              setPlanId(e.target.value)
+              setResult(null)
+            }}
+            aria-label="Which night"
+          >
             {doorable.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.title || 'Untitled plan'} · {DAYS[new Date(`${p.date}T00:00:00`).getDay()]}{' '}
@@ -78,157 +173,114 @@ export default function Door() {
         <div className="door-count">
           <span className="door-n">
             {here.length}
-            <em>/{holders.length}</em>
+            <em>/{tickets.length}</em>
           </span>
-          <span className="door-l">through the door</span>
+          <span className="door-l">seats through the door</span>
           <span className="door-bar">
             <span className="door-fill" style={{ width: `${pct}%` }} />
           </span>
         </div>
-
-        {closed ? (
-          <button className="btn btn-ghost" onClick={reopen}>
-            Reopen the door
-          </button>
-        ) : (
-          <button className="btn btn-primary" onClick={closeDoor} disabled={here.length === 0}>
-            Close the door
-          </button>
-        )}
       </div>
 
-      {closed ? (
-        <section className="door-closed">
-          <span className="door-closed-t">Door closed · {here.length} came</span>
-          <p className="door-closed-b">
-            {waiting.length === 0
-              ? 'Everybody who held a place turned up.'
-              : `${waiting.length} held a place and did not come. Marking them here is what makes "missed without cancelling" mean anything — it is the only place that number can come from.`}
-          </p>
-          {waiting.length > 0 ? (
-            <div className="who">
-              {waiting.map((h) => (
-                <div className="who-row" key={h.person.id}>
-                  <span className={`av av-${h.person.color}`} style={{ width: 24, height: 24, fontSize: 9 }}>
-                    {h.person.initials}
-                  </span>
-                  <span className="who-name">{h.person.name}</span>
-                  <span className="who-detail">no-show</span>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </section>
-      ) : (
-        <>
-          {/* Search sits above both columns, so the two lists start level. */}
-          <div className="door-tools">
-            <span className="search">
-              <SearchIcon size={15} strokeWidth={2.2} />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search a name or a ticket"
-              />
-              {q ? (
-                <button className="search-x" onClick={() => setQ('')} aria-label="Clear">
-                  ×
-                </button>
-              ) : null}
-            </span>
-            <button className="btn btn-primary scan" onClick={scanNext} disabled={waiting.length === 0}>
-              <ScanIcon size={16} strokeWidth={2.1} /> Scan a pass
+      {offline ? (
+        <div className="roster-empty" role="alert">
+          <span>
+            Cannot reach the server. The list below may be out of date and scans will not go through.
+          </span>
+        </div>
+      ) : null}
+      {data.denied ? (
+        <div className="roster-empty" role="alert">
+          <span>{data.denied}</span>
+        </div>
+      ) : null}
+
+      <form className="door-tools" onSubmit={submit}>
+        <span className="search">
+          <ScanIcon size={15} strokeWidth={2.2} />
+          <input
+            value={ref}
+            onChange={(e) => setRef(e.target.value)}
+            placeholder="Type the ticket ref, e.g. TC-7KQ4M2XD"
+            aria-label="Ticket ref"
+            autoFocus
+            autoCapitalize="characters"
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </span>
+        <button className="btn btn-primary scan" type="submit" disabled={busy || !ref.trim()}>
+          <ScanIcon size={16} strokeWidth={2.1} /> {busy ? 'Scanning…' : 'Scan'}
+        </button>
+      </form>
+      {said ? (
+        <div
+          role="status"
+          style={{
+            margin: '0 0 14px',
+            padding: '10px 14px',
+            borderRadius: 10,
+            fontWeight: 700,
+            ...TONES[said.tone],
+          }}
+        >
+          {said.text}
+        </div>
+      ) : null}
+
+      <div className="door-tools">
+        <span className="search">
+          <SearchIcon size={15} strokeWidth={2.2} />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search a name or a ticket"
+          />
+          {q ? (
+            <button type="button" className="search-x" onClick={() => setQ('')} aria-label="Clear">
+              ×
             </button>
-          </div>
+          ) : null}
+        </span>
+      </div>
 
-          <div className="door-body">
-            <section className="door-col">
-              <span className="door-sub">
-                Yet to arrive · {needle ? `${shown.length} of ${waiting.length}` : waiting.length}
-              </span>
-              <div className="door-list">
-                {shown.length === 0 ? (
-                  <div className="roster-empty">
-                    <PeopleIcon size={22} strokeWidth={1.9} />
-                    <span>
-                      {needle ? `Nobody still outside matches “${q}”` : 'Everybody is in.'}
-                    </span>
-                  </div>
-                ) : (
-                  shown.map((h) => {
-                    const inAlready = Boolean(arrivals[h.person.id])
-                    return (
-                      <div className={inAlready ? 'door-row in' : 'door-row'} key={h.person.id}>
-                        <span className={`av av-${h.person.color}`} style={{ width: 30, height: 30, fontSize: 11 }}>
-                          {h.person.initials}
-                        </span>
-                        <span className="door-who">
-                          <span className="door-name">{h.person.name}</span>
-                          <span className="door-ref">{h.walkIn ? 'walk-in' : h.ticket}</span>
-                        </span>
-                        {/* Green means arrived. An action never wears it. */}
-                        {inAlready ? (
-                          <>
-                            <span className="door-state in">
-                              <CheckIcon size={13} strokeWidth={2.8} /> In at {arrivals[h.person.id].at}
-                            </span>
-                            <button className="door-undo" onClick={() => undo(h.person.id)}>
-                              Undo
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="door-state">Yet to arrive</span>
-                            <button className="door-in" onClick={() => checkIn(h.person.id)}>
-                              Check in
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )
-                  })
-                )}
+      <div className="door-body">
+        <section className="door-col">
+          <span className="door-sub">
+            Yet to arrive · {needle ? `${shown.length} of ${waiting.length}` : waiting.length}
+          </span>
+          <div className="door-list">
+            {shown.length === 0 ? (
+              <div className="roster-empty">
+                <PeopleIcon size={22} strokeWidth={1.9} />
+                <span>{needle ? `Nobody still outside matches “${q}”` : 'Everybody is in.'}</span>
               </div>
-            </section>
-
-            <section className="door-col">
-              <span className="door-sub">
-                Arrived · {needle ? `${shownHere.length} of ${here.length}` : here.length}
-              </span>
-              <div className="door-list">
-                {shownHere.length === 0 ? (
-                  <div className="roster-empty">
-                    <CheckIcon size={20} strokeWidth={2} />
-                    <span>
-                      {needle
-                        ? `Nobody arrived matches “${q}”`
-                        : 'Nobody yet. The first scan lands here.'}
-                    </span>
-                  </div>
-                ) : (
-                  [...shownHere].reverse().map((h) => (
-                    <div className="door-row in" key={h.person.id}>
-                      <span className={`av av-${h.person.color}`} style={{ width: 30, height: 30, fontSize: 11 }}>
-                        {h.person.initials}
-                      </span>
-                      <span className="door-who">
-                        <span className="door-name">{h.person.name}</span>
-                        <span className="door-ref">{h.walkIn ? 'walk-in' : h.ticket}</span>
-                      </span>
-                      <span className="door-state in">
-                        <CheckIcon size={13} strokeWidth={2.8} /> In at {arrivals[h.person.id].at}
-                      </span>
-                      <button className="door-undo" onClick={() => undo(h.person.id)}>
-                        Undo
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
+            ) : (
+              shown.map((t) => row(t, false))
+            )}
           </div>
-        </>
-      )}
+        </section>
+
+        <section className="door-col">
+          <span className="door-sub">
+            Arrived · {needle ? `${shownHere.length} of ${here.length}` : here.length}
+          </span>
+          <div className="door-list">
+            {shownHere.length === 0 ? (
+              <div className="roster-empty">
+                <CheckIcon size={20} strokeWidth={2} />
+                <span>
+                  {needle ? `Nobody arrived matches “${q}”` : 'Nobody yet. The first scan lands here.'}
+                </span>
+              </div>
+            ) : (
+              [...shownHere]
+                .sort((a, b) => (b.scannedAt ?? '').localeCompare(a.scannedAt ?? ''))
+                .map((t) => row(t, true))
+            )}
+          </div>
+        </section>
+      </div>
     </div>
   )
 }

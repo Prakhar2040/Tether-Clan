@@ -4,6 +4,10 @@ import { membersOf, roster } from '@shared/roster'
 import type { Member } from '@shared/roster'
 import type { Person } from '@shared/types'
 
+// NOTE: the door screen no longer uses this file - it reads the server (api/door.ts).
+// holdersFor/memberHoldersFor and the arrivals state remain only as the mock the
+// Dashboard and Sales analytics still read.
+//
 // Who is expected at the door, and who has actually walked through it.
 //
 // This is the surface the rest of the console is waiting on. Attendance is a
