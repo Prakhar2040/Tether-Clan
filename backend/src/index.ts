@@ -1,24 +1,7 @@
-import Fastify from 'fastify'
-import cors from '@fastify/cors'
-import { searchRoutes } from './routes/search'
-import { orderRoutes } from './routes/orders'
-import { membershipRoutes } from './routes/membership'
-import { doorRoutes } from './routes/door'
-import { communityRoutes } from './routes/communities'
-import { postRoutes } from './routes/posts'
-import { leaderboardRoutes } from './routes/leaderboard'
+import { buildApp } from './app'
 import { closeDb } from './db/client'
 
-const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } })
-
-await app.register(cors, { origin: true })
-await app.register(searchRoutes)
-await app.register(orderRoutes)
-await app.register(membershipRoutes)
-await app.register(doorRoutes)
-await app.register(communityRoutes)
-await app.register(postRoutes)
-await app.register(leaderboardRoutes)
+const app = await buildApp()
 
 const port = Number(process.env.PORT ?? 8085)
 await app.listen({ port, host: '0.0.0.0' })

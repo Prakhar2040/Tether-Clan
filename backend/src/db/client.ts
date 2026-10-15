@@ -1,11 +1,40 @@
 import 'dotenv/config'
 import { readFileSync } from 'node:fs'
 import { drizzle } from 'drizzle-orm/node-postgres'
-import { Pool } from 'pg'
+import { Pool, type PoolConfig } from 'pg'
+import { Signer } from '@aws-sdk/rds-signer'
 import * as schema from './schema'
 
+/* Two ways to reach the database.
+ *
+ * Locally it is a connection string to the Docker Postgres. On AWS the free plan only
+ * offers Aurora "express" clusters, which have no password at all: you sign in with an
+ * IAM token that lasts fifteen minutes, handed over as the password. So when
+ * DB_IAM_AUTH is set the pool is given the host, user and database separately and a
+ * function that fetches a fresh token each time it opens a connection. The token is
+ * signed by the Lambda's own role, so nothing secret is stored anywhere. */
+const iam = process.env.DB_IAM_AUTH === '1'
 const url = process.env.DATABASE_URL
-if (!url) throw new Error('DATABASE_URL is not set — copy backend/.env.example to backend/.env')
+if (!iam && !url) throw new Error('DATABASE_URL is not set — copy backend/.env.example to backend/.env')
+
+function iamConnection(): PoolConfig {
+  const host = process.env.DB_HOST
+  const user = process.env.DB_USER ?? 'postgres'
+  const region = process.env.AWS_REGION
+  if (!host || !region) throw new Error('DB_IAM_AUTH needs DB_HOST and AWS_REGION')
+  const port = Number(process.env.DB_PORT ?? 5432)
+  const signer = new Signer({ hostname: host, port, username: user, region })
+  return {
+    host,
+    port,
+    user,
+    database: process.env.DB_NAME ?? 'postgres',
+    password: () => signer.getAuthToken(),
+    // The gateway presents a certificate from a public CA, so Node's own trust store
+    // is enough; no bundle to ship.
+    ssl: { rejectUnauthorized: true },
+  }
+}
 
 /* A pool sized for where it is actually running.
  *
@@ -31,8 +60,7 @@ function sslFor(connectionString: string) {
 }
 
 export const pool = new Pool({
-  connectionString: url,
-  ssl: sslFor(url),
+  ...(iam ? iamConnection() : { connectionString: url!, ssl: sslFor(url!) }),
   // One per container on Lambda: more cannot be used, and each one held open
   // is a reason the database stays awake.
   max: onLambda ? 1 : 10,
