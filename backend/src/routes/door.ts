@@ -1,56 +1,127 @@
 import type { FastifyInstance } from 'fastify'
-import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '../db/client'
-import { viewerOf, ViewerUnknown } from '../lib/viewer'
+import { requireHost } from '../lib/host'
+import { recordAttendance } from '../lib/attendance'
+import { normaliseRef } from '../lib/ref'
 import { parse } from '../lib/body'
 import { now } from '../world'
 
 /* The door.
  *
- * This is the table whose absence has blocked the most. `attended: 27` was a
- * number somebody typed, with no dates behind it, so nothing could answer
- * whether a cohort came back, how fast a night filled, or who has drifted.
- * One row per person per night, written when they walk in, answers all three.
+ * One row per person per night, written when they walk in, answers whether a
+ * cohort came back, how fast a night filled, and who has drifted. It is also
+ * the only thing that separates "nobody came" from "the host never opened
+ * this screen" — which is why closing the door records the people who did not
+ * arrive as well as the ones who did.
  *
- * It is also the only thing that separates "nobody came" from "the host never
- * opened this screen" — which is why closing the door records the people who
- * did not arrive as well as the ones who did.
+ * A scan also moves the counters on the member's row (lib/attendance.ts). Those
+ * are a tally carried over from before this database existed, so double-counting
+ * is a real hazard: a scan works out what actually changed before it adds.
  *
- * A scan also moves the counters on the member's row, which is where the
- * console reads "been to 14 nights" from. Those are a tally carried over
- * from before this database existed, so they cannot be recomputed from the
- * rows below them — which makes double-counting a real hazard, and the
- * reason a scan works out what actually changed before it adds anything.
+ * Every route here is host-only (lib/host.ts). Members only hold the QR.
  */
 
 const Scan = z.object({
-  /* Whose ticket. Absent means the caller is scanning themselves in, which is
-     what a member's own QR does. */
+  /* Whose attendance to mark. Absent means the caller themselves. */
   personId: z.string().min(1).optional(),
   outcome: z.enum(['attended', 'no_show', 'cancelled']).default('attended'),
   walkIn: z.boolean().default(false),
 })
 
+const ScanRef = z.object({ ref: z.string().min(1).max(40) })
+
 export async function doorRoutes(app: FastifyInstance) {
-  app.post<{ Params: { id: string } }>('/api/events/:id/attendance', async (req, reply) => {
-    let caller: string
-    try {
-      caller = await viewerOf(req)
-    } catch (e) {
-      if (e instanceof ViewerUnknown) return reply.code(401).send({ error: e.message })
-      throw e
+  /* The door scan: staff type (later: camera-scan) a ticket ref. */
+  app.post<{ Params: { id: string } }>('/api/events/:id/scan', async (req, reply) => {
+    const host = await requireHost(req, reply)
+    if (!host) return
+    const { event } = host
+    const body = parse(ScanRef, req.body, reply)
+    if (!body) return
+    const ref = normaliseRef(body.ref)
+
+    const [found] = await db
+      .select({
+        id: schema.tickets.id,
+        orderId: schema.tickets.orderId,
+        scannedAt: schema.tickets.scannedAt,
+        state: schema.orders.state,
+        qty: schema.orders.qty,
+        personId: schema.orders.personId,
+        name: schema.people.name,
+      })
+      .from(schema.tickets)
+      .innerJoin(schema.orders, eq(schema.orders.id, schema.tickets.orderId))
+      .innerJoin(schema.people, eq(schema.people.id, schema.orders.personId))
+      .where(and(eq(schema.tickets.ref, ref), eq(schema.tickets.eventId, event.id)))
+      .limit(1)
+    if (!found) return reply.code(404).send({ error: `No ticket ${ref} for this night` })
+    if (found.state !== 'paid') {
+      return reply
+        .code(409)
+        .send({ error: `Ticket ${ref} is not valid: its order is ${found.state}, not paid` })
     }
+    const person = { id: found.personId, name: found.name }
+    if (found.scannedAt) {
+      return reply.code(409).send({ error: 'Already scanned', scannedAt: found.scannedAt, person })
+    }
+
+    const at = now()
+    const claimed = await db.transaction(async (tx) => {
+      /* Only the scan that flips scanned_at from null wins; a racing second one gets nothing. */
+      const [won] = await tx
+        .update(schema.tickets)
+        .set({ scannedAt: at })
+        .where(and(eq(schema.tickets.id, found.id), isNull(schema.tickets.scannedAt)))
+        .returning({ id: schema.tickets.id })
+      if (!won) return false
+      /* One person, one night: later seats of the same order only mark the ticket. */
+      const [already] = await tx
+        .select({ outcome: schema.attendance.outcome })
+        .from(schema.attendance)
+        .where(
+          and(
+            eq(schema.attendance.eventId, event.id),
+            eq(schema.attendance.personId, found.personId),
+          ),
+        )
+        .limit(1)
+      if (already?.outcome !== 'attended') {
+        await recordAttendance(tx, event, found.personId, 'attended', false, at)
+      }
+      return true
+    })
+    if (!claimed) {
+      const [t] = await db
+        .select({ scannedAt: schema.tickets.scannedAt })
+        .from(schema.tickets)
+        .where(eq(schema.tickets.id, found.id))
+        .limit(1)
+      return reply.code(409).send({ error: 'Already scanned', scannedAt: t?.scannedAt ?? at, person })
+    }
+
+    const siblings = await db
+      .select({ scannedAt: schema.tickets.scannedAt })
+      .from(schema.tickets)
+      .where(eq(schema.tickets.orderId, found.orderId))
+    return {
+      ticket: { ref },
+      person,
+      order: { qty: found.qty, scanned: siblings.filter((s) => s.scannedAt).length },
+      scannedAt: at,
+    }
+  })
+
+  /* Corrections and walk-ins: mark somebody, or un-mark them, without a ref. */
+  app.post<{ Params: { id: string } }>('/api/events/:id/attendance', async (req, reply) => {
+    const host = await requireHost(req, reply)
+    if (!host) return
+    const { caller, event } = host
 
     const body = parse(Scan, req.body, reply)
     if (!body) return
-
-    const [event] = await db
-      .select()
-      .from(schema.events)
-      .where(eq(schema.events.id, req.params.id))
-      .limit(1)
-    if (!event) return reply.code(404).send({ error: 'No such event' })
 
     const who = body.personId ?? caller
     const [person] = await db
@@ -77,65 +148,9 @@ export async function doorRoutes(app: FastifyInstance) {
       return reply.code(409).send({ error: 'No ticket for that night', personId: who })
     }
 
-    const at = now()
-    const row = await db.transaction(async (tx) => {
-      /* What the door already said about this person tonight. A second scan
-         is a double tap, not an error, and it must not be a second night. */
-      const [before] = await tx
-        .select({ outcome: schema.attendance.outcome })
-        .from(schema.attendance)
-        .where(
-          and(eq(schema.attendance.eventId, event.id), eq(schema.attendance.personId, who)),
-        )
-        .limit(1)
-
-      const [written] = await tx
-        .insert(schema.attendance)
-        .values({
-          id: `${event.id}:${who}`,
-          eventId: event.id,
-          personId: who,
-          outcome: body.outcome,
-          scannedAt: body.outcome === 'attended' ? at : null,
-          walkIn: body.walkIn || !ticket,
-        })
-        .onConflictDoUpdate({
-          target: [schema.attendance.eventId, schema.attendance.personId],
-          set: { outcome: body.outcome, scannedAt: body.outcome === 'attended' ? at : null },
-        })
-        .returning()
-
-      const score = (o?: string) => ({
-        attended: o === 'attended' ? 1 : 0,
-        noShows: o === 'no_show' ? 1 : 0,
-      })
-      const was = score(before?.outcome)
-      const is = score(written.outcome)
-      const dAttended = is.attended - was.attended
-      const dNoShows = is.noShows - was.noShows
-
-      /* A walk-in from another room, or a night this community does not own,
-         has no membership row to move — the update simply matches nothing. */
-      if (event.communityId && (dAttended !== 0 || dNoShows !== 0)) {
-        await tx
-          .update(schema.memberships)
-          .set({
-            attended: sql`${schema.memberships.attended} + ${dAttended}`,
-            noShows: sql`${schema.memberships.noShows} + ${dNoShows}`,
-            // Correcting a mistaken scan must not move the last night forward.
-            ...(dAttended > 0 ? { lastSeenAt: at } : {}),
-          })
-          .where(
-            and(
-              eq(schema.memberships.personId, who),
-              eq(schema.memberships.communityId, event.communityId),
-              isNull(schema.memberships.leftAt),
-            ),
-          )
-      }
-
-      return written
-    })
+    const { row } = await db.transaction((tx) =>
+      recordAttendance(tx, event, who, body.outcome, body.walkIn || !ticket, now()),
+    )
 
     return reply.code(201).send({
       eventId: event.id,
@@ -149,12 +164,9 @@ export async function doorRoutes(app: FastifyInstance) {
 
   /** Who is expected, who arrived, who did not. The door screen's whole view. */
   app.get<{ Params: { id: string } }>('/api/events/:id/door', async (req, reply) => {
-    const [event] = await db
-      .select({ id: schema.events.id, title: schema.events.title, capacity: schema.events.capacity })
-      .from(schema.events)
-      .where(eq(schema.events.id, req.params.id))
-      .limit(1)
-    if (!event) return reply.code(404).send({ error: 'No such event' })
+    const host = await requireHost(req, reply)
+    if (!host) return
+    const event = { id: host.event.id, title: host.event.title, capacity: host.event.capacity }
 
     const holders = await db
       .select({
@@ -165,6 +177,19 @@ export async function doorRoutes(app: FastifyInstance) {
       .from(schema.orders)
       .innerJoin(schema.people, eq(schema.people.id, schema.orders.personId))
       .where(and(eq(schema.orders.eventId, event.id), inArray(schema.orders.state, ['paid', 'held'])))
+
+    const tickets = await db
+      .select({
+        ref: schema.tickets.ref,
+        scannedAt: schema.tickets.scannedAt,
+        personId: schema.orders.personId,
+        name: schema.people.name,
+      })
+      .from(schema.tickets)
+      .innerJoin(schema.orders, eq(schema.orders.id, schema.tickets.orderId))
+      .innerJoin(schema.people, eq(schema.people.id, schema.orders.personId))
+      .where(and(eq(schema.tickets.eventId, event.id), eq(schema.orders.state, 'paid')))
+      .orderBy(asc(schema.people.name), asc(schema.tickets.ref))
 
     const scans = await db
       .select({
@@ -185,6 +210,13 @@ export async function doorRoutes(app: FastifyInstance) {
       yetToArrive: holders.filter((h) => !seen.has(h.personId)),
       walkIns: scans.filter((s) => s.walkIn),
       sold: holders.length,
+      /* One row per seat, with whether it has been through the door. */
+      tickets: tickets.map((t) => ({
+        ref: t.ref,
+        personId: t.personId,
+        name: t.name,
+        scannedAt: t.scannedAt,
+      })),
     }
   })
 }
