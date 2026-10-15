@@ -84,7 +84,7 @@ export default function MapScreen() {
   // Time filter first — a map of everything is noise. Everything matching the
   // filter is pinned, regardless of what is currently in view.
   const inWindow = useMemo(
-    () => Object.values(events).filter((e) => matchesWhen(e.dayLabel, when)),
+    () => Object.values(events).filter((e) => matchesWhen(e, when)),
     [when],
   )
 

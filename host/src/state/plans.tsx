@@ -1,7 +1,8 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { communityEvents } from '@app/data/community'
-import { series, venues } from '@shared/mock'
+import { NOW, series, venues } from '@shared/mock'
+import { ymdOf } from '@shared/clock'
 import type { TcEvent } from '@shared/types'
 
 // A plan, as the host holds it. Seeded from what the community already runs,
@@ -33,9 +34,9 @@ function isoOf(e: TcEvent): string {
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   if (m) {
     const idx = MON.findIndex((x) => x.toLowerCase() === m[3].toLowerCase())
-    return `2026-${String(idx + 1).padStart(2, '0')}-${m[2].padStart(2, '0')}`
+    return `${NOW.getFullYear()}-${String(idx + 1).padStart(2, '0')}-${m[2].padStart(2, '0')}`
   }
-  return '2026-09-09'
+  return ymdOf(NOW)
 }
 
 function timeOf(e: TcEvent): string {
@@ -72,7 +73,7 @@ export function blankPlan(communityId: string): Plan {
     title: '',
     description: '',
     theme: '',
-    date: '2026-09-16',
+    date: ymdOf(new Date(NOW.getTime() + 7 * 86_400_000)), // a week out, the usual cadence
     time: '19:30',
     // Defaults come from the last thing this community ran, which is what
     // makes scheduling a weekly night three fields instead of twelve.

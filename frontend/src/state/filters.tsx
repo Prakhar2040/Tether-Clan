@@ -1,15 +1,17 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
+import { istParts } from '@shared/clock'
 
 // Filter state is shared between the Events list and the Map, so switching
 // tabs preserves the query instead of resetting it. Time is the primary
 // dimension on both surfaces.
 
-export type When = 'tonight' | 'weekend' | number
+// 'tonight' | 'weekend' | a Bengaluru calendar day, "2026-10-17". Real dates, never
+// day-of-month numbers: those cannot tell the 3rd of this month from next.
+export type When = 'tonight' | 'weekend' | string
 
-export const TODAY = 9 // Wed 9 Sep 2026, the mock "now"
-export const DAY_LABELS: Record<number, string> = { 9: 'Tonight', 10: 'Tomorrow', 12: 'Sat', 13: 'Sun' }
 export const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 interface FiltersValue {
   when: When
@@ -72,18 +74,55 @@ export function useFilters(): FiltersValue {
   return ctx
 }
 
-export function weekdayOf(day: number): string {
-  return WEEKDAYS[(new Date(2026, 8, day).getDay() + 6) % 7]
+/** The Bengaluru civil day of an instant, "2026-10-17" (same words as the server). */
+export function ymdOf(at: Date): string {
+  const p = istParts(at)
+  return `${p.y}-${String(p.m).padStart(2, '0')}-${String(p.d).padStart(2, '0')}`
+}
+
+/** Today in Bengaluru, read fresh each call so a tab left open overnight stays right. */
+export const todayYmd = (): string => ymdOf(new Date())
+
+/** "2026-10-17" shifted by n whole days. */
+export function addDays(ymd: string, n: number): string {
+  const [y, m, d] = ymd.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
+}
+
+/** Mon=0 ... Sun=6 */
+export function weekdayIndex(ymd: string): number {
+  const [y, m, d] = ymd.split('-').map(Number)
+  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7
+}
+
+const label = (ymd: string) => {
+  const [, m, d] = ymd.split('-').map(Number)
+  return `${WEEKDAYS[weekdayIndex(ymd)]} ${d} ${MONTHS[m - 1]}`
+}
+
+// The coming Saturday/Sunday, as the server counts them: within the next week,
+// today included.
+export function weekendDays(): string[] {
+  const t = todayYmd()
+  return [0, 1, 2, 3, 4, 5, 6].map((n) => addDays(t, n)).filter((d) => weekdayIndex(d) >= 5)
 }
 
 export function whenTitle(when: When): { title: string; sub: string } {
-  if (when === 'tonight') return { title: 'Tonight', sub: 'Wed 9 Sep' }
-  if (when === 'weekend') return { title: 'Weekend', sub: 'Sat 12 – Sun 13 Sep' }
-  return { title: `${weekdayOf(when)} ${when} Sep`, sub: `${weekdayOf(when)} ${when} Sep` }
+  if (when === 'tonight') return { title: 'Tonight', sub: label(todayYmd()) }
+  if (when === 'weekend') {
+    const days = weekendDays()
+    if (days.length === 0) return { title: 'Weekend', sub: 'Sat – Sun' }
+    const first = label(days[0])
+    const last = label(days[days.length - 1])
+    return { title: 'Weekend', sub: days.length === 1 ? first : `${first.split(' ').slice(0, 2).join(' ')} – ${last}` }
+  }
+  if (when === addDays(todayYmd(), 1)) return { title: 'Tomorrow', sub: label(when) }
+  return { title: label(when), sub: label(when) }
 }
 
-export function matchesWhen(dayLabel: string, when: When): boolean {
-  if (when === 'tonight') return dayLabel === 'Tonight'
-  if (when === 'weekend') return dayLabel === 'Sat' || dayLabel === 'Sun'
-  return dayLabel === DAY_LABELS[when]
+/** Does this event fall in the chosen window? Uses the same day words as the server. */
+export function matchesWhen(e: { dayLabel: string; startsAt?: string }, when: When): boolean {
+  if (when === 'tonight') return e.dayLabel === 'Tonight'
+  if (when === 'weekend') return e.startsAt ? weekendDays().includes(ymdOf(new Date(e.startsAt))) : false
+  return e.startsAt ? ymdOf(new Date(e.startsAt)) === when : false
 }

@@ -2,14 +2,15 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { sql } from 'drizzle-orm'
 import { db, pool, schema } from './client'
-import { events, people as mockPeople, series as mockSeries, venues as mockVenues } from '@shared/mock'
+import { mockEvents, people as mockPeople, series as mockSeries, venues as mockVenues } from '@shared/mock'
 import { communities as rawCommunities, communityEvents } from '@shared/community.data'
 import { members, roster } from '@shared/roster'
 import { photos as mockPhotos, posts as mockPosts } from '@shared/community.data'
 import { competitions as mockCompetitions } from '@shared/leaderboard'
 import { me, nightsIn } from '@shared/me'
 import { myMemberships } from '@shared/community.data'
-import { NOW_FROZEN, now } from '../world'
+import { now } from '../world'
+import { rebase as rebaseAt, startsAtOf as startsAtFor } from '@shared/clock'
 import { makeRef } from '../lib/ref'
 
 /* Loads the mock world into Postgres.
@@ -64,22 +65,8 @@ function pick(key: string, from: string[], n: number): string[] {
   }
   return [...seen]
 }
-const istDate = (d: Date) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(d)
-const dayNumber = (d: Date) => Math.floor(Date.parse(istDate(d) + 'T00:00:00Z') / 86_400_000)
 
-function rebase(mockAt: Date): Date {
-  const dayOffset = dayNumber(mockAt) - dayNumber(NOW_FROZEN)
-  const out = new Date(SEEDED_AT)
-  out.setDate(out.getDate() + dayOffset)
-  // Keep the time of day the mock intended, in Bengaluru terms.
-  const hhmm = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false,
-  }).format(mockAt)
-  const [h, m] = hhmm.split(':').map(Number)
-  out.setHours(h, m, 0, 0)
-  return out
-}
+const rebase = (mockAt: Date) => rebaseAt(mockAt, SEEDED_AT)
 const rupeesToPaise = (r: number) => Math.round(r * 100)
 
 // Joined "18 months ago" against the world's frozen now.
@@ -245,55 +232,13 @@ async function seed() {
     for (const e of communityEvents(cid)) ownerOf.set(e.id, cid)
   }
 
-  /* Ten events never recorded a moment — only how to say it: dayLabel
-     'Tonight', 'Next Wed', 'Past' with dateLabel 'Wed 26 Aug'. Deriving the
-     instant once, here, is the whole point of having a database: a label
-     becomes a fact, and nothing downstream has to guess again. */
-  const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const MONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  /* Ten events never recorded a moment, only how to say it; shared/clock
+     derives the instant once, here, so a label becomes a fact. */
+  const startsAtOf = (e: (typeof mockEvents)[string]) => startsAtFor(e, SEEDED_AT)
 
-  function startsAtOf(e: (typeof events)[string]): Date | null {
-    if (e.startsAt) return rebase(new Date(e.startsAt))
-
-    const [hhmm, ampm] = (e.timeLabel ?? '7:00 PM').split(' ')
-    const [h, m] = hhmm.split(':').map(Number)
-    const hour = ampm === 'PM' && h !== 12 ? h + 12 : ampm === 'AM' && h === 12 ? 0 : h
-    const at = (d: Date) => {
-      const x = new Date(d)
-      x.setHours(hour, m || 0, 0, 0)
-      return x
-    }
-
-    const label = e.dayLabel ?? ''
-    if (label === 'Tonight') return at(SEEDED_AT)
-    if (label === 'Tomorrow') return at(new Date(SEEDED_AT.getTime() + 864e5))
-
-    // A weekday name means the next one strictly after today.
-    const want = DAYS.indexOf(label)
-    if (want >= 0) {
-      const d = new Date(SEEDED_AT)
-      do d.setDate(d.getDate() + 1)
-      while (d.getDay() !== want)
-      return at(d)
-    }
-    if (label === 'Next Wed') {
-      const d = new Date(SEEDED_AT)
-      do d.setDate(d.getDate() + 1)
-      while (d.getDay() !== 3)
-      return at(d)
-    }
-    // Past plans carry "Wed 26 Aug"; the year is the world's own.
-    const past = /^\w{3}\s+(\d{1,2})\s+(\w{3})$/.exec(e.dateLabel ?? '')
-    if (past) {
-      const d = new Date(NOW_FROZEN.getFullYear(), MONS.indexOf(past[2]), Number(past[1]))
-      return rebase(at(d.getTime() > NOW_FROZEN.getTime() ? new Date(d.setFullYear(d.getFullYear() - 1)) : d))
-    }
-    return null
-  }
-
-  const rows = Object.values(events)
+  const rows = Object.values(mockEvents)
     .map((e) => ({ e, startsAt: startsAtOf(e) }))
-    .filter((x): x is { e: (typeof events)[string]; startsAt: Date } => x.startsAt !== null)
+    .filter((x): x is { e: (typeof mockEvents)[string]; startsAt: Date } => x.startsAt !== null)
     .map(({ e, startsAt }) => ({
       id: e.id,
       communityId: ownerOf.get(e.id) ?? null,
@@ -322,9 +267,9 @@ async function seed() {
     }))
   await db.insert(schema.events).values(rows)
   const goingOf = new Map(
-    Object.values(events).map((e) => [e.id, e.going ?? 0] as const),
+    Object.values(mockEvents).map((e) => [e.id, e.going ?? 0] as const),
   )
-  const skipped = Object.keys(events).length - rows.length
+  const skipped = Object.keys(mockEvents).length - rows.length
   const loose = rows.filter((r) => r.communityId === null).length
   console.log(`events       ${rows.length}  (${loose} belong to no community${skipped ? `, ${skipped} unplaceable` : ''})`)
 

@@ -1,3 +1,4 @@
+import { MissingEvent } from '../components/MissingEvent'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { events, people, venues } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
@@ -12,7 +13,7 @@ export default function DayOf() {
   const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
-  if (!e) return null
+  if (!e) return <MissingEvent />
   const venue = venues[e.venueId]
   const state = stateFor(e.id)
   const checkedIn = state === 'checked-in' || state === 'attended'
@@ -44,7 +45,7 @@ export default function DayOf() {
         <div className="tile-row">
           <button className="action-tile primary">
             <span className="t">Directions</span>
-            <span className="s">{venue.travel.autoMin} min by auto</span>
+            <span className="s">{venue.areaName}</span>
           </button>
           <button className="action-tile">
             <span className="t">Running late</span>

@@ -1,3 +1,4 @@
+import { MissingEvent } from '../components/MissingEvent'
 import { useNavigate, useParams } from 'react-router-dom'
 import { events, people, seatsLeft, venues } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
@@ -15,7 +16,7 @@ export default function EventDetail() {
   const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
-  if (!e) return null
+  if (!e) return <MissingEvent />
   const venue = venues[e.venueId]
   const state = stateFor(e.id)
   // Deciding needs what/when/where/who; preparing needs roles and icebreakers.

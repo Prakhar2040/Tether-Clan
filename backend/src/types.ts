@@ -8,11 +8,16 @@ export interface Venue {
   id: string
   name: string
   area: string
+  /** Clean locality, e.g. "Koramangala" (area may be a street address). */
+  areaName?: string
   areaId: string
-  lat: number
-  lng: number
+  /** null = the venue has no coordinates: location unknown, not (0,0). */
+  lat: number | null
+  lng: number | null
   entranceNote: string
-  travel: { autoMin: number; autoFare?: number; metro?: string; walkMin?: number }
+  /** km from the viewer; null when either end is unknown. */
+  distanceKm: number | null
+  travel: { autoMin: number | null; autoFare?: number; metro?: string; walkMin?: number }
 }
 
 export interface Community {
