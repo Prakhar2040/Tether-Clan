@@ -7,6 +7,7 @@ import { doorRoutes } from './routes/door'
 import { communityRoutes } from './routes/communities'
 import { postRoutes } from './routes/posts'
 import { leaderboardRoutes } from './routes/leaderboard'
+import { paymentRoutes } from './routes/payments'
 
 /* The server without a socket on it. The local entry point listens on a port;
    the Lambda entry point hands requests to it directly. Both need the same
@@ -30,6 +31,7 @@ export async function buildApp() {
   await app.register(cors, { origin: true })
   await app.register(searchRoutes)
   await app.register(orderRoutes)
+  await app.register(paymentRoutes)
   await app.register(membershipRoutes)
   await app.register(doorRoutes)
   await app.register(communityRoutes)

@@ -10,6 +10,7 @@ import { competitions as mockCompetitions } from '@shared/leaderboard'
 import { me, nightsIn } from '@shared/me'
 import { myMemberships } from '@shared/community.data'
 import { NOW_FROZEN, now } from '../world'
+import { makeRef } from '../lib/ref'
 
 /* Loads the mock world into Postgres.
  *
@@ -121,7 +122,7 @@ async function seed() {
   console.log('clearing…')
   await db.execute(sql`
     truncate table results, competitions, photos, reactions, poll_votes, poll_options, posts,
-                   attendance, orders, memberships, events, series,
+                   attendance, tickets, orders, memberships, events, series,
                    communities, venues, people, media restart identity cascade
   `)
 
@@ -347,7 +348,26 @@ async function seed() {
   }
   const anyone = Object.keys(everyone)
 
+  /* Real-looking refs, but the same ones every time: a seeded generator feeds the same
+     function the live order route uses, so a reseed reproduces the room exactly. */
+  let rngState = 0x7e7e1a2b
+  const rand = (max: number) => {
+    rngState = (rngState + 0x6d2b79f5) >>> 0
+    let t = rngState
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    return Math.floor((((t ^ (t >>> 14)) >>> 0) / 4294967296) * max)
+  }
+  const usedRefs = new Set<string>()
+  const seedRef = () => {
+    let ref = makeRef(rand)
+    while (usedRefs.has(ref)) ref = makeRef(rand)
+    usedRefs.add(ref)
+    return ref
+  }
+
   const orderRows: (typeof schema.orders.$inferInsert)[] = []
+  const ticketRows: (typeof schema.tickets.$inferInsert)[] = []
   for (const r of rows) {
     const going = goingOf.get(r.id) ?? 0
     if (going <= 0) continue
@@ -363,21 +383,24 @@ async function seed() {
       const who = candidates[(start + i * 7) % candidates.length]
       if (seen.has(who)) continue
       seen.add(who)
+      const ref = seedRef()
+      const id = `${r.id}:${who}`
       orderRows.push({
-        id: `${r.id}:${who}`,
+        id,
         eventId: r.id,
         personId: who,
-        // Unique by construction. Hashing the event id and truncating to six
-        // characters collides across events, which the unique index catches
-        // — correctly, but only after a few hundred rows.
-        ref: `TC-${(orderRows.length + 1).toString(36).toUpperCase().padStart(6, '0')}`,
+        ref,
         qty: 1,
         pricePaise: r.pricePaise,
         state: 'paid',
+        paidAt: SEEDED_AT,
+        paymentProvider: 'seed',
       })
+      ticketRows.push({ id: `${id}:1`, orderId: id, eventId: r.id, ref })
     }
   }
   if (orderRows.length > 0) await db.insert(schema.orders).values(orderRows)
+  if (ticketRows.length > 0) await db.insert(schema.tickets).values(ticketRows)
   console.log(`orders       ${orderRows.length}  (the rows \`going\` was standing for)`)
 
   // ---- the channel ----

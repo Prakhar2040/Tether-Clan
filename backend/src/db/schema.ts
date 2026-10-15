@@ -38,7 +38,10 @@ export const eventStatus = pgEnum('event_status', [
   'past',
   'cancelled',
 ])
-export const orderState = pgEnum('order_state', ['held', 'paid', 'refunded', 'cancelled'])
+/* `expired` is a held order nobody paid for in time. It is not `cancelled`, which is
+   something a person chose — keeping them apart is what lets cancellation arrive later
+   without every old abandoned checkout looking like a decision. */
+export const orderState = pgEnum('order_state', ['held', 'paid', 'refunded', 'cancelled', 'expired'])
 export const postKind = pgEnum('post_kind', ['note', 'poll'])
 
 export const attendanceOutcome = pgEnum('attendance_outcome', [
@@ -200,14 +203,53 @@ export const orders = pgTable(
     personId: text('person_id').notNull().references(() => people.id),
     ref: text('ref').notNull(),
     qty: integer('qty').notNull().default(1),
+    /* Per ticket, in paise — always rupees, never another currency. The order's total is
+       `pricePaise * qty`; see lib/money.ts. */
     pricePaise: integer('price_paise').notNull(),
     state: orderState('state').notNull().default('paid'),
+    /* A held order lets go of its seats at this instant. Null once it is paid. */
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+    /* Who took the money and what they call the payment. 'mock' until Razorpay arrives;
+       a real provider fills both in from its webhook, so nothing else changes shape. */
+    paymentProvider: text('payment_provider'),
+    paymentRef: text('payment_ref'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex('orders_ref_idx').on(t.ref),
     index('orders_event_idx').on(t.eventId),
     index('orders_person_idx').on(t.personId),
+    // One live order per person per night. An expired or cancelled one steps aside, so
+    // somebody whose checkout timed out can try again.
+    uniqueIndex('orders_one_live_idx')
+      .on(t.eventId, t.personId)
+      .where(sql`state in ('held', 'paid')`),
+    uniqueIndex('orders_payment_ref_idx')
+      .on(t.paymentProvider, t.paymentRef)
+      .where(sql`payment_ref is not null`),
+  ],
+)
+
+/* One row per seat.
+ *
+ * An order can cover several, and the door scans a ticket, not an order — so each seat
+ * has its own ref, and its own "came in" time. `orders.ref` is simply the first ticket's
+ * ref, kept so there is one short thing to quote. */
+export const tickets = pgTable(
+  'tickets',
+  {
+    id: text('id').primaryKey(),
+    orderId: text('order_id').notNull().references(() => orders.id),
+    eventId: text('event_id').notNull().references(() => events.id),
+    ref: text('ref').notNull(),
+    scannedAt: timestamp('scanned_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('tickets_ref_idx').on(t.ref),
+    index('tickets_order_idx').on(t.orderId),
+    index('tickets_event_idx').on(t.eventId),
   ],
 )
 
