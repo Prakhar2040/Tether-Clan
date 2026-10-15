@@ -13,11 +13,14 @@ export class ApiError extends Error {
   // those emit real code, which `erasableSyntaxOnly` forbids.
   status: number
   path: string
+  // The server's own `{error}` sentence, when it sent one.
+  detail?: string
 
-  constructor(status: number, path: string) {
+  constructor(status: number, path: string, detail?: string) {
     super(`${path} → ${status}`)
     this.status = status
     this.path = path
+    this.detail = detail
   }
 }
 
@@ -34,6 +37,12 @@ export async function apiPost<T>(path: string, body?: unknown, signal?: AbortSig
     body: JSON.stringify(body ?? {}),
     signal,
   })
-  if (!res.ok) throw new ApiError(res.status, path)
+  if (!res.ok) {
+    const detail = await res
+      .json()
+      .then((b: { error?: unknown }) => (typeof b.error === 'string' ? b.error : undefined))
+      .catch(() => undefined)
+    throw new ApiError(res.status, path, detail)
+  }
   return res.json() as Promise<T>
 }

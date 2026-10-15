@@ -13,10 +13,9 @@ type Tab = 'upcoming' | 'past'
 const ORDER: Record<string, number> = { Tonight: 0, Tomorrow: 1, Sat: 2, Sun: 3, 'Next Wed': 4 }
 
 export default function Plans() {
-  const { stateFor, cancel } = useRsvp()
+  const { stateFor } = useRsvp()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('upcoming')
-  const [confirmCancel, setConfirmCancel] = useState<string | null>(null)
   const [skipped, setSkipped] = useState<string[]>([])
   const [rated, setRated] = useState<Record<string, number>>({})
 
@@ -107,9 +106,6 @@ export default function Plans() {
                     ) : (
                       <span />
                     )}
-                    <button className="plan-link danger" onClick={() => setConfirmCancel(e.id)}>
-                      Cancel
-                    </button>
                   </div>
                 </div>
               )
@@ -171,38 +167,6 @@ export default function Plans() {
         </div>
       )}
 
-      {/* Cancelling shows its consequence before it happens, not after. */}
-      {confirmCancel ? (
-        <div className="sheet-backdrop" onClick={() => setConfirmCancel(null)}>
-          <div className="sheet" onClick={(ev) => ev.stopPropagation()}>
-            <span className="sheet-handle" />
-            <span className="section-label">Cancel {events[confirmCancel].title}?</span>
-            <span className="page-sub">
-              It starts {events[confirmCancel].dayLabel.toLowerCase()}. Cancelling within 24 hours
-              counts against your reliability, and frees your place for someone else.
-            </span>
-            <div className="btn-row">
-              <button
-                className="btn btn-ghost"
-                style={{ minHeight: 48 }}
-                onClick={() => setConfirmCancel(null)}
-              >
-                Keep my place
-              </button>
-              <button
-                className="btn btn-cta"
-                style={{ minHeight: 48 }}
-                onClick={() => {
-                  cancel(confirmCancel)
-                  setConfirmCancel(null)
-                }}
-              >
-                Cancel anyway
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }

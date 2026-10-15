@@ -10,11 +10,13 @@ import {
   postsFor,
   upcomingCommunityEvents,
 } from '../data/community'
-import { events, people, priceLabel, venues } from '@shared/mock'
+import { events, people, venues } from '@shared/mock'
 import { fetchBoard, localBoard } from '../api/leaderboard'
 import { fetchPhotos } from '../api/photos'
 import { useRemote } from '../hooks/useRemote'
 import { useRsvp } from '../state/rsvp'
+import { useBuy } from '../components/BuySheet'
+import { rupees } from '../lib/money'
 import { useCommunities } from '../state/communities'
 import { TicketPass } from './Ticket'
 import { dateParts, PastRow, TicketRow } from '../components/tickets'
@@ -190,7 +192,8 @@ function PlanView({
   onBack: () => void
   onPass: (id: string) => void
 }) {
-  const { stateFor, join } = useRsvp()
+  const { stateFor } = useRsvp()
+  const openBuy = useBuy()
   const navigate = useNavigate()
   const state = stateFor(event.id)
   const soldOut = event.going >= event.capacity
@@ -252,8 +255,8 @@ function PlanView({
             Sold out
           </button>
         ) : (
-          <button className="btn btn-confirm" onClick={() => join(event.id)}>
-            {event.price === 0 ? 'Reserve a place · Free' : `Buy · ${priceLabel(event)}`}
+          <button className="btn btn-confirm" onClick={() => openBuy(event.id)}>
+            {event.price === 0 ? 'Reserve a place · Free' : `Buy · ${rupees(event.price * 100)}`}
           </button>
         )}
       </div>

@@ -8,10 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "build:standalone": "vite build --config vite.standalone.config.ts && node ../scripts/inline.mjs dist-standalone ../share/tether-clan-app.html \"Tether Clan\""
+    "build:standalone": "vite build --config vite.standalone.config.ts && node ../scripts/inline.mjs dist-standalone ../share/tether-clan-app.html \"Tether Clan\"",
+    "test": "vitest run"
   },
   "dependencies": {
     "mapbox-gl": "^3.30.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3"
@@ -21,8 +23,10 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
+    "jsqr": "^1.4.0",
     "oxlint": "^1.79.0",
     "typescript": "~6.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "^5.0.4"
   }
 }
