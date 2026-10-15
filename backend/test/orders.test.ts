@@ -91,6 +91,18 @@ describe('buying', () => {
     expect((await pay(orderId, personIds[0])).json().already).toBe(true)
   })
 
+  it('accepts a pay request with no body and a form content type, not a 415', async () => {
+    await makeEvent(`${T}-nobody`, 5, 10000)
+    const { orderId } = (await buy(`${T}-nobody`, personIds[3])).json()
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/orders/${orderId}/pay`,
+      headers: { 'x-user-id': personIds[3], 'content-type': 'application/x-www-form-urlencoded' },
+    })
+    expect(res.statusCode).toBe(200)
+    expect(res.json().state).toBe('paid')
+  })
+
   it('hands back the existing order instead of making a second one', async () => {
     const res = await buy(`${T}-hold`, personIds[0], { qty: 1 })
     expect(res.statusCode).toBe(200)

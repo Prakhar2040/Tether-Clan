@@ -51,6 +51,14 @@ export async function paymentRoutes(app: FastifyInstance) {
     }
   })
 
+  /* The pay button has nothing to say in its body, and a client that sends none (some HTTP
+     libraries label an empty POST as a form) must not be answered with a 415. Any other
+     content type is accepted and read as "no JSON": the webhook below insists on JSON
+     itself and will reject it with a 400. */
+  app.addContentTypeParser('*', { parseAs: 'string' }, (_req, body, done) => {
+    done(null, { raw: String(body), json: {} })
+  })
+
   /** The mock payment: pays the viewer's own order. For the placeholder checkout only. */
   app.post<{ Params: { id: string } }>('/api/orders/:id/pay', async (req, reply) => {
     if (!mockEnabled()) return reply.code(404).send({ error: 'Not found' })
