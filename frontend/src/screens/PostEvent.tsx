@@ -1,3 +1,4 @@
+import { MissingEvent } from '../components/MissingEvent'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { events, people } from '@shared/mock'
@@ -20,7 +21,7 @@ export default function PostEvent() {
   const [skipped, setSkipped] = useState(false)
 
   const e = id ? events[id] : undefined
-  if (!e) return null
+  if (!e) return <MissingEvent />
 
   return (
     <div className="screen no-bar">

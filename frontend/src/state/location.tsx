@@ -4,6 +4,12 @@ import type { ReactNode } from 'react'
 // One source of truth for "where the user is", so distances on event cards
 // and the map agree. The last fix is remembered so it survives navigation.
 
+/* THE SWITCH. While true the viewer's position is simulated: it is whatever area
+ * the LocationPicker last chose (default Indiranagar) and nothing ever asks the
+ * browser for permission. Flip it to false to use the device's real position -
+ * the server needs no change, it only ever receives a lat and a lng. */
+export const SIMULATED_LOCATION = true
+
 export const FALLBACK = { lat: 12.9719, lng: 77.6412, label: 'Indiranagar' }
 export type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'blocked' | 'unsupported'
 
@@ -49,8 +55,14 @@ export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: numb
   return 2 * R * Math.asin(Math.sqrt(h))
 }
 
+function simulatedStart(): { place: Place; real: boolean } {
+  const saved = load()
+  return saved.real ? { place: FALLBACK, real: false } : saved
+}
+
 export function LocationProvider({ children }: { children: ReactNode }) {
-  const initial = load()
+  // A remembered device fix is ignored while simulating, so a stale 'Your location' cannot linger.
+  const initial = SIMULATED_LOCATION ? simulatedStart() : load()
   const [place, setPlaceState] = useState<Place>(initial.place)
   const [isReal, setIsReal] = useState(initial.real)
   const [status, setStatus] = useState<LocStatus>(initial.real ? 'granted' : 'default')
@@ -75,6 +87,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   // Accepts a recent cached fix, and keeps listening for the first real one.
   const request = useCallback((): Promise<Place | null> => {
+    if (SIMULATED_LOCATION) return Promise.resolve(null) // never touch navigator.geolocation
     if (!('geolocation' in navigator)) {
       setStatus('unsupported')
       return Promise.resolve(null)

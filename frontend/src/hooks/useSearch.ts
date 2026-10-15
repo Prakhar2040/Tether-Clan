@@ -12,12 +12,14 @@ interface Options {
   free?: boolean
   beginner?: boolean
   tags?: string[]
+  lat?: number
+  lng?: number
   enabled?: boolean
   debounceMs?: number
 }
 
 export function useSearch(opts: Options) {
-  const { q, when, free, beginner, tags, enabled = true, debounceMs = 200 } = opts
+  const { q, when, free, beginner, tags, lat, lng, enabled = true, debounceMs = 200 } = opts
   const [result, setResult] = useState<SearchResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [offline, setOffline] = useState(false)
@@ -33,7 +35,7 @@ export function useSearch(opts: Options) {
       abortRef.current = controller
       setLoading(true)
       try {
-        const r = await searchEvents({ q, when, free, beginner, tags }, controller.signal)
+        const r = await searchEvents({ q, when, free, beginner, tags, lat, lng }, controller.signal)
         setResult(r)
         setOffline(false)
       } catch (err) {
@@ -46,7 +48,7 @@ export function useSearch(opts: Options) {
     }, debounceMs)
 
     return () => clearTimeout(handle)
-  }, [q, when, free, beginner, tagKey, enabled, debounceMs])
+  }, [q, when, free, beginner, tagKey, lat, lng, enabled, debounceMs])
 
   useEffect(() => () => abortRef.current?.abort(), [])
 
