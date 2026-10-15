@@ -83,6 +83,9 @@ Resources:
           DB_NAME: !Ref DbName
           LOG_LEVEL: info
           ORIGIN_SECRET: !Ref OriginSecret
+          # The placeholder "Click here to pay" checkout. Change to anything else once a real
+          # provider is wired, and the mock endpoint switches itself off.
+          PAYMENTS_MODE: mock
 
   ApiUrl:
     Type: AWS::Lambda::Url

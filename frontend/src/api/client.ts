@@ -6,7 +6,15 @@
  * anyway, and `useRemote` keeps that on screen until the real thing arrives.
  */
 
-export const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8085'
+/* Where the API lives.
+ *
+ * Deployed, the site and the API share one address (CloudFront forwards /api/* to the
+ * server), so the base is empty and a call is just `/api/...`. While developing, the server
+ * is on its own port. Decided from the build mode rather than a variable that has to be set:
+ * an unset variable used to fall through to localhost in production, and because every call
+ * degrades quietly to the local copy, nothing looked wrong. VITE_API_URL still wins when set. */
+export const API_BASE: string =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.PROD ? '' : 'http://localhost:8085')
 
 export class ApiError extends Error {
   // Declared and assigned rather than as constructor parameter properties:

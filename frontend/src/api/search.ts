@@ -1,9 +1,8 @@
 import type { TcEvent } from '@shared/types'
+import { API_BASE as BASE } from './client'
 
 // Client for the search engine. Everything here is written against the
 // permanent API contract, so swapping the engine's internals changes nothing.
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8085'
 
 export type SuggestionType = 'activity' | 'area' | 'venue' | 'community' | 'event'
 
