@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { events, people } from '@shared/mock'
-import { useRsvp } from '../state/rsvp'
 import { Avatar } from '../components/shared'
 import { BackIcon, CheckIcon, PlusIcon, ShareIcon, StarIcon } from '../components/icons'
 
@@ -13,7 +12,6 @@ const connectable = [
 export default function PostEvent() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { finish } = useRsvp()
   const [rating, setRating] = useState(4)
   const [connected, setConnected] = useState<Record<string, boolean>>({})
   const [rebooked, setRebooked] = useState(false)
@@ -105,7 +103,6 @@ export default function PostEvent() {
           <button
             className="btn btn-cta"
             onClick={() => {
-              finish(e.id)
               setRebooked(true)
             }}
           >
@@ -117,7 +114,6 @@ export default function PostEvent() {
             Or{' '}
             <button
               onClick={() => {
-                finish(e.id)
                 setSkipped(true)
               }}
             >

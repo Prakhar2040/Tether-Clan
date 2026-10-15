@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues, worthTheRideIds } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
+import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
@@ -30,7 +31,8 @@ function beginnerOk(e: TcEvent): boolean {
 // Event-first card: the event leads, and an Instagram-style "who's going"
 // row sits below it — tap it to open the attendee sheet.
 function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }) {
-  const { stateFor, join, markInterested } = useRsvp()
+  const { stateFor, markInterested } = useRsvp()
+  const openBuy = useBuy()
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
@@ -72,7 +74,7 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
             Full
           </button>
         ) : (
-          <button className="btn btn-primary" onClick={() => join(e.id)}>
+          <button className="btn btn-primary" onClick={() => openBuy(e.id)}>
             Join them
           </button>
         )}

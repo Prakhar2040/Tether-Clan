@@ -1,5 +1,7 @@
 import { useRsvp } from '../state/rsvp'
-import { priceLabel, venues } from '@shared/mock'
+import { useBuy } from './BuySheet'
+import { rupees } from '../lib/money'
+import { venues } from '@shared/mock'
 import { CheckIcon, ChevronIcon } from './icons'
 import type { TcEvent } from '@shared/types'
 
@@ -45,7 +47,8 @@ export function TicketRow({
   onOpen?: (id: string) => void
   onPass: (id: string) => void
 }) {
-  const { stateFor, join } = useRsvp()
+  const { stateFor } = useRsvp()
+  const openBuy = useBuy()
   const state = stateFor(event.id)
   const soldOut = event.going >= event.capacity
   const held = state === 'going' || state === 'checked-in'
@@ -74,8 +77,8 @@ export function TicketRow({
       {held ? null : soldOut ? (
         <span className="sold-tag">Sold out</span>
       ) : (
-        <button className="btn btn-primary ticket-buy" onClick={() => join(event.id)}>
-          {event.price === 0 ? 'Reserve' : `Buy · ${priceLabel(event)}`}
+        <button className="btn btn-primary ticket-buy" onClick={() => openBuy(event.id)}>
+          {event.price === 0 ? 'Reserve' : `Buy · ${rupees(event.price * 100)}`}
         </button>
       )}
     </div>

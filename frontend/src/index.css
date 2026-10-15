@@ -2024,3 +2024,43 @@ body.splashing .brand.big { visibility: hidden; }
 .room-switch-b.on { background: var(--card); color: var(--blue); font-weight: 800; box-shadow: 0 1px 3px rgba(92,60,12,0.14); }
 
 
+
+/* Pass: one QR per ticket, swiped */
+.pass-tickets {
+  display: flex; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.pass-tickets::-webkit-scrollbar { display: none; }
+.pass-ticket {
+  flex: 0 0 100%; scroll-snap-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 9px;
+}
+.qr { border-radius: 8px; }
+
+/* Buy sheet */
+.buy-sheet { gap: 14px; }
+.buy-qty { display: flex; align-items: center; justify-content: space-between; }
+.buy-stepper { display: flex; align-items: center; gap: 14px; }
+.buy-stepper button {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--blue);
+  background: var(--card); color: var(--blue); font-size: 22px; font-weight: 800; cursor: pointer;
+}
+.buy-stepper button:disabled { opacity: 0.35; cursor: default; }
+.buy-n { min-width: 22px; text-align: center; font-size: 22px; font-weight: 800; color: var(--ink); }
+.buy-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; color: var(--muted-2); }
+.buy-total b { font-size: 26px; color: var(--ink); }
+.buy-hold {
+  font-family: 'Archivo Narrow', Archivo, sans-serif; font-size: 13px; font-weight: 700; color: var(--orange);
+}
+.buy-error { font-size: 13.5px; font-weight: 600; color: #B3261E; }
+.buy-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0 6px; text-align: center; }
+.buy-big { font-size: 19px; font-weight: 800; color: var(--blue); }
+.buy-tick {
+  width: 52px; height: 52px; border-radius: 50%; background: #2E7D4F; color: #fff;
+  display: grid; place-items: center; font-size: 28px; font-weight: 800;
+}
+.buy-spin {
+  width: 40px; height: 40px; border-radius: 50%; border: 4px solid var(--line);
+  border-top-color: var(--orange); animation: buy-rot 0.8s linear infinite;
+}
+@keyframes buy-rot { to { transform: rotate(360deg); } }

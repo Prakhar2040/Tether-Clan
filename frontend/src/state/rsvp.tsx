@@ -1,77 +1,77 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { RsvpState } from '@shared/types'
-import { events, seatsLeft } from '@shared/mock'
+import { events } from '@shared/mock'
+import { fetchOrders } from '../api/orders'
+import type { OrderView } from '../api/orders'
+import { orderToState, pickOrder } from './rsvpState'
 
-// The RSVP lifecycle as an explicit state machine. Illegal transitions are
-// ignored rather than thrown — UI affordances should already prevent them.
+/* What you hold, from the server.
+ *
+ * Orders are the truth for going / cancelled (and, via scanned tickets, for
+ * checked-in / attended / no-showed). 'interested' is a local-only bookmark
+ * for now. Buying lives in BuySheet; there is deliberately no cancel here.
+ * If the server is unreachable `orders` is simply empty: browsing works,
+ * and nothing pretends you hold a ticket.
+ */
 
 interface RsvpContextValue {
   stateFor: (eventId: string) => RsvpState
+  orderFor: (eventId: string) => OrderView | undefined
+  orders: OrderView[]
+  offline: boolean
   markInterested: (eventId: string) => void
-  join: (eventId: string) => void // full events simply cannot be joined
-  cancel: (eventId: string) => void
-  checkIn: (eventId: string) => void
-  finish: (eventId: string) => void // checked-in -> attended
+  applyOrder: (order: OrderView) => void
+  refresh: () => void
 }
 
 const RsvpContext = createContext<RsvpContextValue | null>(null)
 
-const allowed: Record<RsvpState, RsvpState[]> = {
-  none: ['interested', 'going'],
-  interested: ['going', 'none'],
-  going: ['checked-in', 'cancelled', 'no-showed'],
-  'checked-in': ['attended'],
-  attended: [],
-  'no-showed': [],
-  cancelled: ['interested', 'going'],
-}
-
 export function RsvpProvider({ children }: { children: ReactNode }) {
-  // Seeded so the pre-event/day-of/post-event screens have a story to tell.
-  const [states, setStates] = useState<Record<string, RsvpState>>({
-    // Upcoming
-    'catan-night': 'going',
-    'badminton-doubles': 'going',
-    'sunrise-5k-thu': 'going',
-    // Past — gives My Plans a history to show
-    'catan-sep-2': 'attended',
-    'sketchwalk-aug-30': 'attended',
-    'catan-aug-26': 'no-showed',
-    'pottery-aug-23': 'cancelled',
-    'run-sep-6': 'attended',
-    'run-aug-30': 'no-showed',
-  })
+  const [orders, setOrders] = useState<OrderView[]>([])
+  const [offline, setOffline] = useState(false)
+  const [interested, setInterested] = useState<Set<string>>(new Set())
+  const [tick, setTick] = useState(0)
 
-  const stateFor = useCallback(
-    (eventId: string) => states[eventId] ?? 'none',
-    [states],
-  )
+  useEffect(() => {
+    const ac = new AbortController()
+    fetchOrders(ac.signal)
+      .then((o) => {
+        setOrders(o)
+        setOffline(false)
+      })
+      .catch((err) => {
+        if ((err as Error).name !== 'AbortError') setOffline(true)
+      })
+    return () => ac.abort()
+  }, [tick])
 
-  const transition = useCallback((eventId: string, to: RsvpState) => {
-    setStates((prev) => {
-      const from = prev[eventId] ?? 'none'
-      if (from === to || !allowed[from].includes(to)) return prev
-      return { ...prev, [eventId]: to }
-    })
+  const refresh = useCallback(() => setTick((t) => t + 1), [])
+  const applyOrder = useCallback((o: OrderView) => {
+    setOrders((prev) => [o, ...prev.filter((x) => x.orderId !== o.orderId)])
   }, [])
+  const markInterested = useCallback((id: string) => setInterested((s) => new Set(s).add(id)), [])
 
-  const value = useMemo<RsvpContextValue>(
-    () => ({
-      stateFor,
-      markInterested: (id) => transition(id, 'interested'),
-      join: (id) => {
-        // No waitlist: a full plan is simply closed.
-        const e = events[id]
-        if (e && seatsLeft(e) === 0) return
-        transition(id, 'going')
+  const value = useMemo<RsvpContextValue>(() => {
+    const orderFor = (id: string) => pickOrder(orders, id)
+    return {
+      orders,
+      offline,
+      orderFor,
+      stateFor: (id) => {
+        const o = orderFor(id)
+        if (o) {
+          const past = (events[id]?.dayLabel ?? o.event.dayLabel) === 'Past'
+          const s = orderToState(o, past)
+          if (s !== 'none') return s
+        }
+        return interested.has(id) ? 'interested' : 'none'
       },
-      cancel: (id) => transition(id, 'cancelled'),
-      checkIn: (id) => transition(id, 'checked-in'),
-      finish: (id) => transition(id, 'attended'),
-    }),
-    [stateFor, transition],
-  )
+      markInterested,
+      applyOrder,
+      refresh,
+    }
+  }, [orders, offline, interested, markInterested, applyOrder, refresh])
 
   return <RsvpContext.Provider value={value}>{children}</RsvpContext.Provider>
 }

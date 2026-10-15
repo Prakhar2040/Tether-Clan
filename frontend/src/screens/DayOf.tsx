@@ -8,7 +8,7 @@ import { BackIcon, ChatIcon, CheckIcon, ShieldIcon } from '../components/icons'
 export default function DayOf() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { stateFor, checkIn } = useRsvp()
+  const { stateFor } = useRsvp()
   const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
@@ -108,9 +108,9 @@ export default function DayOf() {
             </Link>
           </div>
         ) : (
-          <button className="btn btn-cta" style={{ width: '100%' }} onClick={() => checkIn(e.id)}>
-            <CheckIcon size={17} color="#fff" strokeWidth={2.6} /> Check in · I'm here
-          </button>
+          <div className="footer-note" style={{ textAlign: 'center' }}>
+            You're checked in when the door scans your ticket
+          </div>
         )}
       </div>
     </div>
