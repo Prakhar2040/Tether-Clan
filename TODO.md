@@ -1,6 +1,6 @@
 # TODO — before bots
 
-Decisions come from the owner, table by table. Nothing here has been started.
+Decisions come from the owner, table by table. The first two tables are BUILT and merged (branch `tickets-payments`, 15 Oct 2026); what is still open is marked `[ ]`.
 Written 15 Oct 2026 from the first table (payments, tickets, QR, door). The location/maps/events
 table and the bot-readiness table are still waiting on the owner's decisions.
 
@@ -14,42 +14,42 @@ first or are agreed up front, since several items touch `backend/src/routes/orde
 
 ### Orders and payments (backend)
 
-- [ ] **Fix the order API.** `POST /api/events/:id/orders` must stop trusting the client.
+- [x] **Fix the order API.** `POST /api/events/:id/orders` must stop trusting the client.
       Today it accepts `state` from the request body (`orders.ts:23`), so anyone can mark
       their own order `paid`. The server decides the state; the client only asks to buy.
-- [ ] **Buy more than one ticket in one order.** Today it is one ticket per person
+- [x] **Buy more than one ticket in one order.** Today it is one ticket per person
       (the route returns `already: true`). Add a quantity chosen at purchase time, with a
       sensible per-order cap, checked against capacity as a whole (not one at a time).
-- [ ] **Held orders and expiry.** A new order starts `held`, goes to `paid` when payment
+- [x] **Held orders and expiry.** A new order starts `held`, goes to `paid` when payment
       completes, and a held order that is not paid in time (`expires_at`) lets go of its
       seats. Needs a sweep (or expire-on-read) so held orders cannot block capacity forever.
-- [ ] **Payment reference, `paid_at` and a webhook route.** Add provider payment id,
+- [x] **Payment reference, `paid_at` and a webhook route.** Add provider payment id,
       `paid_at`, and a webhook endpoint now, even though the real provider comes later, so
       Razorpay slots in without another schema change.
-- [ ] **Overselling.** The capacity check is not locked, so two simultaneous buyers can both
+- [x] **Overselling.** The capacity check is not locked, so two simultaneous buyers can both
       take the last seat. Lock the event row (or take an advisory lock) inside the
       transaction, and count seats from `paid` plus unexpired `held`.
-- [ ] **Ticket refs.** Random, 8 characters, cryptographically random (not `Math.random`),
+- [x] **Ticket refs.** Random, 8 characters, cryptographically random (not `Math.random`),
       retry on a unique-index collision, and the seeder must use the same generator
       (it currently writes sequential refs). A multi-ticket order needs one ref per ticket.
-- [ ] **Price in rupees, always.** INR only; no currency column. Keep storing paise
+- [x] **Price in rupees, always.** INR only; no currency column. Keep storing paise
       (`price_paise`) and show rupees in the UI. Make INR explicit in one place rather than
       leaving it implied.
 
 ### Pay flow (frontend), mocked for now
 
-- [ ] Buy screen with a **quantity** choice, then a **"Click here to pay"** button.
-- [ ] Pressing it shows a short "processing" state of about 2 seconds, then
+- [x] Buy screen with a **quantity** choice, then a **"Click here to pay"** button.
+- [x] Pressing it shows a short "processing" state of about 2 seconds, then
       **"Payment done"**, then moves on to the next step (the pass / confirmation).
-- [ ] This runs through the real order API (create held order, then confirm paid) with a
+- [x] This runs through the real order API (create held order, then confirm paid) with a
       **mock payment step**, so replacing it with Razorpay later changes only that one step.
-- [ ] Wire the frontend off `state/rsvp.tsx`'s fake state machine to `GET /api/orders` and
+- [x] Wire the frontend off `state/rsvp.tsx`'s fake state machine to `GET /api/orders` and
       the order API. *(Assumed: needed for the pay flow to be real. Confirm with the owner.)*
       Beware the trap in HANDOVER section B: one client `RsvpState` enum spans two tables.
 
 ### QR
 
-- [ ] **Real QR on the pass.** `Ticket.tsx:41` is drawn, not encoded, and cannot be
+- [x] **Real QR on the pass.** `Ticket.tsx:41` is drawn, not encoded, and cannot be
       scanned. Add a QR library and encode the server's ticket ref. The client encodes the
       ref; it does not fetch an image. One QR per ticket in a multi-ticket order.
 
@@ -70,13 +70,13 @@ first or are agreed up front, since several items touch `backend/src/routes/orde
 
 ## Door (decided 15 Oct, second round)
 
-- [ ] **Scan by ticket ref, now.** The door takes a typed QR ref number; entering it marks
+- [x] **Scan by ticket ref, now.** The door takes a typed QR ref number; entering it marks
       that ticket **scanned** and shows it. This replaces the current scan that takes a
       `personId` (which let anyone scan anyone).
-- [ ] A ref already scanned is refused with "already scanned" (never counted twice).
-- [ ] Wire the host door screen (`host/src/state/door.tsx`, currently `holdersFor` mock
+- [x] A ref already scanned is refused with "already scanned" (never counted twice).
+- [x] Wire the host door screen (`host/src/state/door.tsx`, currently `holdersFor` mock
       from a hash) to the real endpoints, so the typed ref hits the server.
-- [ ] Per-ticket state: with several tickets per order, each ticket has its own ref and its
+- [x] Per-ticket state: with several tickets per order, each ticket has its own ref and its
       own scanned state. Proposed: a `tickets` table (order, ref, scanned_at). The person's
       attendance for the night is recorded on their first scan; membership counters must not
       double count (see HANDOVER: the door works out what changed before it adds anything).
@@ -85,17 +85,17 @@ first or are agreed up front, since several items touch `backend/src/routes/orde
 
 ## Location, events and the rest (decided 15 Oct, second round)
 
-- [ ] **Simulated viewer position, for now.** The client sends a latitude and longitude with
+- [x] **Simulated viewer position, for now.** The client sends a latitude and longitude with
       search, picked from a simulated source (a chosen Bengaluru area); the server uses it
       instead of the fixed Indiranagar `DEFAULT_LOCATION`. Real browser geolocation replaces
       the simulated source later, with no change to the server.
-- [ ] **Venue coordinates.** Keep them in the schema and seed, and treat a missing one as
+- [x] **Venue coordinates.** Keep them in the schema and seed, and treat a missing one as
       "unknown", not 0,0 (today it falls back to 0 and gives a huge distance).
-- [ ] **Event list from the server.** *Note:* HANDOVER section A already decided that lists
+- [x] **Event list from the server.** *Note:* HANDOVER section A already decided that lists
       reuse `/api/search` instead of a new listing endpoint (search already does the day
       labels, on-sale status and distances), so "event list" means pointing Tonight and the
       list screens at `/api/search`, not adding a new route.
-- [ ] Open point: dates. See "Questions" below.
+- [x] Open point: dates. See "Questions" below.
 
 ### Fine as they are for now
 
