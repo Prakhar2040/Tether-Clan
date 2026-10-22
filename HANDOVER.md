@@ -45,6 +45,9 @@ These are decisions, not accidents. Do not "fix" them.
 | 3 — photos | done |
 | 4 — leaderboard | done (both apps) |
 | 5 — host roster | done |
+| 6 — events | done — lists come from `/api/search` |
+| 7 — orders, payments, the pass | done — mock pay flow, real QR |
+| 8 — the door | partly — scan by typed ref only (see C) |
 
 Endpoints now live:
 
@@ -58,6 +61,8 @@ POST /api/communities/:id/join     POST /api/communities/:id/leave
 GET  /api/memberships              GET /api/me/results
 POST /api/events/:id/orders        GET /api/orders
 POST /api/events/:id/attendance    GET /api/events/:id/door
+POST /api/events/:id/scan          POST /api/orders/:id/pay
+POST /api/webhooks/payments
 POST /api/posts/:id/reactions/:emoji
 POST /api/posts/:id/vote/:optionId
 ```
@@ -75,83 +80,117 @@ The user has confirmed these are acceptable as they are:
 - The host console's communities, events, photos and posts (it reads `@app/data/community`).
 - `host/src/lib/churn.ts`, which invents departures. `memberships.leftAt` could answer
   for real.
-- `host/src/state/door.tsx` — `holdersFor` invents ticket holders from a hash. This one
-  goes away with the door work below.
+- `host/src/state/door.tsx` still carries `holdersFor`, which invented ticket holders
+  from a hash. The door now reads real orders, so this is dead weight to delete.
 
 ---
 
 ## What is left
 
-### A. Events — not started
+Sections A–E were outstanding at the last handover and are now largely built and
+deployed, on the `tickets-payments` branch, merged here. What survives below is what is
+genuinely still open — including three places where the implementation stopped short of
+what was decided.
 
-- [ ] `GET /api/events/:id` for the detail screen.
-- [ ] Point `EventDetail`, `Tonight`, `MapScreen`, `DayOf`, `PostEvent` at the server.
+### A. Events — done
 
-**Decided:** the *lists* reuse `/api/search` rather than a new listing endpoint. Search
-already computes travel minutes from the viewer's position, the day labels and the
-on-sale/sold-out status; a parallel listing would be a second copy of all of it, free to
-drift. Only the single-event fetch is new.
+Lists are server-driven: `Tonight`, `MapScreen` and `DayOf` read `result.hydrated` from
+`/api/search` when online and fall back to the mock when not.
 
-### B. Tickets — not started
+**There is no `GET /api/events/:id`.** The detail screen works off what is already
+loaded and renders `components/MissingEvent.tsx` when an event is not among it. That is
+fine for a list-driven app but it means **a deep link to an event the client has not
+already fetched shows "missing" rather than the event.** A shared ticket link is exactly
+that case. Worth closing.
 
-- [ ] `GET /api/orders` feeds `Plans` and the pass.
-- [ ] The join button calls `POST /api/events/:id/orders` (the transactional capacity
-      check already exists there).
-- [ ] A `saved` table — person, event, when — for the "interested" bookmark.
-- [ ] Ticket refs: random, 8 chars, **including the seeder**.
+### B. Orders and payments — done, except the bookmark
 
-**Decided:** no payment yet. `POST /orders` writes `paid` directly; the `held` path waits
-for a provider.
+`POST /api/orders/:id/pay` (mock mode) and `POST /api/webhooks/payments` both end in
+`markPaid`, which is idempotent and handles an order that expired mid-payment. Swapping
+in a real provider means writing the checkout call and mapping the webhook body —
+nothing else moves. `PAYMENTS_MODE=mock` is the default; set it to anything else and the
+mock endpoint 404s as if it never existed.
 
-**Decided:** "interested" is a bookmark, not an RSVP — it shows on Tonight and the event
-page and `Plans` deliberately excludes it. It goes to the server so it follows you
-between devices, and so there is some signal about demand that never converted.
+Refs are better than specified: crypto randomness, 8 characters from a 31-character
+alphabet with `0/O` and `1/I/L` removed, collision-checked before insert, and a
+forgiving `normaliseRef` for staff typing them by hand (`backend/src/lib/ref.ts`).
 
-**Trap:** the client's `RsvpState` is one enum that will span two tables. `going` is a
-live order; `checked-in` / `attended` / `no-showed` are attendance rows; `cancelled` is a
-cancelled order. The translation layer in `state/rsvp.tsx` is where the bugs will be.
+- [ ] **The `saved` table was never built.** "interested" is still a local-only
+      bookmark — and it is `useState`, so it does not survive a page reload, let alone a
+      new device. We decided it goes to the server so it follows the person and so there
+      is some signal about demand that never converted. Still true, still undone.
 
-### C. The pass and the door — not started
+**Trap, now real:** the client's `RsvpState` spans two tables. `going` is a live order;
+`checked-in` / `attended` / `no-showed` are attendance rows; `cancelled` is a cancelled
+order. `state/rsvp.tsx` and `state/rsvpState.ts` hold that translation.
 
-- [ ] Real QR encoding on the pass. `Ticket.tsx:41` is currently drawn, not encoded, and
-      says so. The client encodes the server's ref; it does not fetch an image.
-- [ ] Camera on the door: `BarcodeDetector` is native in Chrome/Android. **iOS Safari
-      does not support it** — needs a wasm fallback.
-- [ ] Typed-ref fallback for a cracked screen or a dead phone.
-- [ ] The door downloads the night's holder list on open, matches scans locally, and
-      posts them up as they happen or in a batch when signal returns.
+### C. The door — scan works, the hard parts do not
 
-**Decided:** a fixed single-use ref, not a rotating signed token. The reasoning: the door
-must work in a basement with no signal, which means the door holds the authoritative
-list, which means the code does not need to be signed. The server refuses a second scan,
-so a shared screenshot locks the real holder out rather than letting two people in. For a
-community club that is the right trade.
+Scanning by ticket ref is done and host-only (`POST /api/events/:id/scan`), and the
+pass carries a real encoded QR (`frontend/src/components/Qr.tsx`, with a test).
 
-**Note:** 386 seeded orders already have real refs, so the door can be built before the
-purchase flow exists. The complete loop (buy → pass → scan) needs B first.
+Two decisions were not carried out, and together they are the difference between a demo
+and something usable at a real door:
 
-### D. Before anything deploys — deferred by the user
+- [ ] **No camera.** Entry is by typed ref only. `BarcodeDetector` is native in
+      Chrome/Android; **iOS Safari does not support it** and needs a wasm fallback. Right
+      now a host reads the code off the screen and types it, which is the fallback, not
+      the path.
+- [ ] **No offline list.** The door calls the API per scan. The decision was that it
+      downloads the night's holders when the screen opens, matches locally, and posts
+      scans up as they happen or in a batch when signal returns. A basement with no bars
+      currently means nobody gets in — and that was the reasoning behind choosing a
+      fixed ref over a rotating token in the first place, so the ref design is already
+      paying for a capability that is not there yet.
 
-- [ ] No build. `npm start` runs `tsx` on the source; there is no `build` script, no `dist/`.
-- [ ] No Lambda handler. Fastify needs an adapter for a Function URL. `pg.Pool` is
-      already Lambda-aware (`src/db/client.ts`).
-- [ ] No payment provider, no payment-reference column, no held-order expiry.
-- [ ] Secrets: `DATABASE_URL` lives in `backend/.env`.
-- [ ] Auth is the `x-user-id` header, defaulting to the demo viewer `you`. Deliberate,
-      and the right shape for bots; not for real users.
+**Decided, and still right:** a fixed single-use ref, not a rotating signed token. The
+server refuses a second scan, so a shared screenshot locks the real holder out rather
+than letting two people in.
 
-### E. Deploy — nothing provisioned
+### D. Production readiness — mostly closed
 
-Aurora Serverless v2 (PostgreSQL, min 0 ACU) + Lambda Function URL + S3/CloudFront, all
-in `ap-southeast-2`. Verified empty: 0 buckets, 0 functions, 0 clusters, $100 credits
-intact.
+The build and the Lambda handler exist; the API runs on Lambda behind a Function URL.
+The database needs no password — the API signs in with a short-lived IAM token.
+
+- [ ] **Auth is still the `x-user-id` header**, defaulting to the demo viewer `you`.
+      Both deployed sites sit behind one shared HTTP basic password, which is a gate for
+      showing people, not authentication. Anyone through that gate can be anyone.
+- [ ] No real payment provider yet (see B).
+
+### E. Deployed
+
+Stack `tetherclan` in `ap-southeast-2`, defined in `infra/template.yaml`:
+
+| | |
+|---|---|
+| member app | `https://d3aw7wbixww4u2.cloudfront.net` |
+| host console | `https://d11c4xl9yedwf8.cloudfront.net` |
+| API | Lambda + Function URL, reached at `/api/*` on both sites |
+| sites | one S3 bucket, member app at the root, host console under `host/` |
+| database | Aurora express cluster, **outside the stack** |
+
+Both sites and the API sit behind one shared basic-auth password, enforced by CloudFront
+Functions (`SpaRewrite` for the sites, `ApiGate` for `/api`), so nothing reaches S3 or
+the Lambda without it. `SiteAuthB64` and `OriginSecret` are `NoEcho` parameters with no
+defaults — no credential is committed. `OriginSecret` is sent by CloudFront as a header
+so the Lambda's public URL refuses anyone who skips the CDN.
+
+The database is deliberately not in the template: on the free plan Aurora can only be
+created as an express cluster, which CloudFormation cannot make. The template's header
+comment has the `aws rds create-db-cluster` line and the teardown command.
+
+- [ ] **`infra/README.md` does not exist**, though `template.yaml` tells the reader to
+      see it. The deploy procedure — building and zipping the Lambda, uploading it to
+      the code bucket, syncing the two apps to `/` and `host/`, invalidating the
+      distributions — **is written down nowhere.** Whoever deployed it did so from
+      knowledge that is not in this repo. This is the biggest single gap in the handover.
 
 Aurora DSQL was considered and rejected — it requires removing foreign keys and
 sequences, and this schema depends on both, plus a partial unique index.
 
-### F. Bots — deferred by the user
+### F. Bots — still deferred
 
-They will supply an API key. Needs the AWS endpoint first.
+They will supply an API key. The endpoint now exists.
 
 ---
 

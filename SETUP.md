@@ -86,12 +86,12 @@ attendance left empty — it comes from running the door.
 ```sh
 cd backend
 npx tsc --noEmit
-npx vitest run                                    # 37 passing
+npx vitest run                                    # 75 passing
 npm start                                         # :8085
 curl -s localhost:8085/api/health
 
 cd ../frontend
-npx tsc -p tsconfig.app.json --noEmit && npx vite build && npm run dev
+npx tsc -p tsconfig.app.json --noEmit && npx vitest run && npx vite build && npm run dev
 
 cd ../host
 npx tsc -p tsconfig.app.json --noEmit && npx vite build && npm run dev
@@ -101,10 +101,18 @@ Both apps run with the server down — every screen keeps its local copy underne
 reports `offline` rather than showing a spinner. So an app that renders is not by itself
 proof the backend is up; check `/api/health`.
 
-## 6. AWS — only when deploying
+## 6. AWS
 
-Nothing is provisioned yet. **Do not copy credentials from another machine**; there are
-no long-lived access keys to copy.
+The stack is already deployed — `tetherclan` in `ap-southeast-2`, defined in
+`infra/template.yaml`. Both sites sit behind one shared basic-auth password; see
+`HANDOVER.md` section E for the addresses and how the gate works.
+
+Note that the *deploy procedure itself is not written down* — `template.yaml` refers to
+an `infra/README.md` that does not exist. Find out how the apps and the Lambda zip get
+uploaded before attempting a redeploy.
+
+**Do not copy credentials from another machine**; there are no long-lived access keys to
+copy.
 
 ```sh
 aws login                    # opens a browser; --remote gives a URL and code instead
