@@ -11,6 +11,19 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url))
 
 export default defineConfig({
   plugins: [react()],
-  resolve: { alias: { '@app': appSrc, '@shared': sharedSrc } },
+  /* One React, not two.
+   *
+   * This app's components live here but it imports plenty from @app, whose nearest
+   * node_modules is the member app's — so a bare `react` import resolved to a different
+   * copy depending on which side of the boundary the file sat on. Two React instances
+   * in one bundle means the dispatcher react-dom sets is not the one the components
+   * read, every hook sees null, and the page renders nothing at all.
+   *
+   * Dev never showed it: the dev server pre-bundles dependencies and collapses them to
+   * one copy, so only production builds broke. */
+  resolve: {
+    alias: { '@app': appSrc, '@shared': sharedSrc },
+    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
+  },
   server: { port: 8086, fs: { allow: [repoRoot] } },
 })

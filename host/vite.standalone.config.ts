@@ -7,7 +7,11 @@ const appSrc = fileURLToPath(new URL('../frontend/src', import.meta.url))
 export default defineConfig({
   plugins: [react()],
   base: './',
-  resolve: { alias: { '@shared': fileURLToPath(new URL('../shared/src', import.meta.url)), '@app': appSrc } },
+  // One React, not two — see vite.config.ts.
+  resolve: {
+    alias: { '@shared': fileURLToPath(new URL('../shared/src', import.meta.url)), '@app': appSrc },
+    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
+  },
   define: { 'import.meta.env.VITE_STANDALONE': 'true' },
   build: {
     outDir: 'dist-standalone',
