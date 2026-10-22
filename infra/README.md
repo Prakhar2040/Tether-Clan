@@ -100,6 +100,37 @@ aws rds create-db-cluster --db-cluster-identifier tetherclan \
 It has no VPC and no password. The stack only needs its address and resource id, passed
 as the `DbHost` and `DbResourceId` parameters.
 
+## Refreshing the deployed world
+
+The seeded world is rebased onto the moment it is seeded, so it goes stale: a week later
+every event is in the past, and both apps load but show nothing on tonight, nothing on
+sale and a blank next-night tile. It looks like a broken deploy and is not one.
+
+The seeder connects the same way the Lambda does — IAM auth, no password:
+
+```sh
+cd backend
+DB_IAM_AUTH=1 \
+DB_HOST=$(aws cloudformation describe-stacks --stack-name tetherclan \
+            --query 'Stacks[0].Parameters[?ParameterKey==`DbHost`].ParameterValue' --output text) \
+DB_USER=postgres DB_NAME=postgres AWS_REGION=ap-southeast-2 \
+  npx tsx src/db/seed.ts
+```
+
+Do not reach for `DATABASE_URL` with a generated token instead: `sslFor` would want a CA
+bundle and fail with `UNABLE_TO_GET_ISSUER_CERT_LOCALLY`. The `DB_IAM_AUTH` path uses
+Node's own trust store, which is what the gateway certificate needs.
+
+**It truncates.** Anything real that people did through the deployed apps — orders they
+paid for, attendance the door recorded — is gone. Check before running it:
+
+```sh
+select count(*) from orders where payment_ref is not null;   -- real purchases
+select count(*) from attendance;                             -- real door scans
+```
+
+Both are zero in a fresh seed, so anything above zero was made by a person.
+
 ## Checking a deploy
 
 ```sh
