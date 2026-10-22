@@ -1,7 +1,12 @@
 import type { Person, Series, TcEvent, Venue } from './types'
+import { NOW_MOCK, rebaseEvents } from './clock'
 
-// All sample data. Wed 9 Sep 2026, 17:50 IST, Bengaluru.
-export const NOW = new Date('2026-09-09T17:50:00+05:30')
+// All sample data, authored against Wed 9 Sep 2026, 17:50 IST, Bengaluru.
+// `events` below is that data moved onto the real clock (see ./clock); the
+// authored original is `mockEvents`, which only the seeder should touch.
+export { NOW_MOCK }
+/** The real time. The mock is rebased onto it, so this is also the mock's "now". */
+export const NOW = new Date()
 // You can add people you met for 48h after an event ends.
 export const CONNECT_WINDOW_HOURS = 48
 
@@ -184,7 +189,7 @@ export const series: Record<string, Series> = {
   },
 }
 
-export const events: Record<string, TcEvent> = {
+export const mockEvents: Record<string, TcEvent> = {
   'chess-night': {
     id: 'chess-night',
     title: 'Chess & Filter Coffee',
@@ -874,6 +879,8 @@ export const events: Record<string, TcEvent> = {
     attendees: [{ personId: 'priya', relation: 'host' }],
   },
 }
+
+export const events: Record<string, TcEvent> = rebaseEvents(mockEvents, NOW)
 
 export const worthTheRideIds = ['catan-night', 'sunrise-5k-thu']
 

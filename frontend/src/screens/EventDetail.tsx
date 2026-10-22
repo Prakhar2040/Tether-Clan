@@ -1,6 +1,9 @@
+import { MissingEvent } from '../components/MissingEvent'
 import { useNavigate, useParams } from 'react-router-dom'
-import { events, people, priceLabel, seatsLeft, venues } from '@shared/mock'
+import { events, people, seatsLeft, venues } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
+import { useBuy } from '../components/BuySheet'
+import { rupees } from '../lib/money'
 import { useCircle } from '../state/circle'
 import { Avatar } from '../components/shared'
 import { BackIcon, CheckIcon, ShareIcon, ShieldIcon } from '../components/icons'
@@ -8,11 +11,12 @@ import { BackIcon, CheckIcon, ShareIcon, ShieldIcon } from '../components/icons'
 export default function EventDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { stateFor, join, markInterested, cancel } = useRsvp()
+  const { stateFor, markInterested } = useRsvp()
+  const openBuy = useBuy()
   const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
-  if (!e) return null
+  if (!e) return <MissingEvent />
   const venue = venues[e.venueId]
   const state = stateFor(e.id)
   // Deciding needs what/when/where/who; preparing needs roles and icebreakers.
@@ -160,9 +164,7 @@ export default function EventDetail() {
               You're going · see you at {e.timeLabel.replace(' PM', '').replace(' AM', '')}
             </div>
             <span className="footer-note">
-              Can't make it?{' '}
-              <button onClick={() => cancel(e.id)}>Free cancel till 5 PM</button> — it frees your
-              seat for someone else
+              Your ticket is in My plans
             </span>
           </>
         ) : seatsLeft(e) === 0 ? (
@@ -178,8 +180,8 @@ export default function EventDetail() {
                   Interested
                 </button>
               ) : null}
-              <button className="btn btn-cta" style={{ flex: 1.5 }} onClick={() => join(e.id)}>
-                Going · {priceLabel(e)}
+              <button className="btn btn-cta" style={{ flex: 1.5 }} onClick={() => openBuy(e.id)}>
+                {e.price === 0 ? 'Reserve · Free' : `Buy · ${rupees(e.price * 100)}`}
               </button>
             </div>
             <span className="footer-note">

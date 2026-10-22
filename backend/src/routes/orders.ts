@@ -1,33 +1,38 @@
 import type { FastifyInstance } from 'fastify'
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, eq, inArray } from 'drizzle-orm'
+import { randomBytes } from 'node:crypto'
 import { db, schema } from '../db/client'
 import { z } from 'zod'
 import { viewerOf, ViewerUnknown } from '../lib/viewer'
 import { parse } from '../lib/body'
 import { now } from '../world'
-import { when } from '../lib/when'
+import { freshRefs } from '../lib/ref'
+import { HOLD_MINUTES, MAX_PER_ORDER, expireHeld, lockEvent, orderViews, seatsTaken } from '../lib/orders'
 
-/* Buying a ticket — the first thing that writes.
+/* Buying tickets.
  *
- * Everything the product knows about demand currently comes from a `going`
- * column somebody typed. One row per sale replaces it, and carries the thing
- * a count never could: when it happened.
+ * The client says how many it wants and nothing else. Whether the order is held or paid,
+ * what it costs, and which seats it gets are all the server's to decide — an earlier
+ * version took `state` from the request, which let anybody mark their own order paid.
+ *
+ * A paid event's order starts `held` and owns its seats for HOLD_MINUTES; paying it (see
+ * routes/payments.ts) makes it `paid`. A free event's order is paid at once.
  */
 
-const LIVE: ('paid' | 'held')[] = ['paid', 'held']
+/* `.strict()` turns an unknown field into a 400 naming it, instead of quietly ignoring it:
+   a bot that still sends `state` should be told, not left to wonder why it was not obeyed. */
+const Buy = z
+  .object({
+    qty: z.number().int().min(1).max(MAX_PER_ORDER).default(1),
+  })
+  .strict()
 
-/* Nothing is required yet, but the schema is: an unvalidated endpoint quietly
-   accepts whatever a bot sends it, and the first surprise field becomes a
-   silent null rather than a 400 saying which one. */
-const Buy = z.object({
-  /* Held means reserved but unpaid — the shape a real checkout needs. */
-  state: z.enum(['paid', 'held']).default('paid'),
-})
-
-/** TC-A1B2C3. Short enough to read off a phone at a door. */
-function ticketRef(): string {
-  const n = Math.floor(Math.random() * 36 ** 6)
-  return `TC-${n.toString(36).toUpperCase().padStart(6, '0')}`
+class NotEnoughSeats extends Error {
+  soldOut: boolean
+  constructor(soldOut: boolean) {
+    super('not enough seats')
+    this.soldOut = soldOut
+  }
 }
 
 export async function orderRoutes(app: FastifyInstance) {
@@ -40,7 +45,7 @@ export async function orderRoutes(app: FastifyInstance) {
       throw e
     }
 
-    const body = parse(Buy, req.body, reply)
+    const body = parse(Buy, req.body ?? {}, reply)
     if (!body) return
 
     const [event] = await db
@@ -57,59 +62,75 @@ export async function orderRoutes(app: FastifyInstance) {
       return reply.code(409).send({ error: 'That one has already started' })
     }
 
-    /* One ticket each. The product has never sold a member two seats to the
-       same night, and a bot looping would otherwise fill a room by itself. */
+    // Holds past their time stop counting; mark them so nothing below trips over them.
+    await expireHeld()
+
+    /* One live order each. Somebody who already holds seats, or is partway through
+       paying, is handed that order back rather than a second one: a refresh mid-checkout
+       must not double-book, and a bot looping must not fill a room alone. */
     const [existing] = await db
-      .select({ id: schema.orders.id, ref: schema.orders.ref })
+      .select({ id: schema.orders.id })
       .from(schema.orders)
       .where(
         and(
           eq(schema.orders.eventId, event.id),
           eq(schema.orders.personId, viewer),
-          inArray(schema.orders.state, LIVE),
+          inArray(schema.orders.state, ['held', 'paid']),
         ),
       )
       .limit(1)
     if (existing) {
-      return reply.code(200).send({ already: true, orderId: existing.id, ref: existing.ref })
+      const [view] = await orderViews([existing.id])
+      return reply.code(200).send({ already: true, ...view })
     }
 
-    /* Capacity is counted, not cached. Two bots buying the last seat at once
-       would both pass a read-then-write check, so the count and the insert
-       happen in one transaction. */
     try {
-      const order = await db.transaction(async (tx) => {
-        const [{ sold }] = (
-          await tx.execute(sql`
-            select count(*)::int as sold from orders
-            where event_id = ${event.id} and state in ('paid','held')
-          `)
-        ).rows as { sold: number }[]
-        if (sold >= event.capacity) throw new SoldOut()
+      const orderId = await db.transaction(async (tx) => {
+        /* Count seats and take them while holding the event's row. Without the lock two
+           buyers of the last seat both read "one left" and both get it. */
+        await lockEvent(tx, event.id)
+        const taken = await seatsTaken(tx, event.id)
+        const left = event.capacity - taken
+        if (left < body.qty) throw new NotEnoughSeats(left <= 0)
 
-        const [row] = await tx
-          .insert(schema.orders)
-          .values({
-            id: `${event.id}:${viewer}`,
-            eventId: event.id,
-            personId: viewer,
-            ref: ticketRef(),
-            qty: 1,
-            pricePaise: event.pricePaise,
-            state: body.state,
-          })
-          .returning()
-        return row
+        const refs = await freshRefs(body.qty, async (candidates) => {
+          const rows = await tx
+            .select({ ref: schema.tickets.ref })
+            .from(schema.tickets)
+            .where(inArray(schema.tickets.ref, candidates))
+          return new Set(rows.map((r) => r.ref))
+        })
+
+        const free = event.pricePaise === 0
+        const id = `ord_${randomBytes(9).toString('base64url')}`
+        await tx.insert(schema.orders).values({
+          id,
+          eventId: event.id,
+          personId: viewer,
+          ref: refs[0],
+          qty: body.qty,
+          pricePaise: event.pricePaise,
+          state: free ? 'paid' : 'held',
+          expiresAt: free ? null : new Date(now().getTime() + HOLD_MINUTES * 60_000),
+          paidAt: free ? now() : null,
+          paymentProvider: free ? 'free' : null,
+        })
+        await tx.insert(schema.tickets).values(
+          refs.map((ref, i) => ({ id: `${id}:${i + 1}`, orderId: id, eventId: event.id, ref })),
+        )
+        return id
       })
 
-      return reply.code(201).send({
-        orderId: order.id,
-        ref: order.ref,
-        event: { id: event.id, title: event.title, ...when(event.startsAt) },
-        pricePaise: order.pricePaise,
-      })
+      const [view] = await orderViews([orderId])
+      return reply.code(201).send(view)
     } catch (e) {
-      if (e instanceof SoldOut) return reply.code(409).send({ error: 'Sold out' })
+      if (e instanceof NotEnoughSeats) {
+        /* Members never see vacancy counts, so even this does not say how many are left —
+           only whether the night is full or that many together are not available. */
+        return reply
+          .code(409)
+          .send({ error: e.soldOut ? 'Sold out' : "That many seats aren't available together" })
+      }
       throw e
     }
   })
@@ -123,25 +144,15 @@ export async function orderRoutes(app: FastifyInstance) {
       if (e instanceof ViewerUnknown) return reply.code(401).send({ error: e.message })
       throw e
     }
-    const rows = await db
-      .select({
-        id: schema.orders.id,
-        ref: schema.orders.ref,
-        state: schema.orders.state,
-        pricePaise: schema.orders.pricePaise,
-        createdAt: schema.orders.createdAt,
-        eventId: schema.events.id,
-        title: schema.events.title,
-        startsAt: schema.events.startsAt,
-      })
+    await expireHeld()
+    const mine = await db
+      .select({ id: schema.orders.id })
       .from(schema.orders)
-      .innerJoin(schema.events, eq(schema.events.id, schema.orders.eventId))
       .where(eq(schema.orders.personId, viewer))
+    const orders = await orderViews(mine.map((o) => o.id))
     return {
       viewer,
-      orders: rows.map((r) => ({ ...r, ...when(r.startsAt) })),
+      orders: orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()),
     }
   })
 }
-
-class SoldOut extends Error {}

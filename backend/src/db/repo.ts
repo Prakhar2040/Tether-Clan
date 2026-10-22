@@ -62,11 +62,17 @@ export async function loadWorld(
       name: v.name,
       areaId: areaIdByName.get(slug(v.areaName)) ?? slug(v.areaName),
       area: v.address ?? v.areaName,
-      lat: v.lat ?? 0,
-      lng: v.lng ?? 0,
+      areaName: v.areaName,
+      /* No coordinates means unknown, not (0,0): a made-up point in the Gulf of
+         Guinea would give absurd distances. The engine treats null as "no
+         distance, never radius-filtered, ranked after known distances". */
+      lat: v.lat ?? null,
+      lng: v.lng ?? null,
       entranceNote: v.entranceNote ?? undefined,
-      distanceKm: 0,
-      travel: { autoMin: autoMinutes(haversineKm(from.lat, from.lng, v.lat ?? 0, v.lng ?? 0)) },
+      distanceKm: v.lat == null || v.lng == null ? null : haversineKm(from.lat, from.lng, v.lat, v.lng),
+      travel: {
+        autoMin: v.lat == null || v.lng == null ? null : autoMinutes(haversineKm(from.lat, from.lng, v.lat, v.lng)),
+      },
     } as Venue
   }
 
@@ -142,6 +148,15 @@ export async function loadWorld(
       seriesId: e.seriesId ?? undefined,
       communityId: e.communityId ?? undefined,
     } as unknown as TcEvent
+  }
+
+  /* An event may have no venue yet. Give those one placeholder with an
+     unknown location, so nothing downstream has to special-case a miss. */
+  if (Object.values(events).some((e) => !venues[e.venueId])) {
+    venues[''] = {
+      id: '', name: '', areaId: '', area: '', areaName: '', lat: null, lng: null,
+      entranceNote: '', distanceKm: null, travel: { autoMin: null },
+    } as Venue
   }
 
   return { events, venues, people, communities }

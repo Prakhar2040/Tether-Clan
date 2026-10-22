@@ -1,5 +1,6 @@
 import { Outlet, Route, Routes } from 'react-router-dom'
 import { RsvpProvider } from './state/rsvp'
+import { BuyProvider } from './components/BuySheet'
 import { lazy, Suspense } from 'react'
 import { FiltersProvider } from './state/filters'
 import { CircleProvider } from './state/circle'
@@ -54,6 +55,7 @@ function TabLayout() {
 export default function App() {
   return (
     <RsvpProvider>
+      <BuyProvider>
       <FiltersProvider>
       <CircleProvider>
       <LocationProvider>
@@ -96,6 +98,7 @@ export default function App() {
       </LocationProvider>
       </CircleProvider>
       </FiltersProvider>
+      </BuyProvider>
     </RsvpProvider>
   )
 }

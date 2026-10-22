@@ -10,7 +10,14 @@
  * re-derive; a client given only the string is stuck with it.
  */
 
+import { dateLabel, dayLabel, startsInLabel } from '@shared/clock'
+// One implementation of the day words, shared with the client's rebased mock.
+export { dateLabel, dayLabel, startsInLabel }
+
 export const IST = 'Asia/Kolkata'
+
+/** The Bengaluru civil date of an instant, "2026-10-17". */
+export const istYmd = (at: Date): string => new Intl.DateTimeFormat('en-CA', { timeZone: IST }).format(at)
 
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -38,17 +45,6 @@ function istParts(at: Date) {
   }
 }
 
-/** Whole days between two instants, counted by Bengaluru calendar date —
- *  not by dividing milliseconds, which gets the answer wrong across any
- *  boundary that is not exactly 24 hours away. */
-function daysApart(from: Date, to: Date): number {
-  const a = istParts(from)
-  const b = istParts(to)
-  return Math.round(
-    (Date.UTC(b.y, b.m - 1, b.d) - Date.UTC(a.y, a.m - 1, a.d)) / 86_400_000,
-  )
-}
-
 export function timeLabel(at: Date): string {
   const { hh, mm } = istParts(at)
   const h12 = ((hh + 11) % 12) + 1
@@ -63,11 +59,6 @@ export function monthYear(at: Date): string {
     'July', 'August', 'September', 'October', 'November', 'December',
   ]
   return `${full[m - 1]} ${y}`
-}
-
-export function dateLabel(at: Date): string {
-  const { d, m, dow } = istParts(at)
-  return `${dow} ${d} ${MON[m - 1]}`
 }
 
 /* The two labels for a plain calendar day — a `date` column, with no
@@ -116,17 +107,6 @@ export function lastSeenLabel(weeks: number): string {
   return `${months} month${months === 1 ? '' : 's'} ago`
 }
 
-/** "Tonight", "Tomorrow", "Sat", "Wed 16 Sep", "Past". */
-export function dayLabel(at: Date, now = new Date()): string {
-  const gap = daysApart(now, at)
-  if (gap < 0) return 'Past'
-  if (gap === 0) return 'Tonight'
-  if (gap === 1) return 'Tomorrow'
-  // Inside the coming week a bare weekday is unambiguous; past that it is not.
-  if (gap < 7) return DAY[istParts(at).dow === '' ? 0 : DAY.indexOf(istParts(at).dow)]
-  return dateLabel(at)
-}
-
 /** How long ago, the way a channel says it: 2h, 5h, 1d, 2w, 3mo. */
 export function agoLabel(at: Date, now = new Date()): string {
   const mins = Math.max(0, Math.round((now.getTime() - at.getTime()) / 60_000))
@@ -138,17 +118,6 @@ export function agoLabel(at: Date, now = new Date()): string {
   const weeks = Math.round(days / 7)
   if (weeks < 5) return `${weeks}w`
   return `${Math.round(days / 30)}mo`
-}
-
-/** "Starts in 1h 40m" — only while it is close enough to matter. */
-export function startsInLabel(at: Date, now = new Date()): string | undefined {
-  const mins = Math.round((at.getTime() - now.getTime()) / 60_000)
-  if (mins < 0 || mins > 12 * 60) return undefined
-  if (mins < 1) return 'Starting now'
-  if (mins < 60) return `Starts in ${mins}m`
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return `Starts in ${h}h${m ? ` ${m}m` : ''}`
 }
 
 /** Everything a client needs to render a time, including the instant itself. */

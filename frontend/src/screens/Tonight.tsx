@@ -1,16 +1,17 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { events, priceLabel, seatsLeft, venues, worthTheRideIds } from '@shared/mock'
+import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
+import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
 import { useLocation } from '../state/location'
 import { LocationChip, LocationSheet } from '../components/LocationPicker'
-import { DAY_LABELS, matchesWhen, TODAY, useFilters, WEEKDAYS, whenTitle } from '../state/filters'
+import { addDays, matchesWhen, todayYmd, useFilters, weekdayIndex, WEEKDAYS, whenTitle, ymdOf } from '../state/filters'
 import type { When } from '../state/filters'
-import type { SuggestionItem } from '../api/search'
+import type { HydratedEvent, SuggestionItem } from '../api/search'
 import {
   BellIcon,
   CheckIcon,
@@ -29,12 +30,20 @@ function beginnerOk(e: TcEvent): boolean {
 
 // Event-first card: the event leads, and an Instagram-style "who's going"
 // row sits below it — tap it to open the attendee sheet.
-function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }) {
-  const { stateFor, join, markInterested } = useRsvp()
+// One entry in a list. For server results `area` comes from the venue the server
+// joined on; for the offline fallback it comes from the local mock.
+interface Row {
+  e: TcEvent
+  area: string
+  km: number | null
+}
+
+function EventFeedCard({ e, area, onWho }: { e: TcEvent; area: string; onWho: (id: string) => void }) {
+  const { stateFor, markInterested } = useRsvp()
+  const openBuy = useBuy()
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
-  const v = venues[e.venueId]
 
   return (
     <article className="card">
@@ -43,7 +52,7 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
           <span className="event-title">{e.title}</span>
           <span className="event-meta">
             {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
-            {e.timeLabel} · {v.areaName} · {priceLabel(e)}
+            {e.timeLabel} · {area} · {priceLabel(e)}
           </span>
         </Link>
         {state === 'going' ? (
@@ -72,7 +81,7 @@ function EventFeedCard({ e, onWho }: { e: TcEvent; onWho: (id: string) => void }
             Full
           </button>
         ) : (
-          <button className="btn btn-primary" onClick={() => join(e.id)}>
+          <button className="btn btn-primary" onClick={() => openBuy(e.id)}>
             Join them
           </button>
         )}
@@ -117,43 +126,41 @@ function Promoted({ e }: { e: TcEvent }) {
   )
 }
 
-function NewAreaFeed() {
+function NewAreaFeed({ area, picks }: { area: string; picks: Row[] }) {
   const [notify, setNotify] = useState(false)
   return (
     <>
       <div className="empty-hero">
         <LogoMark size={44} muted />
-        <h1 className="empty-title">Quiet in Whitefield tonight</h1>
+        <h1 className="empty-title">Quiet in {area} tonight</h1>
         <p className="empty-sub">
-          Nothing within 3 km yet — Tether Clan is new here. Here's what's close, and how to be the
-          reason it isn't quiet.
+          Nothing close by yet. Here's what's further out, and how to be the reason it isn't quiet.
         </p>
       </div>
       <div className="feed">
-        <div className="card">
-          <span className="tile-label">WORTH THE RIDE</span>
-          {worthTheRideIds.map((id) => {
-            const e = events[id]
-            return (
-              <Link key={id} to={`/event/${id}`} className="card-row event-title link">
+        {picks.length > 0 ? (
+          <div className="card">
+            <span className="tile-label">WORTH THE RIDE</span>
+            {picks.map(({ e, area: where }) => (
+              <Link key={e.id} to={`/event/${e.id}`} className="card-row event-title link">
                 <span className="stack-2">
                   <span className="event-title" style={{ fontSize: 14.5 }}>{e.title}</span>
                   <span className="event-meta">
-                    {e.dayLabel} {e.timeLabel} · {id === 'catan-night' ? '9.8 km · 40 min' : 'free · pace groups'}
+                    {e.dayLabel} {e.timeLabel} · {where} · {priceLabel(e).toLowerCase()}
                   </span>
                 </span>
                 <ChevronIcon size={16} color="#15477C" />
               </Link>
-            )
-          })}
-        </div>
+            ))}
+          </div>
+        ) : null}
         <div className="card" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <BellIcon size={20} color="#15477C" />
           <span className="stack-2" style={{ flex: 1 }}>
             <span className="tile-text" style={{ color: '#15477C', fontWeight: 800, fontSize: 13.5 }}>
-              Tell me when Whitefield wakes up
+              Tell me when {area} wakes up
             </span>
-            <span className="person-note">One message when the first event lands within 3 km</span>
+            <span className="person-note">One message when the first event lands nearby</span>
           </span>
           <button
             className="btn btn-primary"
@@ -176,31 +183,40 @@ function NewAreaFeed() {
   )
 }
 
-function Calendar({ when, onPick }: { when: When; onPick: (day: number) => void }) {
-  const startOffset = (new Date(2026, 8, 1).getDay() + 6) % 7 // Mon-first
-  const days = Array.from({ length: 30 }, (_, i) => i + 1)
-  const hasEvents = (d: number) => d in DAY_LABELS
-  const isSel = (d: number) =>
-    when === d || (when === 'tonight' && d === TODAY) || (when === 'weekend' && (d === 12 || d === 13))
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+// Five rolling weeks from the Monday of this week, on the real calendar. Days before
+// today are greyed; the dot marks days the local mock knows an event on.
+function Calendar({ when, onPick }: { when: When; onPick: (ymd: string) => void }) {
+  const today = todayYmd()
+  const start = addDays(today, -weekdayIndex(today))
+  const days = Array.from({ length: 35 }, (_, i) => addDays(start, i))
+  const busy = new Set(
+    Object.values(events).filter((e) => e.startsAt).map((e) => ymdOf(new Date(e.startsAt!))),
+  )
+  const isSel = (d: string) =>
+    when === d ||
+    (when === 'tonight' && d === today) ||
+    (when === 'weekend' && matchesWhen({ dayLabel: '', startsAt: `${d}T12:00:00+05:30` }, 'weekend'))
+  const monthOf = (ymd: string) => MONTH_NAMES[Number(ymd.slice(5, 7)) - 1]
+  const first = monthOf(days[0])
+  const last = monthOf(days[days.length - 1])
   return (
     <div className="stack-2" style={{ gap: 8 }}>
-      <span className="cal-title">September 2026</span>
+      <span className="cal-title">{first === last ? first : `${first} – ${last}`} {today.slice(0, 4)}</span>
       <div className="cal">
         {WEEKDAYS.map((w) => (
           <span className="cal-head" key={w}>{w[0]}</span>
         ))}
-        {Array.from({ length: startOffset }, (_, i) => (
-          <span key={`pad-${i}`} />
-        ))}
         {days.map((d) => (
           <button
             key={d}
-            className={`cal-day${d < TODAY ? ' off' : ''}${isSel(d) ? ' sel' : ''}`}
-            disabled={d < TODAY}
+            className={`cal-day${d < today ? ' off' : ''}${isSel(d) ? ' sel' : ''}`}
+            disabled={d < today}
             onClick={() => onPick(d)}
           >
-            {d}
-            {hasEvents(d) && !isSel(d) ? <span className="dot" /> : null}
+            {Number(d.slice(8))}
+            {busy.has(d) && !isSel(d) && d >= today ? <span className="dot" /> : null}
           </button>
         ))}
       </div>
@@ -228,71 +244,89 @@ export default function Tonight() {
     activeCount,
   } = useFilters()
   const [filterOpen, setFilterOpen] = useState(false)
-  const quiet = place.label === 'Whitefield'
-
-  const scoped = Object.values(events).filter((e) => matchesWhen(e.dayLabel, when))
-  const allTags = [...new Set(scoped.flatMap((e) => e.tags ?? []))].sort()
   const q = query.trim().toLowerCase()
 
-  // The search engine drives results. If it is unreachable we fall back to
-  // local filtering — worse results, never a broken screen.
-  const engineWhen = when === 'tonight' ? 'tonight' : when === 'weekend' ? 'weekend' : String(when)
+  // The server drives every list: /api/search with the viewer's position. If it
+  // is unreachable we fall back to filtering the local mock - worse results,
+  // never a broken screen.
   const { result, offline } = useSearch({
     q: query,
-    when: engineWhen,
+    when,
     free: freeOnly,
     beginner: beginnerOnly,
     tags: selectedTags,
+    lat: place.lat,
+    lng: place.lng,
     // Nothing to reach in a standalone build; local filtering covers it.
-    enabled: !quiet && !import.meta.env.VITE_STANDALONE,
+    enabled: !import.meta.env.VITE_STANDALONE,
   })
 
-  /* A plan somebody paid to place. Deliberately drawn from outside what the
-     filters returned — a promoted item that was going to appear anyway is not
-     a placement, it is a label on a coincidence. */
-  const promoted = useMemo(() => {
-    const shown = new Set(scoped.map((e) => e.id))
-    return Object.values(events).find((e) => !shown.has(e.id) && !e.liveNow && e.price > 0)
-  }, [scoped])
+  const mockRow = (e: TcEvent): Row => {
+    const v = venues[e.venueId]
+    return { e, area: v.areaName, km: distanceKm(v.lat, v.lng) }
+  }
+  const localRows = Object.values(events)
+    .filter((e) => matchesWhen(e, when))
+    .filter(
+      (e) =>
+        (!freeOnly || e.price === 0) &&
+        (!beginnerOnly || beginnerOk(e)) &&
+        selectedTags.every((t) => e.tags?.includes(t)) &&
+        (q === '' ||
+          e.title.toLowerCase().includes(q) ||
+          e.categoryLabel.toLowerCase().includes(q) ||
+          (e.tags ?? []).some((t) => t.toLowerCase().includes(q)) ||
+          venues[e.venueId].name.toLowerCase().includes(q)),
+    )
+    .map(mockRow)
 
-  const localFiltered = scoped.filter(
-    (e) =>
-      (!freeOnly || e.price === 0) &&
-      (!beginnerOnly || beginnerOk(e)) &&
-      selectedTags.every((t) => e.tags?.includes(t)) &&
-      (q === '' ||
-        e.title.toLowerCase().includes(q) ||
-        e.categoryLabel.toLowerCase().includes(q) ||
-        (e.tags ?? []).some((t) => t.toLowerCase().includes(q)) ||
-        venues[e.venueId].name.toLowerCase().includes(q)),
-  )
+  // Server rows carry the event as the server knows it. Detail screens still read
+  // the mock by the same id; a miss there is handled on that screen.
+  const toRow = (h: HydratedEvent): Row => ({
+    e: h,
+    area: h.venue.areaName ?? h.venue.area,
+    km: h.venue.distanceKm,
+  })
+  const serverRows = result && !offline ? result.hydrated.map(toRow) : null
+  const unsorted = serverRows ?? localRows
 
-  // Engine results are ids into our local event map, ranked by the engine.
-  const engineFiltered =
-    result && !offline
-      ? result.hydrated.map((h) => events[h.id]).filter(Boolean)
-      : null
-  const unsorted = engineFiltered ?? localFiltered
-
-  // With no search term, nearest first — everything on screen is the same day,
-  // so distance is the useful axis. A search keeps the engine's relevance order.
+  // With no search term, nearest first - everything on screen is the same day,
+  // so distance is the useful axis. Unknown distances go last. A search keeps
+  // the engine's relevance order.
   const filtered =
     query.trim() === ''
-      ? [...unsorted].sort((a, b) => {
-          const va = venues[a.venueId]
-          const vb = venues[b.venueId]
-          return distanceKm(va.lat, va.lng) - distanceKm(vb.lat, vb.lng)
-        })
+      ? [...unsorted].sort((a, b) => (a.km ?? Infinity) - (b.km ?? Infinity))
       : unsorted
-  const fallbackEvents =
-    result?.fallbackHydrated?.map((h) => events[h.id]).filter(Boolean) ?? []
+  const fallbackRows = result && !offline ? (result.fallbackHydrated ?? []).map(toRow) : []
 
+  const allTags = [...new Set([...unsorted.flatMap((r) => r.e.tags ?? []), ...selectedTags])].sort()
+
+  // Nothing at all tonight, nothing typed or filtered: say the area is quiet.
+  const quiet =
+    serverRows !== null &&
+    serverRows.length === 0 &&
+    when === 'tonight' &&
+    q === '' &&
+    !freeOnly &&
+    !beginnerOnly &&
+    selectedTags.length === 0
+
+  /* A plan somebody paid to place. Deliberately drawn from outside what the
+     filters returned - a promoted item that was going to appear anyway is not
+     a placement, it is a label on a coincidence. */
+  const promoted = useMemo(() => {
+    const shown = new Set(filtered.map((r) => r.e.id))
+    return Object.values(events).find(
+      (e) => !shown.has(e.id) && !e.liveNow && e.price > 0 && e.dayLabel !== 'Past',
+    )
+  }, [filtered])
 
   const toggleTag = (t: string) =>
     setSelectedTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]))
 
 
   const { title, sub } = whenTitle(when)
+  const whoSheetEvent = whoFor ? (filtered.find((r) => r.e.id === whoFor)?.e ?? events[whoFor]) : undefined
 
   // Typed suggestions appear only while actually typing — before a keystroke
   // the feed itself is the answer.
@@ -314,7 +348,7 @@ export default function Tonight() {
       </div>
 
       {quiet ? (
-        <NewAreaFeed />
+        <NewAreaFeed area={place.label} picks={fallbackRows} />
       ) : (
         <>
           <header className="page-head">
@@ -356,15 +390,15 @@ export default function Tonight() {
                 <button className="btn btn-ghost" style={{ flex: 'none', padding: '0 18px' }} onClick={clearFilters}>
                   Clear filters
                 </button>
-                {fallbackEvents.length > 0 ? (
+                {fallbackRows.length > 0 ? (
                   <div className="fallback-block" style={{ width: '100%', marginTop: 12 }}>
                     <span className="fallback-title">Worth the ride</span>
-                    {fallbackEvents.map((e) => (
+                    {fallbackRows.map(({ e, area: where }) => (
                       <Link key={e.id} to={`/event/${e.id}`} className="card-row event-title link">
                         <span className="stack-2">
                           <span className="event-title" style={{ fontSize: 14.5 }}>{e.title}</span>
                           <span className="event-meta">
-                            {e.dayLabel} {e.timeLabel} · {venues[e.venueId].name}
+                            {e.dayLabel} {e.timeLabel} · {where}
                           </span>
                         </span>
                         <ChevronIcon size={16} color="#15477C" />
@@ -377,7 +411,7 @@ export default function Tonight() {
                 ) : null}
               </div>
             ) : (
-              filtered.map((e, i) => (
+              filtered.map(({ e, area }, i) => (
                 <Fragment key={e.id}>
                   {/* Third slot down, so it never outranks a real result. */}
                   {i === 3 && promoted ? <Promoted e={promoted} /> : null}
@@ -393,7 +427,7 @@ export default function Tonight() {
                     <ChevronIcon size={16} color="#15477C" />
                   </Link>
                   ) : (
-                    <EventFeedCard e={e} onWho={setWhoFor} />
+                    <EventFeedCard e={e} area={area} onWho={setWhoFor} />
                   )}
                 </Fragment>
               ))
@@ -404,7 +438,7 @@ export default function Tonight() {
 
       {locOpen ? <LocationSheet onClose={() => setLocOpen(false)} /> : null}
 
-      {whoFor ? <WhoSheet e={events[whoFor]} onClose={() => setWhoFor(null)} /> : null}
+      {whoSheetEvent ? <WhoSheet e={whoSheetEvent} onClose={() => setWhoFor(null)} /> : null}
 
       {filterOpen ? (
         <div className="sheet-backdrop" onClick={() => setFilterOpen(false)}>
@@ -426,8 +460,8 @@ export default function Tonight() {
                 Tonight
               </button>
               <button
-                className={when === 10 ? 'chip active' : 'chip'}
-                onClick={() => setWhen(10)}
+                className={when === addDays(todayYmd(), 1) ? 'chip active' : 'chip'}
+                onClick={() => setWhen(addDays(todayYmd(), 1))}
               >
                 Tomorrow
               </button>
@@ -438,7 +472,7 @@ export default function Tonight() {
                 Weekend
               </button>
             </div>
-            <Calendar when={when} onPick={(d) => setWhen(d === TODAY ? 'tonight' : d)} />
+            <Calendar when={when} onPick={(d) => setWhen(d === todayYmd() ? 'tonight' : d)} />
 
             <span className="sheet-section">Quick filters</span>
             <div className="chip-row" style={{ padding: 0 }}>

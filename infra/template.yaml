@@ -1,0 +1,300 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Tether Clan - Lambda API, two CloudFront-fronted static apps behind a shared password
+
+# The database is NOT in this stack. On the free plan Aurora can only be created as an
+# "express" cluster, which CloudFormation cannot make:
+#   aws rds create-db-cluster --db-cluster-identifier tetherclan \
+#       --engine aurora-postgresql --with-express-configuration
+# It has no VPC and no password - the API signs in with a short-lived IAM token, so this
+# stack only needs the cluster's address and resource id (see infra/README.md).
+#
+# Everything else can be removed with one command:
+#   aws cloudformation delete-stack --stack-name tetherclan
+# (empty the sites bucket first - CloudFormation will not delete a bucket with objects in it.)
+
+Parameters:
+  DbHost:
+    Type: String
+    Description: Writer endpoint of the express cluster.
+  DbResourceId:
+    Type: String
+    Description: The cluster's DbClusterResourceId (cluster-XXXX), used in the rds-db:connect permission.
+  DbUser:
+    Type: String
+    Default: postgres
+  DbName:
+    Type: String
+    Default: postgres
+  CodeBucket:
+    Type: String
+    Description: Bucket holding the Lambda zip.
+  CodeKey:
+    Type: String
+    Description: Key of the Lambda zip in CodeBucket.
+  SiteAuthB64:
+    Type: String
+    NoEcho: true
+    Description: base64 of "username:password" for the browser login box on both sites and the API.
+  OriginSecret:
+    Type: String
+    NoEcho: true
+    MinLength: 20
+    Description: Header value CloudFront sends to the Lambda, so its public URL refuses anyone who skips CloudFront.
+
+Resources:
+  # ---- API --------------------------------------------------------------------------
+  ApiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: lambda.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: connect-to-database
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: rds-db:connect
+                Resource: !Sub 'arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:${DbResourceId}/${DbUser}'
+
+  ApiFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: nodejs22.x
+      Handler: index.handler
+      Role: !GetAtt ApiRole.Arn
+      Code:
+        S3Bucket: !Ref CodeBucket
+        S3Key: !Ref CodeKey
+      MemorySize: 512
+      # Long enough to ride out a paused database waking up (about fifteen seconds).
+      Timeout: 45
+      Environment:
+        Variables:
+          DB_IAM_AUTH: '1'
+          DB_HOST: !Ref DbHost
+          DB_USER: !Ref DbUser
+          DB_NAME: !Ref DbName
+          LOG_LEVEL: info
+          ORIGIN_SECRET: !Ref OriginSecret
+          # The placeholder "Click here to pay" checkout. Change to anything else once a real
+          # provider is wired, and the mock endpoint switches itself off.
+          PAYMENTS_MODE: mock
+
+  ApiUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt ApiFunction.Arn
+      AuthType: NONE
+
+  ApiUrlInvokeUrl:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
+  ApiUrlInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref ApiFunction
+      Action: lambda:InvokeFunction
+      Principal: '*'
+      InvokedViaFunctionUrl: true
+
+  # ---- Static sites -----------------------------------------------------------------
+  SitesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+
+  SitesOac:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${AWS::StackName}-sites'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # Both apps are single-page apps on BrowserRouter: any path without a file extension
+  # is a client route and gets index.html. Done here rather than with error responses,
+  # which would also rewrite a real 404 from the API.
+  #
+  # Both functions also ask for the shared username and password. CloudFront answers
+  # 401 itself, so nothing reaches S3 or the Lambda without it.
+  SpaRewrite:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub '${AWS::StackName}-site-gate'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Password gate, then index.html for client-side routes
+        Runtime: cloudfront-js-2.0
+      FunctionCode: !Sub |
+        function handler(event) {
+          var req = event.request;
+          var auth = req.headers.authorization;
+          if (!auth || auth.value !== 'Basic ${SiteAuthB64}') {
+            return {
+              statusCode: 401,
+              statusDescription: 'Unauthorized',
+              headers: { 'www-authenticate': { value: 'Basic realm="Tether Clan"' } }
+            };
+          }
+          if (req.uri.indexOf('.') === -1) req.uri = '/index.html';
+          return req;
+        }
+
+  ApiGate:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub '${AWS::StackName}-api-gate'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Password gate for /api
+        Runtime: cloudfront-js-2.0
+      FunctionCode: !Sub |
+        function handler(event) {
+          var req = event.request;
+          var auth = req.headers.authorization;
+          if (!auth || auth.value !== 'Basic ${SiteAuthB64}') {
+            return {
+              statusCode: 401,
+              statusDescription: 'Unauthorized',
+              headers: { 'www-authenticate': { value: 'Basic realm="Tether Clan"' } }
+            };
+          }
+          return req;
+        }
+
+  AppDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Tether Clan - member app
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: site
+            DomainName: !GetAtt SitesBucket.RegionalDomainName
+            OriginPath: /app
+            OriginAccessControlId: !GetAtt SitesOac.Id
+            S3OriginConfig: { OriginAccessIdentity: '' }
+          - Id: api
+            DomainName: !Select [2, !Split ['/', !GetAtt ApiUrl.FunctionUrl]]
+            OriginCustomHeaders:
+              - HeaderName: x-origin-verify
+                HeaderValue: !Ref OriginSecret
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginReadTimeout: 60
+        DefaultCacheBehavior:
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6 # CachingOptimized
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SpaRewrite.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ApiGate.FunctionMetadata.FunctionARN
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # AllViewerExceptHostHeader
+
+  HostDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: Tether Clan - host console
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: site
+            DomainName: !GetAtt SitesBucket.RegionalDomainName
+            OriginPath: /host
+            OriginAccessControlId: !GetAtt SitesOac.Id
+            S3OriginConfig: { OriginAccessIdentity: '' }
+          - Id: api
+            DomainName: !Select [2, !Split ['/', !GetAtt ApiUrl.FunctionUrl]]
+            OriginCustomHeaders:
+              - HeaderName: x-origin-verify
+                HeaderValue: !Ref OriginSecret
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginReadTimeout: 60
+        DefaultCacheBehavior:
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SpaRewrite.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: !GetAtt ApiGate.FunctionMetadata.FunctionARN
+            OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
+
+  SitesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SitesBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: cloudfront.amazonaws.com }
+            Action: s3:GetObject
+            Resource: !Sub '${SitesBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn:
+                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${AppDistribution}'
+                  - !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${HostDistribution}'
+
+Outputs:
+  AppUrl:
+    Value: !Sub 'https://${AppDistribution.DomainName}'
+  HostUrl:
+    Value: !Sub 'https://${HostDistribution.DomainName}'
+  ApiFunctionUrl:
+    Value: !GetAtt ApiUrl.FunctionUrl
+  SitesBucketName:
+    Value: !Ref SitesBucket
+  AppDistributionId:
+    Value: !Ref AppDistribution
+  HostDistributionId:
+    Value: !Ref HostDistribution

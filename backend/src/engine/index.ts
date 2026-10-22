@@ -6,6 +6,7 @@ import type { World } from '../db/repo'
 import { normalize, tokenMatches } from './normalize'
 import { route } from './router'
 import { logQuery } from './log'
+import { istYmd } from '../lib/when'
 
 export interface SearchParams {
   q?: string
@@ -38,9 +39,18 @@ function distanceKm(aLat: number, aLng: number, bLat: number, bLng: number): num
 function matchesWhen(e: TcEvent, when: string | undefined): boolean {
   if (!when) return true
   if (when === 'tonight') return e.dayLabel === 'Tonight'
-  if (when === 'weekend') return e.dayLabel === 'Sat' || e.dayLabel === 'Sun'
+  if (when === 'weekend') {
+    // Saturday or Sunday in Bengaluru, within the coming week (today included).
+    const day = istYmd(new Date(e.startsAt))
+    const gap = Math.round((Date.parse(day) - Date.parse(istYmd(now()))) / 86_400_000)
+    const dow = new Date(day + 'T00:00:00Z').getUTCDay()
+    return gap >= 0 && gap <= 6 && (dow === 0 || dow === 6)
+  }
+  // A specific calendar day, as a Bengaluru date: "2026-10-17".
+  if (/^d{4}-d{2}-d{2}$/.test(when)) return istYmd(new Date(e.startsAt)) === when
+  // A bare day-of-month, read in Bengaluru terms too (the server may run in UTC).
   const day = Number(when)
-  if (!Number.isNaN(day)) return new Date(e.startsAt).getDate() === day
+  if (!Number.isNaN(day)) return Number(istYmd(new Date(e.startsAt)).slice(8)) === day
   return true
 }
 
@@ -125,7 +135,8 @@ function scoreEvent(doc: Doc, queryTokens: string[], w: World): Scored {
   const time = Math.max(0, 1 - Math.min(hoursAway, 168) / 168)
 
   // geo proximity by travel time (Bangalore: km lies, minutes don't)
-  const geo = Math.max(0, 1 - Math.min(venue.travel.autoMin, 60) / 60)
+  // unknown venue location earns no proximity credit, so it ranks after known ones
+  const geo = venue.travel.autoMin == null ? 0 : Math.max(0, 1 - Math.min(venue.travel.autoMin, 60) / 60)
 
   // social proof: people from your circle attending
   const circleCount = e.attendees.filter((a) => yourCircle.has(a.personId)).length
@@ -268,6 +279,8 @@ export function search(params: SearchParams, w: World): SearchResponse {
   const withinTime = all.filter((e) => e.status === 'live' && new Date(e.endsAt) > now())
   const prefiltered = withinTime.filter((e) => {
     const v = w.venues[e.venueId]
+    // A venue with no coordinates is unknown, not far: never dropped by the radius.
+    if (v.lat == null || v.lng == null) return true
     return distanceKm(origin.lat, origin.lng, v.lat, v.lng) <= radiusKm
   })
 

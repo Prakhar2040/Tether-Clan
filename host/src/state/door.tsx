@@ -4,6 +4,10 @@ import { membersOf, roster } from '@shared/roster'
 import type { Member } from '@shared/roster'
 import type { Person } from '@shared/types'
 
+// NOTE: the door screen no longer uses this file - it reads the server (api/door.ts).
+// holdersFor/memberHoldersFor and the arrivals state remain only as the mock the
+// Dashboard and Sales analytics still read.
+//
 // Who is expected at the door, and who has actually walked through it.
 //
 // This is the surface the rest of the console is waiting on. Attendance is a
@@ -62,7 +66,8 @@ const DoorContext = createContext<DoorValue | null>(null)
 
 function clock(): string {
   // The mock evening, advancing a few minutes each time somebody arrives.
-  const base = new Date('2026-09-09T19:25:00')
+  const base = new Date()
+  base.setHours(19, 25, 0, 0)
   base.setMinutes(base.getMinutes() + Math.floor(Math.random() * 40))
   return base.toTimeString().slice(0, 5)
 }

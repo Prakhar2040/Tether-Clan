@@ -9,3 +9,6 @@ dist/
 # Standalone build output — regenerate with `npm run build:standalone`
 dist-standalone/
 share/
+
+# Not secret, and a deployed build is wrong without it.
+!.env.production

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
+    "build": "node scripts/build-lambda.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:up": "docker compose -f ../docker-compose.yml up -d",
@@ -17,6 +18,8 @@
     "db:reset": "drizzle-kit migrate && npm run db:seed"
   },
   "dependencies": {
+    "@aws-sdk/rds-signer": "^3.1151.0",
+    "@fastify/aws-lambda": "^6.4.2",
     "@fastify/cors": "^11.0.0",
     "dotenv": "^18.0.6",
     "drizzle-orm": "^0.45.3",
@@ -28,6 +31,7 @@
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.28.2",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

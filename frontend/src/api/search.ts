@@ -1,9 +1,8 @@
 import type { TcEvent } from '@shared/types'
+import { API_BASE as BASE } from './client'
 
 // Client for the search engine. Everything here is written against the
 // permanent API contract, so swapping the engine's internals changes nothing.
-
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8085'
 
 export type SuggestionType = 'activity' | 'area' | 'venue' | 'community' | 'event'
 
@@ -21,7 +20,8 @@ export interface SuggestionGroup {
 
 export interface HydratedEvent extends TcEvent {
   score: number
-  venue: { id: string; name: string; area: string; travelMin: number }
+  // travelMin is computed by the server but deliberately not shown anywhere yet.
+  venue: { id: string; name: string; area: string; areaName: string; distanceKm: number | null; travelMin: number | null }
 }
 
 export interface SearchResult {
@@ -39,7 +39,7 @@ export interface NullState {
 }
 
 export async function searchEvents(
-  params: { q: string; when?: string; free?: boolean; beginner?: boolean; tags?: string[] },
+  params: { q: string; when?: string; free?: boolean; beginner?: boolean; tags?: string[]; lat?: number; lng?: number },
   signal?: AbortSignal,
 ): Promise<SearchResult> {
   const qs = new URLSearchParams()
@@ -48,6 +48,11 @@ export async function searchEvents(
   if (params.free) qs.set('free', '1')
   if (params.beginner) qs.set('beginner', '1')
   if (params.tags?.length) qs.set('tags', params.tags.join(','))
+  // The viewer's position, simulated or real - the server cannot tell and does not care.
+  if (params.lat !== undefined && params.lng !== undefined) {
+    qs.set('lat', String(params.lat))
+    qs.set('lng', String(params.lng))
+  }
 
   const res = await fetch(`${BASE}/api/search?${qs.toString()}`, { signal })
   if (!res.ok) throw new Error(`search failed: ${res.status}`)

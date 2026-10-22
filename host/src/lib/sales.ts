@@ -107,7 +107,7 @@ function when(e: TcEvent): { dow: string; day: string; mon: string; sortKey: num
       dow: m[1].toUpperCase(),
       day: m[2],
       mon: m[3].toUpperCase(),
-      sortKey: new Date(2026, idx < 0 ? 0 : idx, Number(m[2])).getTime(),
+      sortKey: new Date(NOW.getFullYear(), idx < 0 ? 0 : idx, Number(m[2])).getTime(),
     }
   }
   return { dow: e.dayLabel.slice(0, 3).toUpperCase(), day: '·', mon: '', sortKey: Date.now() }

@@ -1,3 +1,4 @@
+import { MissingEvent } from '../components/MissingEvent'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { events, people, venues } from '@shared/mock'
 import { useRsvp } from '../state/rsvp'
@@ -8,11 +9,11 @@ import { BackIcon, ChatIcon, CheckIcon, ShieldIcon } from '../components/icons'
 export default function DayOf() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { stateFor, checkIn } = useRsvp()
+  const { stateFor } = useRsvp()
   const { isConnected } = useCircle()
 
   const e = id ? events[id] : undefined
-  if (!e) return null
+  if (!e) return <MissingEvent />
   const venue = venues[e.venueId]
   const state = stateFor(e.id)
   const checkedIn = state === 'checked-in' || state === 'attended'
@@ -44,7 +45,7 @@ export default function DayOf() {
         <div className="tile-row">
           <button className="action-tile primary">
             <span className="t">Directions</span>
-            <span className="s">{venue.travel.autoMin} min by auto</span>
+            <span className="s">{venue.areaName}</span>
           </button>
           <button className="action-tile">
             <span className="t">Running late</span>
@@ -108,9 +109,9 @@ export default function DayOf() {
             </Link>
           </div>
         ) : (
-          <button className="btn btn-cta" style={{ width: '100%' }} onClick={() => checkIn(e.id)}>
-            <CheckIcon size={17} color="#fff" strokeWidth={2.6} /> Check in · I'm here
-          </button>
+          <div className="footer-note" style={{ textAlign: 'center' }}>
+            You're checked in when the door scans your ticket
+          </div>
         )}
       </div>
     </div>
