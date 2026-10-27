@@ -202,6 +202,25 @@ Worth noting what made this findable: nothing about the app's behaviour changed 
 "silently wrong" and "diagnosed in one console line" except that it stopped discarding
 errors.
 
+**Resolved — and the last cause was not the app either.** Wi-Fi was on and Location
+Services was on. The real culprit was the **corporate network**.
+
+macOS does not locate itself from the IP address. It scans the nearby Wi-Fi access points
+and asks *Apple's* location service to resolve that list into a position. The corporate
+network was blocking that outbound request, so CoreLocation got nothing back and reported
+`kCLErrorLocationUnknown`. The radio had been on the whole time; it simply could not phone
+home. Switching to a phone hotspot cleared it immediately:
+
+```
+OK 12.93878670159049 77.690332258361 ±35m
+```
+
+2.1 km from Bellandur, and ±35 m is GPS-grade — a better fix than a laptop usually gets.
+Confirmed working in the app.
+
+**Keep in mind:** this will break again on that network. It will now say so rather than
+leaving the previous pick on screen, which is the part that was actually wrong.
+
 **Still true:** a laptop has no GPS. The fix makes the app stop asking for the worst
 answer and stop hiding how good the answer is; it cannot give a laptop a satellite.
 
