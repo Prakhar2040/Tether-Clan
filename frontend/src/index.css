@@ -147,6 +147,84 @@ button {
 
 .loc-searching { padding: 6px 4px 0; opacity: 0.7; }
 
+/* The event tile, built from the community tile's parts.
+ *
+ * Same object: picture on top at full strength, words below on the same blue.
+ * Only the words differ — a night has a time, a distance and a price where a
+ * room has members and a rating. Sharing the type and colour tokens is what
+ * keeps the two feeds looking like one app rather than two.
+ */
+.event-tile {
+  position: relative;
+  display: flex; flex-direction: column;
+  background: var(--tile-base); border-radius: 18px; overflow: hidden;
+  border: 1px solid var(--card-edge);
+  box-shadow: 0 8px 24px rgba(92, 60, 12, 0.14);
+}
+.event-cover {
+  position: relative; height: 142px; overflow: hidden;
+  display: flex; align-items: flex-end;
+}
+.event-shot {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+}
+.event-cover::after {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(to top, rgba(7, 8, 8, 0.3) 0%, rgba(7, 8, 8, 0) 40%);
+}
+/* No picture at all — two rooms have no cover, so their nights fall back to
+   the room's own colour rather than to a grey hole. */
+.event-cover.no-photo::after { background: none; }
+
+.event-hit { position: absolute; inset: 0; z-index: 1; }
+
+.event-tile-body {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 10px 14px 12px;
+  /* Nothing in here is clickable except the host row and the buttons, and
+     those set their own pointer events back on. Otherwise this layer would
+     sit over the tile's link and swallow the tap. */
+  pointer-events: none;
+}
+.event-tile-body > a,
+.event-tile-body button { pointer-events: auto; }
+
+/* The badge moves onto the picture, where there is room for it. */
+.badge.on-cover {
+  position: absolute; right: 10px; top: 10px; z-index: 2;
+}
+
+/* The room behind the night, on the blue. */
+.event-host {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+.event-host-mark {
+  width: 20px; height: 20px; border-radius: 6px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 8.5px; font-weight: 800;
+}
+.event-host-name {
+  flex: 1; min-width: 0;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12px; font-weight: 700; color: rgba(255, 255, 255, 0.88);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* A ghost button on blue needs a light edge, not the dark one it has on paper. */
+.btn-ghost.on-dark {
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.92);
+  background: none;
+}
+.btn-ghost.on-dark:disabled { opacity: 0.5; }
+
+.event-tile .btn-row { margin-top: 10px; }
+.event-tile .going-row { margin-top: 9px; }
+
 /* Who runs this night, under the event it belongs to. Its own tap target —
    the way into a room you had not heard of. */
 .card-host {

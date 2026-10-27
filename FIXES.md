@@ -252,6 +252,33 @@ rather than reporting the city as empty on the strength of a guess.
 
 ---
 
+**18. Every plan belongs to a room, and 13 new rooms to hold them** · 27 Oct · *feature*
+
+18 of 31 events belonged to nobody. Two of those were always somebody's — `catan-next-wed`
+is at Dice District and the Saturday long run is a Cubbon Park run — and had just never
+been linked. The other 16 got 13 new communities, grouped where it made sense: both
+badminton nights into one club, both football nights into one side, both pottery tasters
+into one studio.
+
+Each has an owner with their own voice, highlights, house rules and two posts. 1,079
+memberships are generated in the seeder, because `roster.ts` only knows the original four
+and the API counts live memberships rather than trusting `memberCount` — without them
+every new room would have read as empty.
+
+11 of 13 got covers; chess and yoga found nothing on-subject and fall back to their brand
+colour rather than a broken file.
+
+**19. Event cards rebuilt as community tiles** · 27 Oct · *feature*
+
+Same object, different words: picture on top at full strength, words below on the same
+blue. A night has a time, a distance and a price where a room has members and a rating.
+
+Only 12 events have art of their own, so the picture falls back to the community's cover —
+which is honest, since it is a photograph of the people running it — and to the room's
+colour beyond that. 29 of 31 get a real photograph.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox

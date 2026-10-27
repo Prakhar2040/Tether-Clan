@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
-import { communities, communityOf, upcomingCommunityEvents } from '../data/community'
+import { communities, communityOf, eventImages, upcomingCommunityEvents } from '../data/community'
 import { useCommunities } from '../state/communities'
 import { useRsvp } from '../state/rsvp'
 import { useBuy } from '../components/BuySheet'
@@ -55,76 +55,83 @@ function EventFeedCard({
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
-  /* Who runs this night. Only thirteen of the thirty-one events belong to a
-     room at all — the rest are one-offs — so this is deliberately absent
-     rather than empty when there is nobody behind it. */
+  /* Who runs this night. Every plan belongs to a room now, so this is always
+     here — but it is still written to cope without one. */
   const host = communityOf(e.id)
 
+  /* A picture, in order of how specific it is: the night's own, then the
+     room's cover, then nothing and the tile falls back to the brand colour.
+     Only twelve plans have art of their own; the community cover is what
+     stops the other nineteen being flat blocks, and it is honest — it is a
+     picture of the people running it. */
+  const shot = eventImages[e.id] ?? host?.coverImage
+
   return (
-    <article className="card">
-      <div className="card-row">
-        <Link to={`/event/${e.id}`} className="stack-2 event-title link" style={{ flex: 1 }}>
-          <span className="event-title">{e.title}</span>
-          <span className="event-meta">
-            {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
-            {e.timeLabel} · {area}
-            {/* The list is ordered by this, so it has to be on screen —
-                otherwise nearest-first looks like no order at all. */}
-            {distanceLabel(km) ? ` · ${distanceLabel(km)}` : ''} · {priceLabel(e)}
-          </span>
-        </Link>
+    <article className="event-tile">
+      <div className={shot ? 'event-cover' : 'event-cover no-photo'} style={{ background: host?.color ?? '#15477C' }}>
+        {shot ? <span className="event-shot" style={{ backgroundImage: `url(${shot})` }} /> : null}
+        <span className="comm-kicker on-photo">{e.categoryLabel}</span>
         {state === 'going' ? (
-          <span className="badge badge-going">YOU'RE IN</span>
+          <span className="badge badge-going on-cover">YOU'RE IN</span>
         ) : left === 0 ? (
-          <span className="badge badge-full">FULL</span>
+          <span className="badge badge-full on-cover">FULL</span>
         ) : left <= 3 ? (
-          <span className="badge badge-seats">{left} seats left</span>
+          <span className="badge badge-seats on-cover">{left} seats left</span>
         ) : null}
       </div>
-      {/* Its own link, outside the one wrapping the title: this is how you
-          find a room you did not know about, and the whole reason Events is a
-          discovery surface. Nesting it inside the event link would be invalid
-          and would steal the tap. */}
-      {host ? (
-        <Link to={`/community/${host.id}`} className="card-host" viewTransition>
-          <span className="card-host-mark" style={{ background: host.color }}>
-            {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
-          </span>
-          <span className="card-host-name">{host.name}</span>
-          <ChevronIcon size={13} color="#6B665A" />
-        </Link>
-      ) : null}
-      {e.tags && e.tags.length > 0 ? (
-        <div className="tag-row">
-          {e.tags.map((t) => (
-            <span className="tag" key={t}>{t}</span>
-          ))}
-        </div>
-      ) : null}
-      <GoingRow e={e} onOpen={() => onWho(e.id)} />
-      <div className="btn-row">
-        {state === 'going' ? (
-          <button className="btn btn-primary" onClick={() => navigate(`/event/${e.id}`)}>
-            <CheckIcon size={15} color="#FDBE50" strokeWidth={2.6} /> You're going
-          </button>
-        ) : left === 0 ? (
-          <button className="btn btn-ghost" disabled>
-            Full
-          </button>
-        ) : (
-          <button className="btn btn-primary" onClick={() => openBuy(e.id)}>
-            Join them
-          </button>
-        )}
-        {state === 'interested' ? (
-          <button className="btn btn-ghost" onClick={() => navigate(`/event/${e.id}`)}>
-            Interested ✓
-          </button>
-        ) : state === 'none' || state === 'cancelled' ? (
-          <button className="btn btn-ghost" onClick={() => markInterested(e.id)}>
-            Maybe
-          </button>
+
+      {/* One layer over the picture and the words, so the whole tile opens
+          the night. The host row and the buttons sit above it. */}
+      <Link to={`/event/${e.id}`} className="event-hit" aria-label={e.title} />
+
+      <div className="event-tile-body">
+        <span className="comm-tile-name">{e.title}</span>
+        <span className="comm-tile-stats">
+          {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
+          {e.timeLabel} · {area}
+          {/* The list is ordered by this, so it has to be on screen —
+              otherwise nearest-first looks like no order at all. */}
+          {distanceLabel(km) ? ` · ${distanceLabel(km)}` : ''} · {priceLabel(e)}
+        </span>
+
+        {/* Its own link, not nested in the one covering the tile: this is how
+            somebody finds a room they did not know about. */}
+        {host ? (
+          <Link to={`/community/${host.id}`} className="event-host" viewTransition>
+            <span className="event-host-mark" style={{ background: host.color }}>
+              {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+            </span>
+            <span className="event-host-name">{host.name}</span>
+            <ChevronIcon size={13} color="rgba(255,255,255,0.6)" />
+          </Link>
         ) : null}
+
+        <GoingRow e={e} onOpen={() => onWho(e.id)} />
+
+        <div className="btn-row">
+          {state === 'going' ? (
+            <button className="btn btn-confirm" onClick={() => navigate(`/event/${e.id}`)}>
+              <CheckIcon size={15} color="#FDBE50" strokeWidth={2.6} /> You're going
+            </button>
+          ) : left === 0 ? (
+            <button className="btn btn-ghost on-dark" disabled>
+              Full
+            </button>
+          ) : (
+            <button className="btn btn-cta" onClick={() => openBuy(e.id)}>
+              Join them
+            </button>
+          )}
+          {state === 'interested' ? (
+            <button className="btn btn-ghost on-dark" onClick={() => navigate(`/event/${e.id}`)}>
+              Interested ✓
+            </button>
+          ) : state === 'none' || state === 'cancelled' ? (
+            <button className="btn btn-ghost on-dark" onClick={() => markInterested(e.id)}>
+              Maybe
+            </button>
+          ) : null}
+        </div>
       </div>
     </article>
   )
