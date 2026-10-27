@@ -243,6 +243,17 @@ button {
     overflow-y: auto;
   }
 
+  /* Nothing in the stack gets squashed to make room — the column scrolls
+     instead, which is what it did in document flow before this frame existed.
+     The automatic minimum size usually guarantees that, but it is switched
+     off for any item whose own overflow is not visible, and several here
+     scroll sideways: the tab bar, the photo strip. One of them collapsing to
+     a hairline is how Posts/Tickets/Photos/About disappeared off the
+     community page. Growing is untouched — this only forbids shrinking. */
+  .screen > * {
+    flex-shrink: 0;
+  }
+
   /* Fixed positions against the viewport, which would plant the bar at the
      bottom of the window rather than of the frame. */
   .tabbar {
@@ -1818,7 +1829,14 @@ button {
   margin: 0; padding: 0 2px;
 }
 /* Five tabs need the room. */
-.tab-bar { gap: 17px; overflow-x: auto; scrollbar-width: none; }
+/* flex:none is load-bearing. A flex item's automatic minimum size is what
+   normally stops it being squashed below its content — but that protection is
+   switched off for an item whose own overflow is not visible, and this one
+   scrolls sideways so the five tabs fit. Inside the laptop frame, where the
+   screen became a flex column with a constrained height, that let the whole
+   bar shrink to nothing and leave only its bottom border: a hairline where
+   Posts, Tickets, Photos, Leaderboard and About used to be. */
+.tab-bar { gap: 17px; overflow-x: auto; scrollbar-width: none; flex: none; }
 .tab-bar::-webkit-scrollbar { display: none; }
 .tab-link { flex: 0 0 auto; }
 

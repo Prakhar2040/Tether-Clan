@@ -142,6 +142,23 @@ wrong. Provenance and licences are in `frontend/src/assets/CREDITS.md`.
 
 ---
 
+**11. Community page lost its Posts/Tickets/Photos/About tabs** · 27 Oct
+
+Caused by fix #5. Making the app a fixed-height frame on a laptop turned `.screen` into
+a flex column with a constrained height, and flex items shrink.
+
+A flex item is normally protected from being squashed below its content by its automatic
+minimum size — but that protection is switched off for any item whose own overflow is not
+visible. The tab bar scrolls sideways so five tabs fit, so it had no protection and
+collapsed to zero height, leaving just its bottom border: a hairline where the tabs used
+to be.
+
+Fixed at the source rather than one element at a time: nothing in the screen's top-level
+stack may shrink now. Growing is untouched. The photo strip in About had the same hazard
+and would have been next.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
