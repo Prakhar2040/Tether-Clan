@@ -9,7 +9,7 @@ import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
 import { useLocation } from '../state/location'
 import { LocationChip, LocationSheet } from '../components/LocationPicker'
-import { addDays, matchesWhen, todayYmd, useFilters, weekdayIndex, WEEKDAYS, whenTitle, ymdOf } from '../state/filters'
+import { addDays, eventMatches, matchesWhen, todayYmd, useFilters, weekdayIndex, WEEKDAYS, whenTitle, ymdOf } from '../state/filters'
 import type { When } from '../state/filters'
 import type { HydratedEvent, SuggestionItem } from '../api/search'
 import {
@@ -23,10 +23,6 @@ import {
 import type { TcEvent } from '@shared/types'
 
 
-
-function beginnerOk(e: TcEvent): boolean {
-  return Boolean(e.beginnerFriendly) || /all levels|all paces|drop in|first-timers/i.test(e.levelLabel ?? '')
-}
 
 // Event-first card: the event leads, and an Instagram-style "who's going"
 // row sits below it — tap it to open the attendee sheet.
@@ -288,18 +284,10 @@ export default function Tonight() {
     const v = venues[e.venueId]
     return { e, area: v.areaName, km: distanceKm(v.lat, v.lng) }
   }
+  // The same predicate the Map applies, so the two screens cannot disagree.
   const localRows = Object.values(events)
-    .filter((e) => matchesWhen(e, when))
-    .filter(
-      (e) =>
-        (!freeOnly || e.price === 0) &&
-        (!beginnerOnly || beginnerOk(e)) &&
-        selectedTags.every((t) => e.tags?.includes(t)) &&
-        (q === '' ||
-          e.title.toLowerCase().includes(q) ||
-          e.categoryLabel.toLowerCase().includes(q) ||
-          (e.tags ?? []).some((t) => t.toLowerCase().includes(q)) ||
-          venues[e.venueId].name.toLowerCase().includes(q)),
+    .filter((e) =>
+      eventMatches(e, { when, freeOnly, beginnerOnly, selectedTags, query }, venues[e.venueId].name),
     )
     .map(mockRow)
 

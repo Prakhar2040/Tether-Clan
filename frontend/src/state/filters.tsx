@@ -107,6 +107,58 @@ export function weekendDays(): string[] {
   return [0, 1, 2, 3, 4, 5, 6].map((n) => addDays(t, n)).filter((d) => weekdayIndex(d) >= 5)
 }
 
+/* Does this event survive the filters currently set?
+ *
+ * Lives here rather than on the Events screen because the Map has to answer
+ * the same question. It used to apply only the time window, so searching on
+ * one screen and switching to the other silently showed a different set —
+ * two answers to one question is worse than either answer.
+ *
+ * `venueName` is passed in: this module knows nothing about venues, and the
+ * two screens reach them differently.
+ */
+export interface EventLike {
+  dayLabel: string
+  startsAt?: string
+  title: string
+  categoryLabel: string
+  price?: number
+  tags?: string[]
+  beginnerFriendly?: boolean
+  levelLabel?: string
+}
+
+export function beginnerOk(e: EventLike): boolean {
+  return (
+    Boolean(e.beginnerFriendly) ||
+    /all levels|all paces|drop in|first-timers/i.test(e.levelLabel ?? '')
+  )
+}
+
+export interface FilterSet {
+  when: When
+  freeOnly: boolean
+  beginnerOnly: boolean
+  selectedTags: string[]
+  query: string
+}
+
+export function eventMatches(e: EventLike, f: FilterSet, venueName = ''): boolean {
+  if (!matchesWhen(e, f.when)) return false
+  if (f.freeOnly && e.price !== 0) return false
+  if (f.beginnerOnly && !beginnerOk(e)) return false
+  if (!f.selectedTags.every((t) => e.tags?.includes(t))) return false
+
+  const q = f.query.trim().toLowerCase()
+  if (q === '') return true
+  return (
+    e.title.toLowerCase().includes(q) ||
+    e.categoryLabel.toLowerCase().includes(q) ||
+    (e.tags ?? []).some((t) => t.toLowerCase().includes(q)) ||
+    venueName.toLowerCase().includes(q)
+  )
+}
+
 export function whenTitle(when: When): { title: string; sub: string } {
   if (when === 'tonight') return { title: 'Tonight', sub: label(todayYmd()) }
   if (when === 'weekend') {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { events, venues } from '@shared/mock'
-import { matchesWhen, useFilters, whenTitle } from '../state/filters'
+import { eventMatches, useFilters, whenTitle } from '../state/filters'
 import { useLocation } from '../state/location'
 import { LocationSheet } from '../components/LocationPicker'
 import { Brand } from '../components/shared'
@@ -69,7 +69,7 @@ function circlePolygon(lat: number, lng: number, km: number) {
 
 export default function MapScreen() {
   const navigate = useNavigate()
-  const { when, activeCount } = useFilters()
+  const { when, freeOnly, beginnerOnly, selectedTags, query, activeCount } = useFilters()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
@@ -81,11 +81,21 @@ export default function MapScreen() {
 
   const { title } = whenTitle(when)
 
-  // Time filter first — a map of everything is noise. Everything matching the
-  // filter is pinned, regardless of what is currently in view.
+  /* Every filter, not just the time window — the same predicate the Events
+     list uses. The map used to honour `when` alone, so searching on one
+     screen and switching to the other showed a different set of nights with
+     no explanation. Everything matching is pinned, regardless of what is
+     currently in view. */
   const inWindow = useMemo(
-    () => Object.values(events).filter((e) => matchesWhen(e, when)),
-    [when],
+    () =>
+      Object.values(events).filter((e) =>
+        eventMatches(
+          e,
+          { when, freeOnly, beginnerOnly, selectedTags, query },
+          venues[e.venueId]?.name ?? '',
+        ),
+      ),
+    [when, freeOnly, beginnerOnly, selectedTags, query],
   )
 
   // Venue layer: anchors that host things regularly, shown even with no
@@ -245,14 +255,29 @@ export default function MapScreen() {
     <div className="screen no-bar map-screen">
       <div className="map-header">
         <Brand />
+        {/* Tapping it goes back to Events, which is where filters are set.
+            The search term is named rather than counted: "2 filters" does not
+            explain an empty map, and "queer night" does. */}
         <button className="location-chip" onClick={() => navigate('/events')}>
           <SlidersIcon size={13} color="#15477C" />
-          {title}
+          {query.trim() ? `“${query.trim()}”` : title}
           {activeCount > 0 ? ` · ${activeCount}` : ''}
         </button>
       </div>
 
       <div className="map-canvas" ref={containerRef} style={{ height: '100dvh' }} />
+
+      {ready && inWindow.length === 0 ? (
+        <div className="map-empty">
+          <span className="t">Nothing matching here</span>
+          <span className="s">
+            {query.trim() ? `No events match “${query.trim()}”.` : 'Nothing on with these filters.'}
+          </span>
+          <button className="btn btn-small" onClick={() => navigate('/events')}>
+            Change filters
+          </button>
+        </div>
+      ) : null}
 
       {mapError ? (
         <div className="map-error">

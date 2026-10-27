@@ -110,6 +110,19 @@ Typing a search still gives relevance order rather than distance.
 
 ---
 
+**9. Events and map showed different results** · 27 Oct
+
+The filter state was already shared — the Map just ignored most of it, applying only the
+time window. Search for something on Events, switch to Map, and you got a different set of
+nights with no explanation.
+
+The predicate now lives in `state/filters.tsx` and both screens call it, so they cannot
+drift. The map names the active search in its header rather than counting filters
+("2 filters" doesn't explain an empty map, "queer night" does) and says so over the canvas
+when nothing matches.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
