@@ -201,6 +201,9 @@ button {
   display: flex; align-items: center; gap: 8px;
   margin-top: 8px; padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.16);
+  /* A link, but not a run of underlined text — the whole row is the target
+     and the chevron says so. */
+  text-decoration: none;
 }
 .event-host-mark {
   width: 20px; height: 20px; border-radius: 6px; flex: none;
@@ -209,6 +212,7 @@ button {
 }
 .event-host-name {
   flex: 1; min-width: 0;
+  text-decoration: none;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 12px; font-weight: 700; color: rgba(255, 255, 255, 0.88);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

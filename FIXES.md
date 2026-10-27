@@ -279,6 +279,22 @@ colour beyond that. 29 of 31 get a real photograph.
 
 ---
 
+**20. Event covers showed a flat colour instead of the photo** · 27 Oct
+
+`communityOf` was re-exported straight from the shared data layer, where `coverImage` is a
+*filename* — correct for the seeder, useless to a browser. Cards asked for
+`url(community-football.jpg)`, got a 404, and fell back to the brand colour, which looks
+identical to a room that simply has no cover.
+
+The client now re-exports a resolved version that looks the record up in the mapped
+communities. Verified in the rendered DOM rather than by eye: covers come out as
+`community-openmic-C4R1kFRn.jpg`.
+
+The host row was also rendering as underlined link text; the whole row is the target and
+the chevron says so.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox

@@ -41,6 +41,7 @@ import coverPickleball from '../assets/community-pickleball.jpg'
 import coverTrivia from '../assets/community-trivia.jpg'
 import type { Community, CommunityPhoto } from '@shared/types'
 import {
+  communityOf as rawCommunityOf,
   postsFor,
   communities as rawCommunities,
   photos as rawPhotos,
@@ -104,9 +105,20 @@ export {
   communityEvents,
   pastCommunityEvents,
   upcomingCommunityEvents,
-  communityOf,
   canPost,
 } from '@shared/community.data'
+
+/* Resolved, unlike the one in the data layer.
+ *
+ * `communityOf` there returns the raw record, whose coverImage is a filename
+ * — correct for the seeder, useless to a browser. Re-exporting it as-is meant
+ * event cards asked for `url(community-football.jpg)`, got a 404 and fell
+ * back to the flat brand colour, which looked exactly like a community with
+ * no cover. */
+export function communityOf(eventId: string): Community | undefined {
+  const raw = rawCommunityOf(eventId)
+  return raw ? (communities[raw.id] ?? raw) : undefined
+}
 
 /* These two read the photo list, so they have to read the resolved one. */
 export function photosFor(communityId: string): CommunityPhoto[] {
