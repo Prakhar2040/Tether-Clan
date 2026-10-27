@@ -89,28 +89,47 @@ not get a fix" for a browser-level block as for a timeout.
 
 ---
 
-## 4. Map not working on the deployed site — **open**
+## 4. Map not working on the deployed site — **fixed**
 
 *Reported 27 Oct.*
 
-**Symptom:** the map does not work on the CloudFront member app.
+**Symptom:** the map did not work on the deployed member app. Worked locally.
 
-**Ruled out:** this is not geolocation. Positions are simulated and default to
-Indiranagar, so the map has a centre whatever the browser says.
+**Not geolocation.** Positions are simulated and default to Indiranagar, so the map
+always has a centre whatever the browser says.
 
-**The dependency:** the map is Mapbox, and `frontend/src/screens/MapScreen.tsx` reads
-`VITE_MAPBOX_TOKEN` at build time. A missing or rejected token means no tiles.
+**Cause:** the Mapbox token. `MapScreen.tsx` reads `VITE_MAPBOX_TOKEN` at build time and
+it is baked into the lazy-loaded `MapScreen-*.js` chunk. The token the deployed build
+carried did not work from the CloudFront origin. The precise reason is unconfirmed —
+restricted to localhost, or revoked — because that token only ever lived in `.env.local`,
+which has since been overwritten, and the old deployed chunk sits behind the password
+gate.
 
-**Known so far:** the token lives in `frontend/.env.local`, which is gitignored, and it
-is baked into the lazy-loaded `MapScreen-*.js` chunk rather than the main bundle. The
-local build has it. The deployed chunk has the same content hash as the local one, so it
-should have it too — not yet verified directly, because the AWS session expired.
+**Fix:** replaced it with the account's Default public token, verified against the Mapbox
+API from three origins before deploying — no referer, the CloudFront domain and
+localhost all returned 200. Rebuilt and deployed.
 
-**Leading hypothesis:** the token is URL-restricted to localhost, so Mapbox rejects
-requests from the CloudFront domain. The browser console would show a 401 or 403 from
-`api.mapbox.com` and settle it.
+**Not a leak, contrary to an earlier note here:** `frontend/.env.example` contains the
+placeholder `your_mapbox_public_token_here`, not a real token. Nothing to rotate.
 
-**Noticed alongside:** `frontend/.env.example` is tracked and carries a *different*
-Mapbox token, so that one is public on a public repo. Mapbox `pk.` tokens are meant to be
-public, but an unrestricted one can be used by anyone against your account. Worth
-restricting by URL or rotating.
+---
+
+## TODO before production
+
+- [ ] **Restrict the Mapbox token.** The account currently has one token, the Default
+      public token, and Mapbox does not allow URL restrictions on that one — its URLs
+      column reads N/A. Restricting it means creating a dedicated token, and Mapbox asks
+      for a payment method to do that, so it is deferred deliberately.
+
+      A `pk.` token is meant to ship in client code and cannot do anything but read map
+      data, so the exposure is bounded: someone who lifts it from the bundle can spend
+      this account's map loads, nothing more. That is acceptable for a demo behind a
+      shared password and is not acceptable once the apps are public.
+
+      When the time comes: create a token scoped to `styles:read` and `fonts:read`, with
+      URL restrictions for the real domain and `http://localhost:5173`, put it in
+      `frontend/.env.local`, rebuild and deploy. Nothing in the code changes.
+
+- [ ] **The token carries no payment method**, so it is on capped free usage ("Usage
+      limited" in the Mapbox console). If the map stops abruptly, check Statistics there
+      before looking for a bug.
