@@ -77,6 +77,70 @@ button {
 
 .screen.no-bar { padding-bottom: 0; }
 
+/* Searching for a place, in the location sheet. */
+.loc-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1.5px solid #E2D9C4;
+  border-radius: 12px;
+  padding: 0 10px;
+  min-height: 46px;
+}
+.loc-search:focus-within { border-color: var(--blue); }
+.loc-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+  padding: 12px 0;
+}
+.loc-clear {
+  font-size: 20px;
+  line-height: 1;
+  color: #6B665A;
+  padding: 4px 6px;
+  min-width: 28px;
+}
+
+.loc-hits {
+  display: flex;
+  flex-direction: column;
+  /* The sheet is already a scroller; this just stops a long list owning it. */
+  max-height: 44dvh;
+  overflow-y: auto;
+}
+.loc-hit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 4px;
+  border-bottom: 1px solid #EFE7D6;
+  text-align: left;
+  min-height: 48px;
+}
+.loc-hit:last-child { border-bottom: none; }
+.loc-hit:active { background: #F6EFE0; }
+.loc-hit-name {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.loc-hit-sub {
+  font-size: 12.5px;
+  color: #6B665A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* The error bars on a device fix, beside the place name. */
 .chip-accuracy {
   font-style: normal;

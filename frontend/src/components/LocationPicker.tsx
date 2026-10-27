@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { LocStatus } from '../state/location'
 import { useLocation } from '../state/location'
-import { PinIcon } from './icons'
+import { PinIcon, SearchIcon } from './icons'
+import { MIN_QUERY, searchPlaces, type PlaceHit } from '../api/geocode'
 
 // Where the user is. One control, used by both Events and the Map, so the
 // two always agree on the answer.
@@ -61,6 +62,57 @@ export function LocationSheet({
 }) {
   const { place, status, request, setPlace } = useLocation()
   const [error, setError] = useState<string | null>(null)
+  const [q, setQ] = useState('')
+  const [hits, setHits] = useState<PlaceHit[]>([])
+  const [searching, setSearching] = useState(false)
+  // Where to bias results from. Held in a ref so moving the pin mid-search
+  // cannot restart the request that is already in flight.
+  const near = useRef(place)
+  near.current = place
+
+  const choose = (lat: number, lng: number, label: string) => {
+    setPlace({ lat, lng, label })
+    onPicked?.(lat, lng)
+    onClose()
+  }
+
+  /* Typing is not a request per keystroke: each one cancels the last and the
+     call waits for a pause. The abort matters as much as the delay — without
+     it a slow early response can land after a fast later one and overwrite
+     the results for a query nobody is looking at any more. */
+  useEffect(() => {
+    const text = q.trim()
+    if (text.length < MIN_QUERY) {
+      setHits([])
+      setSearching(false)
+      return
+    }
+    const ac = new AbortController()
+    setSearching(true)
+    const t = setTimeout(() => {
+      searchPlaces(text, near.current, ac.signal)
+        .then((found) => setHits(found))
+        .catch((err) => {
+          if ((err as Error).name === 'AbortError') return
+          /* Offline, or no token. Falling back to the known areas keeps the
+             control usable rather than leaving a dead box. */
+          setHits(
+            AREAS.filter((a) => a.name.toLowerCase().includes(text.toLowerCase())).map((a) => ({
+              id: a.id,
+              name: a.name,
+              context: 'Bengaluru',
+              lat: a.lat,
+              lng: a.lng,
+            })),
+          )
+        })
+        .finally(() => setSearching(false))
+    }, 250)
+    return () => {
+      ac.abort()
+      clearTimeout(t)
+    }
+  }, [q])
 
   return (
     <div className="sheet-backdrop" onClick={onClose}>
@@ -107,22 +159,57 @@ export function LocationSheet({
           </span>
         ) : null}
 
-        <span className="sheet-section">Or pick an area</span>
-        <div className="chip-row" style={{ padding: 0 }}>
-          {AREAS.map((a) => (
-            <button
-              key={a.id}
-              className={place.label === a.name ? 'chip active' : 'chip'}
-              onClick={() => {
-                setPlace({ lat: a.lat, lng: a.lng, label: a.name })
-                onPicked?.(a.lat, a.lng)
-                onClose()
-              }}
-            >
-              {a.name}
+        <span className="sheet-section">Or search for a place</span>
+
+        <label className="loc-search">
+          <SearchIcon size={15} color="#6B665A" strokeWidth={2.2} />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Area, street or landmark"
+            aria-label="Search for a place"
+            autoComplete="off"
+            enterKeyHint="search"
+          />
+          {q ? (
+            <button className="loc-clear" onClick={() => setQ('')} aria-label="Clear">
+              ×
             </button>
-          ))}
-        </div>
+          ) : null}
+        </label>
+
+        {/* An empty box is a dead end, so the areas people actually pick stay
+            on show until they start typing. */}
+        {q.trim().length < MIN_QUERY ? (
+          <div className="chip-row" style={{ padding: 0 }}>
+            {AREAS.map((a) => (
+              <button
+                key={a.id}
+                className={place.label === a.name ? 'chip active' : 'chip'}
+                onClick={() => choose(a.lat, a.lng, a.name)}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="loc-hits">
+            {hits.map((h) => (
+              <button key={h.id} className="loc-hit" onClick={() => choose(h.lat, h.lng, h.name)}>
+                <PinIcon size={13} color="#15477C" strokeWidth={2.2} />
+                <span className="stack-2" style={{ minWidth: 0 }}>
+                  <span className="loc-hit-name">{h.name}</span>
+                  {h.context ? <span className="loc-hit-sub">{h.context}</span> : null}
+                </span>
+              </button>
+            ))}
+            {hits.length === 0 ? (
+              <span className="page-sub">
+                {searching ? 'Searching…' : `Nothing in Bengaluru matching “${q.trim()}”.`}
+              </span>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -226,6 +226,40 @@ answer and stop hiding how good the answer is; it cannot give a laptop a satelli
 
 ---
 
+## 7. Location is a search box now, not seven hardcoded areas — **built**
+
+*Asked 27 Oct. A feature rather than a fix, kept here so the list stays one story.*
+
+Typing an area, street or landmark searches Bengaluru and offers real places, the way a
+maps app does. Mapbox geocoding, using the token the map already needs.
+
+Four constraints, all of them because this product is one city:
+
+- **`bbox` clamped to Bengaluru,** and drawn tightly. A loose box reaches Hosur and
+  Nelamangala — an hour away and not somewhere you are going tonight.
+- **`proximity` set to wherever the viewer already is,** so the nearest Koramangala block
+  ranks above the far one.
+- **Signpost names dropped.** Mapbox's Indian street data carries a lot of directions
+  masquerading as places: "Mg Rd Opposite Indira Canteen Behind Bolas", "Cubbon Park
+  Opposite M.S Building Near Vidhan Soudha". Unusable as a label and never what anyone
+  meant, so anything matching opposite/opp/near/behind/beside, or longer than 32
+  characters, is discarded. Cutting street results altogether was the other option, but
+  it loses "MG Road" and "Cubbon", which are exactly what people type.
+- **Areas ranked above streets.** Somebody typing "koram" wants Koramangala, not a road
+  with Koramangala in the name.
+
+**Two things that matter more than the search itself.** Each keystroke aborts the request
+before it — without that, a slow early response lands after a fast later one and
+overwrites the results for a query nobody is looking at any more. And when the request
+fails, it falls back to filtering the seven known areas by name, so the control still
+works offline rather than becoming a dead box. That is the same rule the rest of the app
+follows.
+
+The seven areas are still there, shown until you have typed three characters, because an
+empty search box with nothing under it is a dead end.
+
+---
+
 ## TODO before production
 
 - [ ] **Restrict the Mapbox token.** The account currently has one token, the Default
