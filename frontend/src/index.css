@@ -1316,6 +1316,44 @@ button {
 
 /* Pinned the same way the tab bar is, so nothing can scroll into the strip
    between the two and show through. */
+/* Going into a room, the logo in the header becomes Tether at the head of
+   the channel.
+   
+   Two elements on two different screens sharing one view-transition-name is
+   all it takes — the browser morphs between them and cross-fades the rest.
+   Where the API is missing the navigation simply happens, which is why this
+   is CSS and one router prop rather than measuring rectangles by hand.
+   
+   The name has to be unique per page: the header lockup carries it on the
+   screen you leave, the Tether mark on the one you arrive at, and the
+   community page has no lockup of its own. */
+.brand-mark,
+.tether-mark {
+  view-transition-name: tether-mark;
+}
+/* A flex item rather than an inline span, or the lockup picks up baseline
+   space under the mark and the wordmark stops sitting level with it. */
+.brand-mark { display: flex; }
+
+::view-transition-group(tether-mark) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The page under it should not make a performance of it. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Tether, at the head of the channel.
    Replaced a grey bar fixed above the tab bar, which covered whatever you
    were reading. Here it is the first thing in the room and cannot overlap

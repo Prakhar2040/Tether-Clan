@@ -93,7 +93,7 @@ function EventFeedCard({
           discovery surface. Nesting it inside the event link would be invalid
           and would steal the tap. */}
       {host ? (
-        <Link to={`/community/${host.id}`} className="card-host">
+        <Link to={`/community/${host.id}`} className="card-host" viewTransition>
           <span className="card-host-mark" style={{ background: host.color }}>
             {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
           </span>
@@ -185,7 +185,7 @@ function RoomsToFind({ joinedIds }: { joinedIds: string[] }) {
     <div className="rooms-band">
       <span className="tile-label">ROOMS YOU'RE NOT IN</span>
       {rooms.map(({ c, next }) => (
-        <Link key={c.id} to={`/community/${c.id}`} className="room-row">
+        <Link key={c.id} to={`/community/${c.id}`} className="room-row" viewTransition>
           <span className="room-mark" style={{ background: c.color }}>
             {c.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
           </span>

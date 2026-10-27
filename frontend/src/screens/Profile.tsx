@@ -87,7 +87,7 @@ export default function Profile() {
             const table = boards[c.id]?.standings ?? []
             const you = table.find((r) => r.isYou)
             return (
-              <Link to={`/community/${c.id}`} className="me-comm" key={c.id}>
+              <Link to={`/community/${c.id}`} className="me-comm" key={c.id} viewTransition>
                 <span className="me-comm-top">
                   <span className="me-mark" style={{ background: c.color }}>
                     {c.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}

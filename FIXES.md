@@ -190,6 +190,17 @@ falls back to rotating without it.
 
 ---
 
+**14. The logo flies into the room** · 27 Oct · *feature*
+
+Going into a community, the mark in the header morphs into Tether at the head of the
+channel. Two elements on two screens sharing one `view-transition-name` — the browser does
+the morph and cross-fades the rest.
+
+CSS and one router prop rather than measuring rectangles by hand, and where the API is
+missing the navigation just happens. Disabled under reduced motion.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox

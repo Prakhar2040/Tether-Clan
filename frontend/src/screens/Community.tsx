@@ -102,7 +102,7 @@ function CommunityTile({ c, photos }: { c: TcCommunity; photos: CommunityPhoto[]
         </div>
         </div>
 
-        <Link to={`/community/${c.id}`} className="comm-hit" aria-label={c.name} />
+        <Link to={`/community/${c.id}`} className="comm-hit" aria-label={c.name} viewTransition />
 
         {/* Step through without leaving the page. They surface on hover, and
             sit above the link rather than inside it — a button inside an

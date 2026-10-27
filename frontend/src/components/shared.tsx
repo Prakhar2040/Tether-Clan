@@ -5,7 +5,12 @@ import { CalendarIcon, CircleIcon, HomeIcon, LogoMark, PersonIcon, PinIcon, Word
 export function Brand() {
   return (
     <span className="brand big">
-      <LogoMark size={40} decorative />
+      {/* Wrapped so the mark alone carries the view-transition name: going
+          into a room, this is the thing that flies down and becomes Tether at
+          the head of the channel. The wordmark stays out of it. */}
+      <span className="brand-mark">
+        <LogoMark size={40} decorative />
+      </span>
       <WordMark height={17} />
     </span>
   )
