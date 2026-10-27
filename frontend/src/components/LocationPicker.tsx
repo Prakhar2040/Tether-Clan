@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SIMULATED_LOCATION, useLocation } from '../state/location'
+import { useLocation } from '../state/location'
 import { PinIcon } from './icons'
 
 // Where the user is. One control, used by both Events and the Map, so the
@@ -40,29 +40,35 @@ export function LocationSheet({
         <span className="sheet-handle" />
         <span className="section-label">Where are you?</span>
 
-        {SIMULATED_LOCATION ? null : (
-          <button
-            className="btn btn-primary"
-            style={{ minHeight: 48 }}
-            onClick={async () => {
-              setError(null)
-              const fix = await request()
-              if (fix) {
-                onPicked?.(fix.lat, fix.lng)
-                onClose()
-              } else {
-                setError('Could not get a location fix. Pick an area below instead.')
-              }
-            }}
-          >
-            <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} />
-            {status === 'locating' ? 'Finding you…' : 'Use my current location'}
-          </button>
-        )}
+        {/* Always offered. The areas below are the quick way to say where you
+            are; this is for when you want the real answer. Asking here is a tap,
+            so it goes to the device even while positions are simulated. */}
+        <button
+          className="btn btn-primary"
+          style={{ minHeight: 48 }}
+          disabled={status === 'locating'}
+          onClick={async () => {
+            setError(null)
+            const fix = await request('user')
+            if (fix) {
+              onPicked?.(fix.lat, fix.lng)
+              onClose()
+            } else {
+              setError(
+                status === 'blocked'
+                  ? 'Location is blocked for this site in your browser settings. Pick an area below instead.'
+                  : 'Could not get a location fix. Pick an area below instead.',
+              )
+            }
+          }}
+        >
+          <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} />
+          {status === 'locating' ? 'Finding you…' : 'Use my current location'}
+        </button>
 
         {error ? <span className="page-sub">{error}</span> : null}
 
-        <span className="sheet-section">{SIMULATED_LOCATION ? 'Pick an area' : 'Or pick an area'}</span>
+        <span className="sheet-section">Or pick an area</span>
         <div className="chip-row" style={{ padding: 0 }}>
           {AREAS.map((a) => (
             <button

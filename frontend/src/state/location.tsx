@@ -4,10 +4,16 @@ import type { ReactNode } from 'react'
 // One source of truth for "where the user is", so distances on event cards
 // and the map agree. The last fix is remembered so it survives navigation.
 
-/* THE SWITCH. While true the viewer's position is simulated: it is whatever area
- * the LocationPicker last chose (default Indiranagar) and nothing ever asks the
- * browser for permission. Flip it to false to use the device's real position -
- * the server needs no change, it only ever receives a lat and a lng. */
+/* THE SWITCH. While true, nothing asks the browser for permission *on its own*:
+ * the default position is whatever area the LocationPicker last chose
+ * (Indiranagar to begin with), so no screen can put a permission prompt in front
+ * of someone who only wanted to look at a map.
+ *
+ * It no longer disables real location altogether. Tapping "Use my current
+ * location" asks the device whatever this says, because a tap is the person
+ * asking, not a screen asking for them. Flip it to false and screens may ask on
+ * load too. The server needs no change either way - it only ever receives a lat
+ * and a lng. */
 export const SIMULATED_LOCATION = true
 
 export const FALLBACK = { lat: 12.9719, lng: 77.6412, label: 'Indiranagar' }
@@ -25,7 +31,11 @@ interface LocationValue {
   place: Place
   status: LocStatus
   isReal: boolean // true only when it came from the device
-  request: () => Promise<Place | null>
+  /* Ask the device where it is. 'user' is somebody tapping the button and
+     always asks; 'auto' is a screen asking on its own behalf, which is
+     suppressed while simulating. Defaults to 'auto' so a new call site cannot
+     start prompting people by accident. */
+  request: (trigger?: 'auto' | 'user') => Promise<Place | null>
   setPlace: (p: Place) => void
   distanceKm: (lat: number, lng: number) => number
 }
@@ -55,14 +65,13 @@ export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: numb
   return 2 * R * Math.asin(Math.sqrt(h))
 }
 
-function simulatedStart(): { place: Place; real: boolean } {
-  const saved = load()
-  return saved.real ? { place: FALLBACK, real: false } : saved
-}
+
 
 export function LocationProvider({ children }: { children: ReactNode }) {
-  // A remembered device fix is ignored while simulating, so a stale 'Your location' cannot linger.
-  const initial = SIMULATED_LOCATION ? simulatedStart() : load()
+  /* A remembered device fix is honoured, including while simulating: it can only
+     be there because somebody asked for it, and throwing it away would mean
+     re-asking on every visit. */
+  const initial = load()
   const [place, setPlaceState] = useState<Place>(initial.place)
   const [isReal, setIsReal] = useState(initial.real)
   const [status, setStatus] = useState<LocStatus>(initial.real ? 'granted' : 'default')
@@ -86,8 +95,9 @@ export function LocationProvider({ children }: { children: ReactNode }) {
   )
 
   // Accepts a recent cached fix, and keeps listening for the first real one.
-  const request = useCallback((): Promise<Place | null> => {
-    if (SIMULATED_LOCATION) return Promise.resolve(null) // never touch navigator.geolocation
+  const request = useCallback((trigger: 'auto' | 'user' = 'auto'): Promise<Place | null> => {
+    // A screen asking on its own stays silent while simulating; a tap does not.
+    if (SIMULATED_LOCATION && trigger === 'auto') return Promise.resolve(null)
     if (!('geolocation' in navigator)) {
       setStatus('unsupported')
       return Promise.resolve(null)
