@@ -1,8 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
-import { communities, communityOf, eventImages, upcomingCommunityEvents } from '../data/community'
-import { useCommunities } from '../state/communities'
+import { communityOf, eventImages } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
@@ -164,53 +163,6 @@ function Promoted({ e }: { e: TcEvent }) {
   )
 }
 
-/* Rooms you are not in, and the next thing each one is running.
- *
- * Events is where somebody finds a room they did not know existed — the
- * Community tab only ever shows the ones already joined, so without this
- * there is no way in. Each row goes to the room rather than to its event:
- * the question being answered here is "who are these people", not "what is
- * on tonight", and the night is there as evidence they are still active.
- */
-function RoomsToFind({ joinedIds }: { joinedIds: string[] }) {
-  const mine = new Set(joinedIds)
-  /* Three, not fifteen. This is a nudge inside a list of nights, not a
-     directory — a wall of rooms here would bury the thing somebody came to
-     the page for. Soonest first, so what is shown is what is actually
-     happening next. */
-  const rooms = Object.values(communities)
-    .filter((c) => !mine.has(c.id))
-    .map((c) => ({ c, next: upcomingCommunityEvents(c.id)[0] }))
-    // A room with nothing coming up is not worth putting in front of someone.
-    .filter((r) => r.next)
-    .sort((a, b) => (a.next!.startsAt ?? '').localeCompare(b.next!.startsAt ?? ''))
-    .slice(0, 3)
-  if (rooms.length === 0) return null
-
-  return (
-    <div className="rooms-band">
-      <span className="tile-label">ROOMS YOU'RE NOT IN</span>
-      {rooms.map(({ c, next }) => (
-        <Link key={c.id} to={`/community/${c.id}`} className="room-row" viewTransition>
-          <span className="room-mark" style={{ background: c.color }}>
-            {c.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
-          </span>
-          <span className="stack-2" style={{ flex: 1, minWidth: 0 }}>
-            <span className="room-name">{c.name}</span>
-            <span className="room-meta">
-              {c.categoryLabel} · {c.areaName} · {c.memberCount} members
-            </span>
-            <span className="room-next">
-              Next: {next!.title} · {next!.dayLabel} {next!.timeLabel}
-            </span>
-          </span>
-          <ChevronIcon size={16} color="#15477C" />
-        </Link>
-      ))}
-    </div>
-  )
-}
-
 function NewAreaFeed({
   area,
   picks,
@@ -351,7 +303,6 @@ function Calendar({ when, onPick }: { when: When; onPick: (ymd: string) => void 
 export default function Tonight() {
   const navigate = useNavigate()
   const { place, distanceKm, isReal, status } = useLocation()
-  const { joinedIds } = useCommunities()
   const [locOpen, setLocOpen] = useState(false)
   const [whoFor, setWhoFor] = useState<string | null>(null)
   const {
@@ -540,11 +491,6 @@ export default function Tonight() {
                 <Fragment key={e.id}>
                   {/* Third slot down, so it never outranks a real result. */}
                   {i === 3 && promoted ? <Promoted e={promoted} /> : null}
-                  {/* Rooms sit a little further down than the promoted slot:
-                      somebody who typed a search wants their results first,
-                      and a room is a slower decision than a ticket. Only when
-                      nothing is being searched for. */}
-                  {i === 5 && query.trim() === '' ? <RoomsToFind joinedIds={joinedIds} /> : null}
                   {e.liveNow ? (
                   <Link to={`/event/${e.id}`} className="card compact-card">
                     <span className="live-dot" />
