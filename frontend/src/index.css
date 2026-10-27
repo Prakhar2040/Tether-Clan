@@ -1053,32 +1053,26 @@ button {
    before you read the name. Text sits on a scrim so it survives any image. */
 .comm-tile {
   display: flex; flex-direction: column;
-  background: var(--card); border-radius: 18px; overflow: hidden;
+  /* The hit layer spans the whole tile now, so the tile is what it positions
+     against — without this it anchors to whatever is positioned above it and
+     covers the wrong thing. */
+  position: relative;
+  background: var(--blue-deep); border-radius: 18px; overflow: hidden;
   text-decoration: none;
   /* On sand a white card is 1.26:1, so it needs an edge as well as a lift. */
   border: 1px solid var(--card-edge);
   box-shadow: 0 8px 24px rgba(92, 60, 12, 0.14);
 }
 .comm-cover {
-  position: relative; height: 212px; overflow: hidden;
+  position: relative; height: 176px; overflow: hidden;
   display: flex; align-items: flex-end;
 }
 .comm-cover::after {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  /* The scrim has to cover the text, not just the foot of the picture. The
-     name sits about two thirds of the way up this box, where the old ramp had
-     already faded to roughly a tenth — fine over a dark photograph, hopeless
-     over a white house and a pale sky, which is exactly what the run club
-     has. Dark enough for the worst cover in the set, since a tile that cannot
-     be read is worse than a photograph that is dimmed. */
-  background: linear-gradient(
-    to top,
-    rgba(7, 8, 8, 0.94) 0%,
-    rgba(7, 8, 8, 0.86) 30%,
-    rgba(7, 8, 8, 0.64) 52%,
-    rgba(7, 8, 8, 0.26) 72%,
-    rgba(7, 8, 8, 0) 92%
-  );
+  /* Barely there now. The words moved off the picture and onto the card, so
+     this no longer has to make white text legible over a white building — it
+     only has to stop the bottom edge glaring against the text below. */
+  background: linear-gradient(to top, rgba(7, 8, 8, 0.3) 0%, rgba(7, 8, 8, 0) 40%);
 }
 /* No photo yet: the brand colour carries it, with the mark washed in behind. */
 .comm-cover.no-photo::after {
@@ -1089,31 +1083,38 @@ button {
   font-size: 74px; font-weight: 900; letter-spacing: -0.02em;
   color: rgba(255,255,255,0.16); line-height: 1;
 }
-.comm-cover-text {
-  position: relative; z-index: 1;
-  display: flex; flex-direction: column; gap: 3px; padding: 16px; width: 100%;
-  /* Insurance on top of the scrim. A gradient is tuned for the covers we
-     have; this keeps the text legible over one we have not seen yet, and
-     costs nothing where the scrim was already doing the job. */
-  text-shadow: 0 1px 3px rgba(7, 8, 8, 0.55);
+/* The words, on the card rather than on the photograph.
+   Deep blue rather than white: a white band under a photograph is precisely
+   what made this read as two objects stacked, and the same navy as the tab
+   bar reads as the app holding the picture rather than a caption pasted
+   underneath it. The name also stays white, as it was on the photo. */
+.comm-tile-body {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 13px 16px 15px;
+  background: var(--blue-deep);
 }
 .comm-kicker {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--yellow);
 }
+/* One word left on the picture, carrying its own background so the
+   photograph needs no dimming to support it. */
+.comm-kicker.on-photo {
+  position: absolute; left: 12px; bottom: 11px; z-index: 2;
+  background: rgba(7, 8, 8, 0.72);
+  padding: 4px 9px; border-radius: 999px;
+  letter-spacing: 0.12em;
+}
 .comm-tile-name {
-  font-size: 22px; font-weight: 900; line-height: 1.1; color: #fff;
-  /* The name is the one thing somebody scans for, so it gets a shadow of its
-     own rather than the block's. */
-  text-shadow: 0 2px 10px rgba(7, 8, 8, 0.65), 0 1px 2px rgba(7, 8, 8, 0.5);
+  font-size: 21px; font-weight: 900; line-height: 1.15; color: #fff;
 }
 /* Members and rating are the two numbers that say whether this room is
    worth walking into, so they get size, not a caption. */
 .comm-tile-stats {
   display: flex; align-items: center; gap: 5px; margin-top: 3px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.78);
+  font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.76);
 }
 .comm-tile-stats svg { flex: 0 0 auto; }
 .comm-stat-n {
@@ -1123,15 +1124,14 @@ button {
 .comm-stat-word { position: relative; top: 0.5px; }
 .comm-stat-dot {
   width: 3px; height: 3px; border-radius: 50%;
-  background: rgba(255,255,255,0.5); margin: 0 3px;
+  background: rgba(255, 255, 255, 0.45); margin: 0 3px;
 }
 
-/* The plan sits on the picture under a hairline, so the card is one object.
-   A band of flat colour below a photograph — white or blue — reads as two
-   things stacked, which is what felt wrong about it. */
+/* The hairline stays — it separated the plan from the name on the photo and
+   does the same job on paper. Only its colour changes. */
 .comm-tile-plan {
-  margin-top: 11px; padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.22);
+  margin-top: 10px; padding-top: 9px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 /* The next plan is the reason to open the tile, so it gets its own line. */
 .comm-next {
@@ -1140,7 +1140,7 @@ button {
   font-size: 13px; font-weight: 700; color: #fff;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.comm-next.quiet { color: rgba(255,255,255,0.62); font-weight: 600; }
+.comm-next.quiet { color: rgba(255, 255, 255, 0.62); font-weight: 600; }
 /* Orange is only 3.1:1 on the blue band; amber is 5.7:1. */
 .comm-next-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); flex: 0 0 auto; }
 
@@ -2256,7 +2256,6 @@ body.splashing .brand.big { visibility: hidden; }
 /* The link is a layer over the photograph rather than a wrapper around it, so
    the arrows can sit above it without an anchor containing a button. */
 .comm-hit { position: absolute; inset: 0; z-index: 1; }
-.comm-cover-text { z-index: 2; pointer-events: none; }
 
 .shot-step {
   position: absolute; z-index: 2; top: 50%; margin-top: -17px;

@@ -69,40 +69,10 @@ function CommunityTile({ c, photos }: { c: TcCommunity; photos: CommunityPhoto[]
           />
         ))}
         {shots.length === 0 ? <span className="comm-cover-mark">{initialsOf(c.name)}</span> : null}
-        <div className="comm-cover-text">
-          <span className="comm-kicker">{c.categoryLabel}</span>
-          <span className="comm-tile-name">{c.name}</span>
-          <span className="comm-tile-stats">
-            <span className="comm-stat-n">{c.memberCount}</span>
-            <span className="comm-stat-word">members</span>
-            <span className="comm-stat-dot" />
-            <StarIcon size={14} filled />
-            <span className="comm-stat-n">{c.rating.toFixed(1)}</span>
-            <span className="comm-stat-word">({c.ratingCount})</span>
-          </span>
-
-        {/* On the photograph, not in a band under it: a strip of flat colour
-            below a picture makes the card read as two things stacked. */}
-        <div className="comm-tile-plan">
-          {next ? (
-            /* Tonight is the most urgent thing here; it used to read in the
-               same weight as a plan three weeks out. */
-            <span className={tonight ? 'comm-next now' : 'comm-next'}>
-              {tonight ? (
-                <span className="comm-now-badge">Tonight</span>
-              ) : (
-                <span className="comm-next-dot" />
-              )}
-              {tonight ? '' : `${next.dayLabel} `}
-              {next.timeLabel} · {next.title} · {venues[next.venueId].areaName}
-            </span>
-          ) : (
-            <span className="comm-next quiet">Nothing on the calendar yet</span>
-          )}
-        </div>
-        </div>
-
-        <Link to={`/community/${c.id}`} className="comm-hit" aria-label={c.name} viewTransition />
+        {/* The category is the only thing left on the picture. One short word
+            in a pill carries its own background, so the photograph does not
+            need dimming to support it. */}
+        <span className="comm-kicker on-photo">{c.categoryLabel}</span>
 
         {/* Step through without leaving the page. They surface on hover, and
             sit above the link rather than inside it — a button inside an
@@ -133,6 +103,52 @@ function CommunityTile({ c, photos }: { c: TcCommunity; photos: CommunityPhoto[]
         ) : null}
 
         {unread > 0 ? <span className="comm-bubble">{unread} new</span> : null}
+      </div>
+
+      {/* Off the photograph and onto the card.
+       *
+       * The old layout laid all of this over the picture, which meant the
+       * picture had to be dimmed enough to carry white text — and the cover
+       * with a white building in bright sun needed so much dimming that the
+       * photograph stopped being worth having. Here the picture is at full
+       * strength and the words sit on the card's own surface.
+       *
+       * The two are one object, not a photo with a caption pasted under it:
+       * no gap, no second border, no change of background between them. */}
+      {/* The link covers the whole tile, not just the picture. It used to sit
+          inside the cover, which was fine while the words were on the
+          photograph — now they are below it, and the name and the next plan
+          have to be as tappable as the image. */}
+      <Link to={`/community/${c.id}`} className="comm-hit" aria-label={c.name} viewTransition />
+
+      <div className="comm-tile-body">
+        <span className="comm-tile-name">{c.name}</span>
+        <span className="comm-tile-stats">
+          <span className="comm-stat-n">{c.memberCount}</span>
+          <span className="comm-stat-word">members</span>
+          <span className="comm-stat-dot" />
+          <StarIcon size={14} filled />
+          <span className="comm-stat-n">{c.rating.toFixed(1)}</span>
+          <span className="comm-stat-word">({c.ratingCount})</span>
+        </span>
+
+        <div className="comm-tile-plan">
+          {next ? (
+            /* Tonight is the most urgent thing here; it used to read in the
+               same weight as a plan three weeks out. */
+            <span className={tonight ? 'comm-next now' : 'comm-next'}>
+              {tonight ? (
+                <span className="comm-now-badge">Tonight</span>
+              ) : (
+                <span className="comm-next-dot" />
+              )}
+              {tonight ? '' : `${next.dayLabel} `}
+              {next.timeLabel} · {next.title} · {venues[next.venueId].areaName}
+            </span>
+          ) : (
+            <span className="comm-next quiet">Nothing on the calendar yet</span>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -207,14 +207,17 @@ White text on a photo of a white building and a pale sky. The scrim faded to abo
 of its strength by the height the name sits at — fine over a dark cover, hopeless over the
 run club's.
 
-Scrim now carries the dark across the whole text block, plus a text shadow as insurance
-for covers we have not seen. Measured over the worst region of that photo:
+First attempt deepened the scrim, which worked — name went from 2.8:1 to 8.9:1 — but
+dimmed the photograph so much it stopped being worth having.
 
-| | before | after |
-|---|---|---|
-| name | 2.8:1 | 8.9:1 |
-| category kicker | 1.3:1 | 4.2:1 |
-| members and rating | 2.5:1 | 7.6:1 |
+So the card was split instead: picture on top at full strength, words below on a deep blue
+block. A white band under a photo is what made an earlier version of this read as two
+things stacked, and the navy matches the tab bar, so it reads as the app holding the
+picture rather than a caption pasted underneath. Only the category stays on the image, in
+a pill carrying its own background. Name now 11.5:1, members and rating 6.9:1.
+
+The invisible link layer had to move out of the cover at the same time, or the name and
+the next plan would not have been tappable.
 
 **16. Tether branding inside a community page** · 27 Oct
 
