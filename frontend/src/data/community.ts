@@ -28,6 +28,17 @@ import srjDawn from '../assets/srj-dawn.jpg'
 import srjClimb from '../assets/srj-climb.jpg'
 import srjRepair from '../assets/srj-repair.jpg'
 import srjCoffee from '../assets/srj-coffee.jpg'
+import coverShuttle from '../assets/community-shuttle.jpg'
+import coverBooks from '../assets/community-books.jpg'
+import coverSalsa from '../assets/community-salsa.jpg'
+import coverFootball from '../assets/community-football.jpg'
+import coverLanguage from '../assets/community-language.jpg'
+import coverPottery from '../assets/community-pottery.jpg'
+import coverBakers from '../assets/community-bakers.jpg'
+import coverOpenMic from '../assets/community-openmic.jpg'
+import coverPhotoWalk from '../assets/community-photowalk.jpg'
+import coverPickleball from '../assets/community-pickleball.jpg'
+import coverTrivia from '../assets/community-trivia.jpg'
 import type { Community, CommunityPhoto } from '@shared/types'
 import {
   postsFor,
@@ -58,6 +69,17 @@ const assets: Record<string, string> = {
   'srj-climb.jpg': srjClimb,
   'srj-repair.jpg': srjRepair,
   'srj-coffee.jpg': srjCoffee,
+  'community-shuttle.jpg': coverShuttle,
+  'community-books.jpg': coverBooks,
+  'community-salsa.jpg': coverSalsa,
+  'community-football.jpg': coverFootball,
+  'community-language.jpg': coverLanguage,
+  'community-pottery.jpg': coverPottery,
+  'community-bakers.jpg': coverBakers,
+  'community-openmic.jpg': coverOpenMic,
+  'community-photowalk.jpg': coverPhotoWalk,
+  'community-pickleball.jpg': coverPickleball,
+  'community-trivia.jpg': coverTrivia,
 }
 
 /** A filename from the data layer → the URL this bundle serves it at. */

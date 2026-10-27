@@ -189,7 +189,6 @@ export const communities: Record<string, Community> = {
   'bellandur-chess': {
     id: 'bellandur-chess',
     name: 'Bellandur Chess & Coffee',
-    coverImage: 'community-chess.jpg',
     memberCount: 52,
     blurb: 'Slow games, filter coffee, no clocks',
     description:
@@ -552,7 +551,6 @@ export const communities: Record<string, Community> = {
   'domlur-yoga': {
     id: 'domlur-yoga',
     name: 'Terrace Yoga Domlur',
-    coverImage: 'community-yoga.jpg',
     memberCount: 95,
     blurb: 'Sunrise on a rooftop, mats provided',
     description:

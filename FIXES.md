@@ -245,6 +245,11 @@ here.
 somewhere else — and when the stored position is wrong, that is the only thing worth
 offering. It now leads with "Looking in the wrong place? Change it", opening the picker.
 
+*The claim itself.* "Quiet in Indiranagar tonight" was being said over a position nobody
+had confirmed — the startup default. There is always something on somewhere; what was
+actually true is that the app did not know where you were. It now says so and asks,
+rather than reporting the city as empty on the strength of a guess.
+
 ---
 
 ## Before production

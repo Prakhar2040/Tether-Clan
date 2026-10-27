@@ -48,6 +48,17 @@ const IMAGES = [
   'srj-climb.jpg',
   'srj-repair.jpg',
   'srj-coffee.jpg',
+  'community-shuttle.jpg',
+  'community-books.jpg',
+  'community-salsa.jpg',
+  'community-football.jpg',
+  'community-language.jpg',
+  'community-pottery.jpg',
+  'community-bakers.jpg',
+  'community-openmic.jpg',
+  'community-photowalk.jpg',
+  'community-pickleball.jpg',
+  'community-trivia.jpg',
 ]
 
 const mediaId = (file: string) => file.replace(/\.[a-z]+$/, '')
@@ -262,7 +273,10 @@ async function seed() {
       lastSeenAt: m.attended > 0 ? weeksBack(m.lastSeenWeeks) : null,
     })),
   )
-  console.log(`memberships  ${members.length + mine.length}`)
+  console.log(
+    `memberships  ${members.length + mine.length + generated.length}` +
+      `  (${generated.length} generated for rooms the roster predates)`,
+  )
 
   await db.insert(schema.series).values(
     Object.values(mockSeries).map((s) => ({

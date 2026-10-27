@@ -9,7 +9,7 @@ import { Brand } from '../components/shared'
 import { GoingRow, WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
-import { useLocation } from '../state/location'
+import { FALLBACK, useLocation } from '../state/location'
 import { LocationChip, LocationSheet } from '../components/LocationPicker'
 import { addDays, eventMatches, matchesWhen, todayYmd, useFilters, weekdayIndex, WEEKDAYS, whenTitle, ymdOf } from '../state/filters'
 import type { When } from '../state/filters'
@@ -207,29 +207,52 @@ function RoomsToFind({ joinedIds }: { joinedIds: string[] }) {
 function NewAreaFeed({
   area,
   picks,
+  guessing,
   onChangeArea,
 }: {
   area: string
   picks: Row[]
+  /** True while the position is a default rather than one anybody confirmed. */
+  guessing: boolean
   onChangeArea: () => void
 }) {
   const [notify, setNotify] = useState(false)
   return (
     <>
+      {/* Two different screens, because they are two different facts.
+       *
+       * "Quiet in Chandana tonight" is a claim about the city, and it is only
+       * honest once somebody has told us where they are. Until then the true
+       * statement is that we do not know, and saying the area is quiet is
+       * worse than useless — there is always something on somewhere, and the
+       * one thing that would help is being asked. */}
       <div className="empty-hero">
         <LogoMark size={44} muted />
-        <h1 className="empty-title">Quiet in {area} tonight</h1>
-        <p className="empty-sub">
-          Nothing close by yet. Here's what's further out, and how to be the reason it isn't quiet.
-        </p>
-        {/* The first thing to try when a screen says nothing is on near you is
-            somewhere else — and if the position is wrong, which it will be on
-            an office network that blocks location, this is the only way out.
-            It used to be reachable solely through the chip at the top. */}
-        <button className="btn btn-small" onClick={onChangeArea}>
-          <PinIcon size={13} color="#15477C" strokeWidth={2.4} />
-          Looking in the wrong place? Change it
-        </button>
+        {guessing ? (
+          <>
+            <h1 className="empty-title">Where are you?</h1>
+            <p className="empty-sub">
+              We've been looking around {area}, which is just a guess. Tell us where you
+              actually are and this page gets a lot better.
+            </p>
+            <button className="btn btn-primary" style={{ minHeight: 48 }} onClick={onChangeArea}>
+              <PinIcon size={15} color="#FDBE50" strokeWidth={2.4} />
+              Set my location
+            </button>
+          </>
+        ) : (
+          <>
+            <h1 className="empty-title">Quiet in {area} tonight</h1>
+            <p className="empty-sub">
+              Nothing close by yet. Here's what's further out, and how to be the reason it
+              isn't quiet.
+            </p>
+            <button className="btn btn-small" onClick={onChangeArea}>
+              <PinIcon size={13} color="#15477C" strokeWidth={2.4} />
+              Looking in the wrong place? Change it
+            </button>
+          </>
+        )}
       </div>
       <div className="feed">
         {picks.length > 0 ? (
@@ -320,7 +343,7 @@ function Calendar({ when, onPick }: { when: When; onPick: (ymd: string) => void 
 
 export default function Tonight() {
   const navigate = useNavigate()
-  const { place, distanceKm } = useLocation()
+  const { place, distanceKm, isReal, status } = useLocation()
   const { joinedIds } = useCommunities()
   const [locOpen, setLocOpen] = useState(false)
   const [whoFor, setWhoFor] = useState<string | null>(null)
@@ -435,7 +458,15 @@ export default function Tonight() {
       </div>
 
       {quiet ? (
-        <NewAreaFeed area={place.label} picks={fallbackRows} onChangeArea={() => setLocOpen(true)} />
+        <NewAreaFeed
+          area={place.label}
+          picks={fallbackRows}
+          /* A position nobody has confirmed: the startup default, still
+             untouched. A device fix or an area somebody picked both count as
+             knowing. */
+          guessing={!isReal && status === 'default' && place.label === FALLBACK.label}
+          onChangeArea={() => setLocOpen(true)}
+        />
       ) : (
         <>
           <header className="page-head">
