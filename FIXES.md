@@ -167,6 +167,22 @@ the browser guessing from the network rather than GPS. A position you cannot see
 error bars on is one you cannot judge — which is why this bug survived being shipped a
 few hours earlier.
 
+**Second cause, found the same day.** Reported as "it showed Indiranagar, I changed to
+Whitefield, pressed find-me and it showed Whitefield — it's failing". It was not
+detecting the area that had just been picked: it was failing silently and leaving the
+previous choice on screen.
+
+Every failure except an outright refusal was being swallowed. The one-shot
+`getCurrentPosition` was given `() => {}` as its error handler, and the watch's handler
+only looked at `PERMISSION_DENIED`. So `POSITION_UNAVAILABLE` — a Mac with Location
+Services switched off for the browser is the common one — produced no fix, no error and
+no message, just a 25-second wait and the place that was already there.
+
+Now every code is handled, the one-shot's errors are wired up, and each failure says what
+it was: blocked by the browser, no position available (with the macOS setting named), a
+timeout, or unsupported. A transient `POSITION_UNAVAILABLE` from the watch gets a
+three-second grace period first, because a watch can complain and then recover.
+
 **Still true:** a laptop has no GPS. The fix makes the app stop asking for the worst
 answer and stop hiding how good the answer is; it cannot give a laptop a satellite.
 

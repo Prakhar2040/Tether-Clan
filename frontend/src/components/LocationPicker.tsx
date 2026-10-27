@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { LocStatus } from '../state/location'
 import { useLocation } from '../state/location'
 import { PinIcon } from './icons'
 
@@ -38,6 +39,14 @@ export function LocationChip({ onOpen }: { onOpen: () => void }) {
   )
 }
 
+const WHY: Partial<Record<LocStatus, string>> & { denied: string } = {
+  blocked: 'Your browser is blocking location for this site. Allow it in the padlock menu beside the address bar, or pick an area below.',
+  unavailable:
+    'Your device has no position to give. On a Mac that usually means System Settings → Privacy & Security → Location Services is off for your browser. Pick an area below meanwhile.',
+  denied: 'Timed out waiting for a fix. Pick an area below instead.',
+  unsupported: 'This browser cannot do location at all. Pick an area below instead.',
+}
+
 export function LocationSheet({
   onClose,
   onPicked,
@@ -68,11 +77,12 @@ export function LocationSheet({
               onPicked?.(fix.lat, fix.lng)
               onClose()
             } else {
-              setError(
-                status === 'blocked'
-                  ? 'Location is blocked for this site in your browser settings. Pick an area below instead.'
-                  : 'Could not get a location fix. Pick an area below instead.',
-              )
+              /* Say which failure it was. "Could not get a location" for every
+                 case is how a device with location switched off looks
+                 identical to one that simply has not answered yet — and why
+                 a silent failure read as "it detected the area I just
+                 picked". */
+              setError(WHY[status] ?? WHY.denied)
             }
           }}
         >

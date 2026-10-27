@@ -17,7 +17,14 @@ import type { ReactNode } from 'react'
 export const SIMULATED_LOCATION = true
 
 export const FALLBACK = { lat: 12.9719, lng: 77.6412, label: 'Indiranagar' }
-export type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'blocked' | 'unsupported'
+export type LocStatus =
+  | 'default'
+  | 'locating'
+  | 'granted'
+  | 'denied' // asked, nothing arrived in time
+  | 'blocked' // the browser refused: permission denied
+  | 'unavailable' // the device has no position to give — often OS location services off
+  | 'unsupported'
 
 const STORAGE_KEY = 'tc.location'
 
@@ -28,6 +35,10 @@ const STORAGE_KEY = 'tc.location'
 const GOOD_ENOUGH_M = 150
 const PATIENCE_MS = 8_000
 const GIVE_UP_MS = 25_000
+/* How long to keep hoping after the device says it has nothing. Long enough to
+   ride out a transient complaint from the watch, short enough that a machine
+   with location switched off says so rather than making you wait. */
+const GRACE_MS = 3_000
 
 export interface Place {
   lat: number
@@ -129,6 +140,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       let watchId: number | null = null
       let deadline: ReturnType<typeof setTimeout> | null = null
       let patience: ReturnType<typeof setTimeout> | null = null
+      let unavailable: ReturnType<typeof setTimeout> | null = null
       let best: GeolocationPosition | null = null
 
       const finish = (fix: Place | null) => {
@@ -137,6 +149,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         if (watchId !== null) navigator.geolocation.clearWatch(watchId)
         if (deadline) clearTimeout(deadline)
         if (patience) clearTimeout(patience)
+        if (unavailable) clearTimeout(unavailable)
         resolve(fix)
       }
 
@@ -164,11 +177,26 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         if (!patience) patience = setTimeout(settleWithBest, PATIENCE_MS)
       }
 
+      /* Every failure used to be swallowed except an outright refusal: the
+         one-shot call was given an empty error handler, and the watch only
+         looked at PERMISSION_DENIED. So a device that simply had no position
+         to offer — a Mac with Location Services switched off for the browser
+         is the common one — produced no error, no fix and no message, just a
+         25-second wait and whatever place was already on screen. That reads
+         exactly like "it detected the area I had picked a moment ago". */
       const onError = (err: GeolocationPositionError) => {
         if (err.code === err.PERMISSION_DENIED) {
           setStatus('blocked')
-          finish(null)
+          return finish(null)
         }
+        // A watch can report this transiently and then recover, so give the
+        // device a moment rather than failing on the first complaint.
+        if (best || unavailable) return
+        unavailable = setTimeout(() => {
+          if (best) return settleWithBest()
+          setStatus(err.code === err.TIMEOUT ? 'denied' : 'unavailable')
+          finish(null)
+        }, GRACE_MS)
       }
 
       const opts: PositionOptions = {
@@ -178,7 +206,7 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         timeout: GIVE_UP_MS,
         enableHighAccuracy: true,
       }
-      navigator.geolocation.getCurrentPosition(onFix, () => {}, opts)
+      navigator.geolocation.getCurrentPosition(onFix, onError, opts)
       watchId = navigator.geolocation.watchPosition(onFix, onError, opts)
       deadline = setTimeout(() => {
         // A rough answer beats none, so give back the best there was.
