@@ -14,12 +14,26 @@ export const AREAS = [
   { id: 'mg-road', name: 'MG Road / Church St', lat: 12.9756, lng: 77.6046 },
 ]
 
+/* "±120 m", "±4 km". Shown because a device fix can be anywhere from a street
+   corner to the wrong side of the city, and the number is the only way to tell
+   which one you got. */
+export function accuracyLabel(m?: number): string | null {
+  if (m === undefined) return null
+  return m < 1000 ? `±${Math.round(m)} m` : `±${(m / 1000).toFixed(m < 10_000 ? 1 : 0)} km`
+}
+
 export function LocationChip({ onOpen }: { onOpen: () => void }) {
   const { place, status } = useLocation()
+  const near = accuracyLabel(place.accuracyM)
   return (
-    <button className="location-chip" onClick={onOpen} title="Change location">
+    <button
+      className="location-chip"
+      onClick={onOpen}
+      title={near ? `${place.label}, accurate to ${near} — tap to change` : 'Change location'}
+    >
       <PinIcon size={12} color="#E9712A" strokeWidth={2.4} />
       {status === 'locating' ? 'Finding you…' : place.label}
+      {near ? <em className="chip-accuracy">{near}</em> : null}
     </button>
   )
 }
@@ -67,6 +81,16 @@ export function LocationSheet({
         </button>
 
         {error ? <span className="page-sub">{error}</span> : null}
+
+        {/* Said out loud rather than implied: a laptop without GPS answers from
+            wifi or the ISP and is routinely kilometres out, and that is the
+            browser's doing, not something the app can correct. */}
+        {place.accuracyM !== undefined ? (
+          <span className="page-sub">
+            Last fix was accurate to {accuracyLabel(place.accuracyM)}
+            {place.accuracyM > 2000 ? ' — that is your browser guessing from the network, not GPS.' : '.'}
+          </span>
+        ) : null}
 
         <span className="sheet-section">Or pick an area</span>
         <div className="chip-row" style={{ padding: 0 }}>

@@ -21,10 +21,23 @@ export type LocStatus = 'default' | 'locating' | 'granted' | 'denied' | 'blocked
 
 const STORAGE_KEY = 'tc.location'
 
+/* Close enough to stop looking, and how long to keep looking for better.
+   A GPS fix lands inside 150m quickly; wifi trilateration reports hundreds of
+   metres and IP-derived answers tens of thousands, so the number also doubles
+   as "did this come from a real sensor". */
+const GOOD_ENOUGH_M = 150
+const PATIENCE_MS = 8_000
+const GIVE_UP_MS = 25_000
+
 export interface Place {
   lat: number
   lng: number
   label: string
+  /* How far out the device thinks it might be, in metres, when the fix came
+     from the device. Kept so the app can say so: a laptop with no GPS often
+     answers from wifi or the ISP's address and is wrong by kilometres, and a
+     position you cannot see the error bars on is one you cannot judge. */
+  accuracyM?: number
 }
 
 interface LocationValue {
@@ -94,7 +107,15 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     [persist],
   )
 
-  // Accepts a recent cached fix, and keeps listening for the first real one.
+  /* Takes the best fix going, not the first one offered.
+   *
+   * This used to ask for enableHighAccuracy:false with maximumAge of five
+   * minutes and resolve on the first callback, which is the fastest, coarsest
+   * and possibly stale answer the browser has — on a laptop, typically the
+   * ISP's address, kilometres out. Now it asks for the good sources, refuses a
+   * cached answer, and keeps the watch open: the first fix starts a short
+   * patience window, better fixes replace it, and anything inside
+   * GOOD_ENOUGH_M settles immediately. */
   const request = useCallback((trigger: 'auto' | 'user' = 'auto'): Promise<Place | null> => {
     // A screen asking on its own stays silent while simulating; a tap does not.
     if (SIMULATED_LOCATION && trigger === 'auto') return Promise.resolve(null)
@@ -107,22 +128,40 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       let settled = false
       let watchId: number | null = null
       let deadline: ReturnType<typeof setTimeout> | null = null
+      let patience: ReturnType<typeof setTimeout> | null = null
+      let best: GeolocationPosition | null = null
 
       const finish = (fix: Place | null) => {
         if (settled) return
         settled = true
         if (watchId !== null) navigator.geolocation.clearWatch(watchId)
         if (deadline) clearTimeout(deadline)
+        if (patience) clearTimeout(patience)
         resolve(fix)
       }
 
-      const onFix = (pos: GeolocationPosition) => {
-        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'Your location' }
+      const settleWithBest = () => {
+        if (!best) return
+        const p: Place = {
+          lat: best.coords.latitude,
+          lng: best.coords.longitude,
+          label: 'Your location',
+          accuracyM: Math.round(best.coords.accuracy),
+        }
         setPlaceState(p)
         setIsReal(true)
         setStatus('granted')
         persist(p, true)
         finish(p)
+      }
+
+      const onFix = (pos: GeolocationPosition) => {
+        // Keep the tightest one seen; a later fix is not automatically better.
+        if (best && pos.coords.accuracy >= best.coords.accuracy) return
+        best = pos
+        if (pos.coords.accuracy <= GOOD_ENOUGH_M) return settleWithBest()
+        // Worth waiting a moment to see if the device does better than this.
+        if (!patience) patience = setTimeout(settleWithBest, PATIENCE_MS)
       }
 
       const onError = (err: GeolocationPositionError) => {
@@ -132,13 +171,21 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      const opts: PositionOptions = { maximumAge: 300_000, timeout: 25_000, enableHighAccuracy: false }
+      const opts: PositionOptions = {
+        // No cached answers: a five-minute-old fix from another tab is exactly
+        // how you end up somewhere you were not.
+        maximumAge: 0,
+        timeout: GIVE_UP_MS,
+        enableHighAccuracy: true,
+      }
       navigator.geolocation.getCurrentPosition(onFix, () => {}, opts)
       watchId = navigator.geolocation.watchPosition(onFix, onError, opts)
       deadline = setTimeout(() => {
+        // A rough answer beats none, so give back the best there was.
+        if (best) return settleWithBest()
         setStatus('denied')
         finish(null)
-      }, 25_000)
+      }, GIVE_UP_MS)
     })
   }, [persist])
 

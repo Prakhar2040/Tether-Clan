@@ -142,6 +142,36 @@ Checked first that nothing calls `window.scrollTo` or listens for `scroll` on th
 
 ---
 
+## 6. "Use my current location" gave the wrong place — **fixed**
+
+*Reported 27 Oct, immediately after #3 shipped.*
+
+**Symptom:** permission granted on localhost, and the position it settled on was wrong.
+
+**Cause:** the app asked for the worst answer available, three ways at once.
+`enableHighAccuracy: false` explicitly requests the cheap coarse source rather than GPS.
+`maximumAge: 300_000` accepts a cached fix up to five minutes old, including one another
+tab asked for. And `onFix` called `finish()` on the very first callback, which cleared the
+watch — so the first, roughest answer won and listening stopped, despite a comment
+claiming it "keeps listening for the first real one". On a laptop that reliably produces
+the ISP's address.
+
+**Fix:** ask for the good sources (`enableHighAccuracy: true`), refuse cached answers
+(`maximumAge: 0`), and keep the watch open — the first fix starts an eight-second
+patience window, better fixes replace it, anything inside 150m settles at once, and the
+25-second deadline now returns the best seen rather than nothing.
+
+**And made visible.** Accuracy is carried on `Place` and shown next to the place name
+("±120 m", "±4 km"), with the picker saying outright when a fix is over 2km that this is
+the browser guessing from the network rather than GPS. A position you cannot see the
+error bars on is one you cannot judge — which is why this bug survived being shipped a
+few hours earlier.
+
+**Still true:** a laptop has no GPS. The fix makes the app stop asking for the worst
+answer and stop hiding how good the answer is; it cannot give a laptop a satellite.
+
+---
+
 ## TODO before production
 
 - [ ] **Restrict the Mapbox token.** The account currently has one token, the Default

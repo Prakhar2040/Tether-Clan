@@ -77,6 +77,14 @@ button {
 
 .screen.no-bar { padding-bottom: 0; }
 
+/* The error bars on a device fix, beside the place name. */
+.chip-accuracy {
+  font-style: normal;
+  opacity: 0.6;
+  font-size: 0.85em;
+  margin-left: 4px;
+}
+
 /* On a screen wider than the app, make the phone behave like a phone.
  *
  * Below 480px the viewport *is* the phone, and letting the document scroll is
