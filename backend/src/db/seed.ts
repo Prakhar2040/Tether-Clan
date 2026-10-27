@@ -209,8 +209,45 @@ async function seed() {
     lastSeenWeeks: 1,
   }))
 
+  /* Rooms the roster never knew about.
+   *
+   * roster.ts was written when there were four communities and lists real
+   * members for those alone. The rooms behind the rest of the listings would
+   * otherwise have a memberCount in the mock and nothing in the table — and
+   * the API counts live memberships rather than trusting that number, so every
+   * one of them would read as empty.
+   *
+   * Filled deterministically from the same roster: the same people every time
+   * the seed runs, the owner and admins given their roles, and plausible
+   * attendance so the console's tiers are not all zero. */
+  const staffed = new Set(members.map((m) => m.communityId))
+  const everyoneIds = Object.keys(roster)
+  const generated = Object.values(rawCommunities)
+    .filter((c) => !staffed.has(c.id))
+    .flatMap((c) => {
+      const staff = [...c.ownerIds, ...(c.adminIds ?? [])]
+      const pool = pick(`members:${c.id}`, everyoneIds, c.memberCount).filter(
+        (id) => !staff.includes(id),
+      )
+      const ids = [...staff, ...pool].slice(0, c.memberCount)
+      return ids.map((personId, i) => ({
+        personId,
+        communityId: c.id,
+        role: c.ownerIds.includes(personId)
+          ? 'owner'
+          : (c.adminIds ?? []).includes(personId)
+            ? 'admin'
+            : 'member',
+        // Spread over the room's life, oldest first, so growth charts curve.
+        monthsIn: Math.max(0, Math.round((i / Math.max(1, ids.length)) * 14)),
+        attended: (i * 7) % 19,
+        noShows: i % 11 === 0 ? 1 : 0,
+        lastSeenWeeks: (i * 3) % 13,
+      }))
+    })
+
   await db.insert(schema.memberships).values(
-    [...members, ...mine].map((m) => ({
+    [...members, ...mine, ...generated].map((m) => ({
       id: `${m.communityId}:${m.personId}`,
       personId: m.personId,
       communityId: m.communityId,

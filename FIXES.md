@@ -230,6 +230,23 @@ the whole transition is cancelled.
 
 ---
 
+**17. "Quiet in Your location tonight"** · 27 Oct
+
+Two faults in one screenshot, both from a device fix on an office network that blocks
+location.
+
+*The name.* "Your location" is a UI label, and the app reads it into sentences — "Quiet in
+Your location tonight", "Tell me when Your location wakes up". A fix now gets
+reverse-geocoded to the area it landed in, so it reads "Chandana" or "Indiranagar".
+Smallest level first; `place` only ever answers "Bengaluru", which is true of everything
+here.
+
+*The dead end.* The empty state offered notifications and hosting but no way to look
+somewhere else — and when the stored position is wrong, that is the only thing worth
+offering. It now leads with "Looking in the wrong place? Change it", opening the picker.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox

@@ -134,3 +134,38 @@ export async function retrievePlace(
   const c = body.features?.[0]?.geometry?.coordinates
   return c ? { lng: c[0], lat: c[1] } : null
 }
+
+/* What to call a pair of coordinates.
+ *
+ * A device fix arrives as numbers and the app was labelling it "Your
+ * location", which is a UI label rather than a place name — and it ends up
+ * read as one: "Quiet in Your location tonight", "Tell me when Your location
+ * wakes up". Naming the area fixes every one of those sentences at once.
+ *
+ * Tried smallest first. `locality` is the level that answers "Indiranagar"
+ * and "Chandana"; `place` only ever answers "Bengaluru", which is true of
+ * everything here and therefore useless, so it is the last resort.
+ */
+export async function reverseName(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  if (!TOKEN) return null
+  for (const type of ['locality', 'neighborhood', 'place']) {
+    try {
+      const res = await fetch(
+        `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${lng}&latitude=${lat}` +
+          `&access_token=${TOKEN}&types=${type}&limit=1&language=en`,
+        { signal },
+      )
+      if (!res.ok) continue
+      const body = (await res.json()) as { features?: { properties?: { name?: string } }[] }
+      const name = body.features?.[0]?.properties?.name
+      if (name) return name
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return null
+    }
+  }
+  return null
+}

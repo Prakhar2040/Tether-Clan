@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { reverseName } from '../api/geocode'
 import type { ReactNode } from 'react'
 
 // One source of truth for "where the user is", so distances on event cards
@@ -166,6 +167,21 @@ export function LocationProvider({ children }: { children: ReactNode }) {
         setStatus('granted')
         persist(p, true)
         finish(p)
+
+        /* Then find out what the place is called. "Your location" is a label,
+           not a name, and the app reads it into sentences — "Quiet in Your
+           location tonight". Done after resolving so the fix is not held up
+           by a second request, and quietly abandoned if it fails. */
+        void reverseName(p.lat, p.lng)
+          .then((name) => {
+            if (!name) return
+            const named = { ...p, label: name }
+            setPlaceState((cur) =>
+              cur.lat === p.lat && cur.lng === p.lng ? named : cur,
+            )
+            persist(named, true)
+          })
+          .catch(() => undefined)
       }
 
       const onFix = (pos: GeolocationPosition) => {

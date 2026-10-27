@@ -14,14 +14,7 @@ import { LocationChip, LocationSheet } from '../components/LocationPicker'
 import { addDays, eventMatches, matchesWhen, todayYmd, useFilters, weekdayIndex, WEEKDAYS, whenTitle, ymdOf } from '../state/filters'
 import type { When } from '../state/filters'
 import type { HydratedEvent, SuggestionItem } from '../api/search'
-import {
-  BellIcon,
-  CheckIcon,
-  ChevronIcon,
-  LogoMark,
-  SearchIcon,
-  SlidersIcon,
-} from '../components/icons'
+import { BellIcon, CheckIcon, ChevronIcon, LogoMark, PinIcon, SearchIcon, SlidersIcon } from '../components/icons'
 import type { TcEvent } from '@shared/types'
 
 
@@ -174,11 +167,17 @@ function Promoted({ e }: { e: TcEvent }) {
  */
 function RoomsToFind({ joinedIds }: { joinedIds: string[] }) {
   const mine = new Set(joinedIds)
+  /* Three, not fifteen. This is a nudge inside a list of nights, not a
+     directory — a wall of rooms here would bury the thing somebody came to
+     the page for. Soonest first, so what is shown is what is actually
+     happening next. */
   const rooms = Object.values(communities)
     .filter((c) => !mine.has(c.id))
     .map((c) => ({ c, next: upcomingCommunityEvents(c.id)[0] }))
     // A room with nothing coming up is not worth putting in front of someone.
     .filter((r) => r.next)
+    .sort((a, b) => (a.next!.startsAt ?? '').localeCompare(b.next!.startsAt ?? ''))
+    .slice(0, 3)
   if (rooms.length === 0) return null
 
   return (
@@ -205,7 +204,15 @@ function RoomsToFind({ joinedIds }: { joinedIds: string[] }) {
   )
 }
 
-function NewAreaFeed({ area, picks }: { area: string; picks: Row[] }) {
+function NewAreaFeed({
+  area,
+  picks,
+  onChangeArea,
+}: {
+  area: string
+  picks: Row[]
+  onChangeArea: () => void
+}) {
   const [notify, setNotify] = useState(false)
   return (
     <>
@@ -215,6 +222,14 @@ function NewAreaFeed({ area, picks }: { area: string; picks: Row[] }) {
         <p className="empty-sub">
           Nothing close by yet. Here's what's further out, and how to be the reason it isn't quiet.
         </p>
+        {/* The first thing to try when a screen says nothing is on near you is
+            somewhere else — and if the position is wrong, which it will be on
+            an office network that blocks location, this is the only way out.
+            It used to be reachable solely through the chip at the top. */}
+        <button className="btn btn-small" onClick={onChangeArea}>
+          <PinIcon size={13} color="#15477C" strokeWidth={2.4} />
+          Looking in the wrong place? Change it
+        </button>
       </div>
       <div className="feed">
         {picks.length > 0 ? (
@@ -420,7 +435,7 @@ export default function Tonight() {
       </div>
 
       {quiet ? (
-        <NewAreaFeed area={place.label} picks={fallbackRows} />
+        <NewAreaFeed area={place.label} picks={fallbackRows} onChangeArea={() => setLocOpen(true)} />
       ) : (
         <>
           <header className="page-head">
