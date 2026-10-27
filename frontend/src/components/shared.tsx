@@ -2,9 +2,12 @@ import { NavLink } from 'react-router-dom'
 import type { Community, Person } from '@shared/types'
 import { CalendarIcon, CircleIcon, HomeIcon, LogoMark, PersonIcon, PinIcon, WordMark } from './icons'
 
-export function Brand() {
+/* `passenger` means this lockup is not the one the view transition flies.
+   The name has to belong to exactly one element per page, and on a community
+   page that is the Tether mark at the head of the channel. */
+export function Brand({ passenger = false }: { passenger?: boolean } = {}) {
   return (
-    <span className="brand big">
+    <span className={passenger ? 'brand big passenger' : 'brand big'}>
       {/* Wrapped so the mark alone carries the view-transition name: going
           into a room, this is the thing that flies down and becomes Tether at
           the head of the channel. The wordmark stays out of it. */}

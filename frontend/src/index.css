@@ -1065,7 +1065,20 @@ button {
 }
 .comm-cover::after {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(to top, rgba(7,8,8,0.9) 0%, rgba(7,8,8,0.66) 24%, rgba(7,8,8,0.2) 56%, rgba(7,8,8,0) 82%);
+  /* The scrim has to cover the text, not just the foot of the picture. The
+     name sits about two thirds of the way up this box, where the old ramp had
+     already faded to roughly a tenth — fine over a dark photograph, hopeless
+     over a white house and a pale sky, which is exactly what the run club
+     has. Dark enough for the worst cover in the set, since a tile that cannot
+     be read is worse than a photograph that is dimmed. */
+  background: linear-gradient(
+    to top,
+    rgba(7, 8, 8, 0.94) 0%,
+    rgba(7, 8, 8, 0.86) 30%,
+    rgba(7, 8, 8, 0.64) 52%,
+    rgba(7, 8, 8, 0.26) 72%,
+    rgba(7, 8, 8, 0) 92%
+  );
 }
 /* No photo yet: the brand colour carries it, with the mark washed in behind. */
 .comm-cover.no-photo::after {
@@ -1079,13 +1092,22 @@ button {
 .comm-cover-text {
   position: relative; z-index: 1;
   display: flex; flex-direction: column; gap: 3px; padding: 16px; width: 100%;
+  /* Insurance on top of the scrim. A gradient is tuned for the covers we
+     have; this keeps the text legible over one we have not seen yet, and
+     costs nothing where the scrim was already doing the job. */
+  text-shadow: 0 1px 3px rgba(7, 8, 8, 0.55);
 }
 .comm-kicker {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 10.5px; font-weight: 700; letter-spacing: 0.14em;
   text-transform: uppercase; color: var(--yellow);
 }
-.comm-tile-name { font-size: 22px; font-weight: 900; line-height: 1.1; color: #fff; }
+.comm-tile-name {
+  font-size: 22px; font-weight: 900; line-height: 1.1; color: #fff;
+  /* The name is the one thing somebody scans for, so it gets a shadow of its
+     own rather than the block's. */
+  text-shadow: 0 2px 10px rgba(7, 8, 8, 0.65), 0 1px 2px rgba(7, 8, 8, 0.5);
+}
 /* Members and rating are the two numbers that say whether this room is
    worth walking into, so they get size, not a caption. */
 .comm-tile-stats {
@@ -1334,6 +1356,17 @@ button {
 /* A flex item rather than an inline span, or the lockup picks up baseline
    space under the mark and the wordmark stops sitting level with it. */
 .brand-mark { display: flex; }
+
+/* The lockup on a community page is a passenger: the mark that flies is the
+   one on the screen you came from, and the Tether mark in the channel is
+   where it lands. Two elements claiming one name on a page cancels the whole
+   transition, so this one gives it up. */
+.brand.passenger .brand-mark { view-transition-name: none; }
+
+/* The community page's own lockup sits between the back and share buttons,
+   so it centres rather than leading. */
+.comm-top { justify-content: space-between; }
+.comm-top .brand { margin: 0 auto; }
 
 ::view-transition-group(tether-mark) {
   animation-duration: 420ms;

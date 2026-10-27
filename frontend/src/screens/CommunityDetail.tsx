@@ -21,7 +21,7 @@ import { useCommunities } from '../state/communities'
 import { TetherNote } from '../components/TetherNote'
 import { TicketPass } from './Ticket'
 import { dateParts, PastRow, TicketRow } from '../components/tickets'
-import { Avatar, CommunityMark } from '../components/shared'
+import { Avatar, Brand, CommunityMark } from '../components/shared'
 import {
   BackIcon,
   CheckIcon,
@@ -388,12 +388,18 @@ export function CommunityView({
 
   return (
     <div className="screen">
-      <div className="top-row">
+      {/* The lockup stays, inside a room as much as outside it: this is still
+          Tether, not a page that belongs to the community. It is marked
+          `passenger` because the header mark on the screen you came FROM is
+          the one that flies into the channel — two elements claiming that
+          transition on one page cancels it. */}
+      <div className="top-row comm-top">
         {switcher ?? (
           <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Back">
             <BackIcon size={20} color="#15477C" />
           </button>
         )}
+        <Brand passenger />
         <button className="icon-btn" aria-label="Share community">
           <ShareIcon size={18} color="#15477C" />
         </button>

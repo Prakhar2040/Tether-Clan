@@ -201,6 +201,32 @@ missing the navigation just happens. Disabled under reduced motion.
 
 ---
 
+**15. Community tile names unreadable over bright covers** · 27 Oct
+
+White text on a photo of a white building and a pale sky. The scrim faded to about a tenth
+of its strength by the height the name sits at — fine over a dark cover, hopeless over the
+run club's.
+
+Scrim now carries the dark across the whole text block, plus a text shadow as insurance
+for covers we have not seen. Measured over the worst region of that photo:
+
+| | before | after |
+|---|---|---|
+| name | 2.8:1 | 8.9:1 |
+| category kicker | 1.3:1 | 4.2:1 |
+| members and rating | 2.5:1 | 7.6:1 |
+
+**16. Tether branding inside a community page** · 27 Oct
+
+The lockup now sits in the community page's header too — it is still Tether in there, not
+a page belonging to the community.
+
+It is marked a `passenger`: the mark that flies into the channel is the one on the screen
+you came *from*, and a view-transition name must belong to exactly one element per page or
+the whole transition is cancelled.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
