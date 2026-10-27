@@ -38,7 +38,27 @@ interface Row {
   km: number | null
 }
 
-function EventFeedCard({ e, area, onWho }: { e: TcEvent; area: string; onWho: (id: string) => void }) {
+/* "400 m", "2.1 km". Rounded hard on purpose — the position behind it can be
+   a few hundred metres out, so a decimal would be claiming precision nobody
+   has. */
+export function distanceLabel(km: number | null): string | null {
+  if (km === null || !Number.isFinite(km)) return null
+  if (km < 0.1) return 'under 100 m'
+  if (km < 1) return `${Math.round(km * 10) * 100} m`
+  return `${km < 10 ? km.toFixed(1) : Math.round(km)} km`
+}
+
+function EventFeedCard({
+  e,
+  area,
+  km,
+  onWho,
+}: {
+  e: TcEvent
+  area: string
+  km: number | null
+  onWho: (id: string) => void
+}) {
   const { stateFor, markInterested } = useRsvp()
   const openBuy = useBuy()
   const navigate = useNavigate()
@@ -52,7 +72,10 @@ function EventFeedCard({ e, area, onWho }: { e: TcEvent; area: string; onWho: (i
           <span className="event-title">{e.title}</span>
           <span className="event-meta">
             {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
-            {e.timeLabel} · {area} · {priceLabel(e)}
+            {e.timeLabel} · {area}
+            {/* The list is ordered by this, so it has to be on screen —
+                otherwise nearest-first looks like no order at all. */}
+            {distanceLabel(km) ? ` · ${distanceLabel(km)}` : ''} · {priceLabel(e)}
           </span>
         </Link>
         {state === 'going' ? (
@@ -411,7 +434,7 @@ export default function Tonight() {
                 ) : null}
               </div>
             ) : (
-              filtered.map(({ e, area }, i) => (
+              filtered.map(({ e, area, km }, i) => (
                 <Fragment key={e.id}>
                   {/* Third slot down, so it never outranks a real result. */}
                   {i === 3 && promoted ? <Promoted e={promoted} /> : null}
@@ -427,7 +450,7 @@ export default function Tonight() {
                     <ChevronIcon size={16} color="#15477C" />
                   </Link>
                   ) : (
-                    <EventFeedCard e={e} area={area} onWho={setWhoFor} />
+                    <EventFeedCard e={e} area={area} km={km} onWho={setWhoFor} />
                   )}
                 </Fragment>
               ))

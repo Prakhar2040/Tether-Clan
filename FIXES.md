@@ -90,6 +90,16 @@ fallback.
 
 ---
 
+**8. Events sorted by distance** · 27 Oct · *already were*
+
+They have been nearest-first all along whenever there is no search term — the distance
+just wasn't on screen, so the order looked arbitrary. Cards now show it ("300 m",
+"2.1 km"), rounded hard because the position behind it can be a few hundred metres out.
+
+Typing a search still gives relevance order rather than distance.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
