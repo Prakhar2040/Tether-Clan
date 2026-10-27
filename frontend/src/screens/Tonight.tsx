@@ -1,6 +1,8 @@
 import { Fragment, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
+import { communities, communityOf, upcomingCommunityEvents } from '../data/community'
+import { useCommunities } from '../state/communities'
 import { useRsvp } from '../state/rsvp'
 import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
@@ -60,6 +62,10 @@ function EventFeedCard({
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
+  /* Who runs this night. Only thirteen of the thirty-one events belong to a
+     room at all — the rest are one-offs — so this is deliberately absent
+     rather than empty when there is nobody behind it. */
+  const host = communityOf(e.id)
 
   return (
     <article className="card">
@@ -82,6 +88,19 @@ function EventFeedCard({
           <span className="badge badge-seats">{left} seats left</span>
         ) : null}
       </div>
+      {/* Its own link, outside the one wrapping the title: this is how you
+          find a room you did not know about, and the whole reason Events is a
+          discovery surface. Nesting it inside the event link would be invalid
+          and would steal the tap. */}
+      {host ? (
+        <Link to={`/community/${host.id}`} className="card-host">
+          <span className="card-host-mark" style={{ background: host.color }}>
+            {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+          </span>
+          <span className="card-host-name">{host.name}</span>
+          <ChevronIcon size={13} color="#6B665A" />
+        </Link>
+      ) : null}
       {e.tags && e.tags.length > 0 ? (
         <div className="tag-row">
           {e.tags.map((t) => (
@@ -142,6 +161,47 @@ function Promoted({ e }: { e: TcEvent }) {
       </span>
       <ChevronIcon size={16} color="#15477C" />
     </Link>
+  )
+}
+
+/* Rooms you are not in, and the next thing each one is running.
+ *
+ * Events is where somebody finds a room they did not know existed — the
+ * Community tab only ever shows the ones already joined, so without this
+ * there is no way in. Each row goes to the room rather than to its event:
+ * the question being answered here is "who are these people", not "what is
+ * on tonight", and the night is there as evidence they are still active.
+ */
+function RoomsToFind({ joinedIds }: { joinedIds: string[] }) {
+  const mine = new Set(joinedIds)
+  const rooms = Object.values(communities)
+    .filter((c) => !mine.has(c.id))
+    .map((c) => ({ c, next: upcomingCommunityEvents(c.id)[0] }))
+    // A room with nothing coming up is not worth putting in front of someone.
+    .filter((r) => r.next)
+  if (rooms.length === 0) return null
+
+  return (
+    <div className="rooms-band">
+      <span className="tile-label">ROOMS YOU'RE NOT IN</span>
+      {rooms.map(({ c, next }) => (
+        <Link key={c.id} to={`/community/${c.id}`} className="room-row">
+          <span className="room-mark" style={{ background: c.color }}>
+            {c.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+          </span>
+          <span className="stack-2" style={{ flex: 1, minWidth: 0 }}>
+            <span className="room-name">{c.name}</span>
+            <span className="room-meta">
+              {c.categoryLabel} · {c.areaName} · {c.memberCount} members
+            </span>
+            <span className="room-next">
+              Next: {next!.title} · {next!.dayLabel} {next!.timeLabel}
+            </span>
+          </span>
+          <ChevronIcon size={16} color="#15477C" />
+        </Link>
+      ))}
+    </div>
   )
 }
 
@@ -246,6 +306,7 @@ function Calendar({ when, onPick }: { when: When; onPick: (ymd: string) => void 
 export default function Tonight() {
   const navigate = useNavigate()
   const { place, distanceKm } = useLocation()
+  const { joinedIds } = useCommunities()
   const [locOpen, setLocOpen] = useState(false)
   const [whoFor, setWhoFor] = useState<string | null>(null)
   const {
@@ -426,6 +487,11 @@ export default function Tonight() {
                 <Fragment key={e.id}>
                   {/* Third slot down, so it never outranks a real result. */}
                   {i === 3 && promoted ? <Promoted e={promoted} /> : null}
+                  {/* Rooms sit a little further down than the promoted slot:
+                      somebody who typed a search wants their results first,
+                      and a room is a slower decision than a ticket. Only when
+                      nothing is being searched for. */}
+                  {i === 5 && query.trim() === '' ? <RoomsToFind joinedIds={joinedIds} /> : null}
                   {e.liveNow ? (
                   <Link to={`/event/${e.id}`} className="card compact-card">
                     <span className="live-dot" />
