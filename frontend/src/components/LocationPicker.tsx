@@ -4,8 +4,13 @@ import { useLocation } from '../state/location'
 import { PinIcon, SearchIcon } from './icons'
 import { MIN_QUERY, searchPlaces, type PlaceHit } from '../api/geocode'
 
-// Where the user is. One control, used by both Events and the Map, so the
-// two always agree on the answer.
+/* Where the user is. One control, used by both Events and the Map, so the two
+   always agree on the answer.
+   
+   These are no longer offered as buttons — searching replaced them. They stay
+   as the offline fallback: with no network the geocoder cannot answer, and
+   filtering these by name keeps the control working instead of leaving a box
+   that does nothing. */
 export const AREAS = [
   { id: 'bellandur', name: 'Bellandur', lat: 12.926, lng: 77.6762 },
   { id: 'indiranagar', name: 'Indiranagar', lat: 12.9719, lng: 77.6412 },
@@ -120,9 +125,8 @@ export function LocationSheet({
         <span className="sheet-handle" />
         <span className="section-label">Where are you?</span>
 
-        {/* Always offered. The areas below are the quick way to say where you
-            are; this is for when you want the real answer. Asking here is a tap,
-            so it goes to the device even while positions are simulated. */}
+        {/* Asking here is a tap, so it goes to the device even while positions
+            are simulated. */}
         <button
           className="btn btn-primary"
           style={{ minHeight: 48 }}
@@ -149,16 +153,6 @@ export function LocationSheet({
 
         {error ? <span className="page-sub">{error}</span> : null}
 
-        {/* Said out loud rather than implied: a laptop without GPS answers from
-            wifi or the ISP and is routinely kilometres out, and that is the
-            browser's doing, not something the app can correct. */}
-        {place.accuracyM !== undefined ? (
-          <span className="page-sub">
-            Last fix was accurate to {accuracyLabel(place.accuracyM)}
-            {place.accuracyM > 2000 ? ' — that is your browser guessing from the network, not GPS.' : '.'}
-          </span>
-        ) : null}
-
         <span className="sheet-section">Or search for a place</span>
 
         <label className="loc-search">
@@ -178,20 +172,8 @@ export function LocationSheet({
           ) : null}
         </label>
 
-        {/* An empty box is a dead end, so the areas people actually pick stay
-            on show until they start typing. */}
         {q.trim().length < MIN_QUERY ? (
-          <div className="chip-row" style={{ padding: 0 }}>
-            {AREAS.map((a) => (
-              <button
-                key={a.id}
-                className={place.label === a.name ? 'chip active' : 'chip'}
-                onClick={() => choose(a.lat, a.lng, a.name)}
-              >
-                {a.name}
-              </button>
-            ))}
-          </div>
+          <span className="page-sub">Start typing an area, street or landmark.</span>
         ) : (
           <div className="loc-hits">
             {hits.map((h) => (
