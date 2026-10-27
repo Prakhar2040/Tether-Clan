@@ -165,14 +165,6 @@ button {
 .map-empty .t { font-weight: 700; font-size: 15px; }
 .map-empty .s { font-size: 13px; color: #6B665A; }
 
-/* The error bars on a device fix, beside the place name. */
-.chip-accuracy {
-  font-style: normal;
-  opacity: 0.6;
-  font-size: 0.85em;
-  margin-left: 4px;
-}
-
 /* On a screen wider than the app, make the phone behave like a phone.
  *
  * Below 480px the viewport *is* the phone, and letting the document scroll is
@@ -253,6 +245,16 @@ button {
   font-weight: 700;
   color: var(--blue);
   min-height: 36px;
+  /* The chip holds its shape whatever it is showing. "Phoenix Marketcity" and
+     "HSR" used to give two different sized controls, which moved the row
+     around them every time the place changed. The name gives way instead. */
+  max-width: 190px;
+}
+.chip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .icon-btn {

@@ -260,8 +260,12 @@ export default function MapScreen() {
             explain an empty map, and "queer night" does. */}
         <button className="location-chip" onClick={() => navigate('/events')}>
           <SlidersIcon size={13} color="#15477C" />
-          {query.trim() ? `“${query.trim()}”` : title}
-          {activeCount > 0 ? ` · ${activeCount}` : ''}
+          {/* Same fixed-width chip as the location one, so a long search term
+              truncates rather than stretching the header. */}
+          <span className="chip-label">
+            {query.trim() ? `“${query.trim()}”` : title}
+            {activeCount > 0 ? ` · ${activeCount}` : ''}
+          </span>
         </button>
       </div>
 

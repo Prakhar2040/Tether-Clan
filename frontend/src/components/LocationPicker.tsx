@@ -43,11 +43,14 @@ export function LocationChip({ onOpen }: { onOpen: () => void }) {
     <button
       className="location-chip"
       onClick={onOpen}
+      /* The accuracy is worth keeping, but not worth the width — a long place
+         name was already stretching the chip. It lives in the tooltip. */
       title={near ? `${place.label}, accurate to ${near} — tap to change` : 'Change location'}
     >
       <PinIcon size={12} color="#E9712A" strokeWidth={2.4} />
-      {status === 'locating' ? 'Finding you…' : place.label}
-      {near ? <em className="chip-accuracy">{near}</em> : null}
+      <span className="chip-label">
+        {status === 'locating' ? 'Finding you…' : place.label}
+      </span>
     </button>
   )
 }
