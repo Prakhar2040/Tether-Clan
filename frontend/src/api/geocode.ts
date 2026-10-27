@@ -29,7 +29,10 @@ const BBOX = '77.44,12.78,77.82,13.16'
    have long names, like "Embassy Manyata Business Park". */
 const SIGNPOST = /\b(opposite|opp\.?|behind|beside)\b/i
 
-export const MIN_QUERY = 3
+/* Two is enough to be worth asking about: "mg", "hs", "jp" are all real
+   starts here, and starting early means results are already on screen by the
+   time a longer word is finished. */
+export const MIN_QUERY = 2
 
 export interface PlaceHit {
   id: string
@@ -51,6 +54,26 @@ const tidy = (s: string) =>
     .replace(/,\s*,/g, ',')
     .replace(/^[,\s]+|[,\s]+$/g, '')
 
+/* Answers already paid for.
+ *
+ * Mapbox is 600-800ms away from Bengaluru, which is most of the wait and
+ * cannot be shortened. What can be avoided is asking twice: deleting a letter
+ * or retyping a word is extremely common, and those queries come back
+ * instantly from here instead of costing another round trip. */
+const cache = new Map<string, PlaceHit[]>()
+const CACHE_MAX = 60
+
+/** Cached answer for a query, if there is one. Lets a caller skip the wait. */
+export function cachedSuggestions(
+  query: string,
+  near: { lat: number; lng: number },
+): PlaceHit[] | undefined {
+  return cache.get(cacheKey(query, near))
+}
+
+const cacheKey = (q: string, near: { lat: number; lng: number }) =>
+  `${q.trim().toLowerCase()}@${near.lat.toFixed(2)},${near.lng.toFixed(2)}`
+
 export async function suggestPlaces(
   query: string,
   session: string,
@@ -59,6 +82,10 @@ export async function suggestPlaces(
 ): Promise<PlaceHit[]> {
   const q = query.trim()
   if (!TOKEN || q.length < MIN_QUERY) return []
+
+  const key = cacheKey(q, near)
+  const hit = cache.get(key)
+  if (hit) return hit
 
   const url =
     `${BASE}/suggest?q=${encodeURIComponent(q)}&access_token=${TOKEN}` +
@@ -82,6 +109,10 @@ export async function suggestPlaces(
     seen.add(key)
     hits.push({ id: s.mapbox_id, name: s.name, context })
   }
+
+  // Oldest out first; a Map iterates in insertion order.
+  if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value as string)
+  cache.set(key, hits)
   return hits
 }
 

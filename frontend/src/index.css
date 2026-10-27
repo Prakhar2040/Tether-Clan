@@ -141,6 +141,8 @@ button {
   white-space: nowrap;
 }
 
+.loc-searching { padding: 6px 4px 0; opacity: 0.7; }
+
 /* The error bars on a device fix, beside the place name. */
 .chip-accuracy {
   font-style: normal;

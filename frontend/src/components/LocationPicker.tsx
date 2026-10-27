@@ -3,6 +3,7 @@ import type { LocStatus } from '../state/location'
 import { useLocation } from '../state/location'
 import { PinIcon, SearchIcon } from './icons'
 import {
+  cachedSuggestions,
   MIN_QUERY,
   newSession,
   retrievePlace,
@@ -121,8 +122,20 @@ export function LocationSheet({
       setSearching(false)
       return
     }
+    /* Anything asked before comes back with no wait and no request — typing
+       past a word and backing up again should not cost a second round trip. */
+    const known = cachedSuggestions(text, near.current)
+    if (known) {
+      setHits(known)
+      setSearching(false)
+      return
+    }
+
     const ac = new AbortController()
     setSearching(true)
+    /* Mapbox is the better part of a second away, so the pause before asking
+       is short: it exists to skip the letters someone types straight past,
+       not to add to the wait. */
     const t = setTimeout(() => {
       suggestPlaces(text, session.current, near.current, ac.signal)
         .then((found: PlaceHit[]) => setHits(found))
@@ -141,7 +154,7 @@ export function LocationSheet({
           )
         })
         .finally(() => setSearching(false))
-    }, 250)
+    }, 120)
     return () => {
       ac.abort()
       clearTimeout(t)
@@ -218,6 +231,10 @@ export function LocationSheet({
               <span className="page-sub">
                 {searching ? 'Searching…' : `Nothing in Bengaluru matching “${q.trim()}”.`}
               </span>
+            ) : searching ? (
+              // Previous results stay put rather than blanking; this says the
+              // newer ones are still coming so the list does not look stuck.
+              <span className="page-sub loc-searching">Searching…</span>
             ) : null}
           </div>
         )}

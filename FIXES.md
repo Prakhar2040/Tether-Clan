@@ -93,6 +93,11 @@ Keystrokes abort the previous request, and a failed one falls back to filtering 
 old areas by name, so it still works offline — they are no longer buttons, just the
 fallback.
 
+**On the delay:** Mapbox is 600-800ms from Bengaluru and that part is fixed. What helped
+was asking sooner (two characters, 120ms pause instead of 250ms), caching answers so
+backspacing costs nothing, and leaving the previous results on screen with a "Searching…"
+line rather than blanking the list.
+
 ---
 
 **8. Events sorted by distance** · 27 Oct · *already were*
