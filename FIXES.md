@@ -80,9 +80,14 @@ on is one you can't judge.
 
 **7. Location search instead of seven fixed areas** · 27 Oct · *feature*
 
-Mapbox geocoding, clamped to a tight Bengaluru box, ranked outward from where you are,
-areas above streets. Names like "Mg Rd Opposite Indira Canteen Behind Bolas" are dropped —
-Mapbox's Indian street data is full of directions pretending to be places.
+Mapbox's Search Box API, clamped to a tight Bengaluru box and ranked outward from where
+you are.
+
+Took two goes. The Geocoding API has **no POIs**, so "Phoenix Marketcity" returned nothing
+and "Adarsh Palm Retreat" fell through to whichever road half-matched — a search that
+looks like it worked and puts you somewhere else. Within Search Box, `/forward` is for
+complete queries: it returns nothing for "koram" and a café for "indiran". `/suggest` is
+the one for someone still typing, with `/retrieve` for coordinates once a line is picked.
 
 Keystrokes abort the previous request, and a failed one falls back to filtering the seven
 old areas by name, so it still works offline — they are no longer buttons, just the

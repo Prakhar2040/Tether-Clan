@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { LocStatus } from '../state/location'
 import { useLocation } from '../state/location'
 import { PinIcon, SearchIcon } from './icons'
-import { MIN_QUERY, searchPlaces, type PlaceHit } from '../api/geocode'
+import {
+  MIN_QUERY,
+  newSession,
+  retrievePlace,
+  suggestPlaces,
+  type PlaceHit,
+} from '../api/geocode'
 
 /* Where the user is. One control, used by both Events and the Map, so the two
    always agree on the answer.
@@ -74,11 +80,34 @@ export function LocationSheet({
   // cannot restart the request that is already in flight.
   const near = useRef(place)
   near.current = place
+  /* One token for this run of typing. Mapbox bills a session rather than a
+     call per keystroke, and it is what ties the suggestions to the retrieve
+     that follows. */
+  const session = useRef(newSession())
 
   const choose = (lat: number, lng: number, label: string) => {
     setPlace({ lat, lng, label })
     onPicked?.(lat, lng)
     onClose()
+  }
+
+  /* Suggestions carry no coordinates — that is the second half of the Search
+     Box call, made only for the one line that gets picked. The offline
+     fallback already knows where it is and skips straight through. */
+  const pick = async (hit: PlaceHit) => {
+    if (hit.lat !== undefined && hit.lng !== undefined) {
+      return choose(hit.lat, hit.lng, hit.name)
+    }
+    setError(null)
+    try {
+      const at = await retrievePlace(hit.id, session.current)
+      if (!at) return setError('Could not place that one. Try another.')
+      // A retrieve closes the billing session; the next search starts a new one.
+      session.current = newSession()
+      choose(at.lat, at.lng, hit.name)
+    } catch {
+      setError('Could not place that one. Try another.')
+    }
   }
 
   /* Typing is not a request per keystroke: each one cancels the last and the
@@ -95,9 +124,9 @@ export function LocationSheet({
     const ac = new AbortController()
     setSearching(true)
     const t = setTimeout(() => {
-      searchPlaces(text, near.current, ac.signal)
-        .then((found) => setHits(found))
-        .catch((err) => {
+      suggestPlaces(text, session.current, near.current, ac.signal)
+        .then((found: PlaceHit[]) => setHits(found))
+        .catch((err: unknown) => {
           if ((err as Error).name === 'AbortError') return
           /* Offline, or no token. Falling back to the known areas keeps the
              control usable rather than leaving a dead box. */
@@ -177,7 +206,7 @@ export function LocationSheet({
         ) : (
           <div className="loc-hits">
             {hits.map((h) => (
-              <button key={h.id} className="loc-hit" onClick={() => choose(h.lat, h.lng, h.name)}>
+              <button key={h.id} className="loc-hit" onClick={() => void pick(h)}>
                 <PinIcon size={13} color="#15477C" strokeWidth={2.2} />
                 <span className="stack-2" style={{ minWidth: 0 }}>
                   <span className="loc-hit-name">{h.name}</span>
