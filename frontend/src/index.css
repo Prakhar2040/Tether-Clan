@@ -77,6 +77,55 @@ button {
 
 .screen.no-bar { padding-bottom: 0; }
 
+/* On a screen wider than the app, make the phone behave like a phone.
+ *
+ * Below 480px the viewport *is* the phone, and letting the document scroll is
+ * the right model: it is what lets a mobile browser hide its own chrome as you
+ * scroll, which an inner scroller cannot do.
+ *
+ * Wider than that, the same model reads as a bug — the column is taller than a
+ * laptop window, so you scroll the page to reach the bottom bar and the app
+ * never looks like a device. Here the shell becomes a fixed-height frame and
+ * the scrolling happens inside it instead.
+ */
+@media (min-width: 480px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .shell {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* min-height:0 is what actually lets a flex child scroll: without it the
+     default min-height:auto floors the item at its content height and the
+     overflow escapes upward. */
+  .screen {
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* Fixed positions against the viewport, which would plant the bar at the
+     bottom of the window rather than of the frame. */
+  .tabbar {
+    position: absolute;
+  }
+
+  /* These sized themselves to the viewport; inside a frame they mean the frame. */
+  .map-screen,
+  .map-screen.map-screen {
+    height: 100%;
+    min-height: 0;
+  }
+  .dayof {
+    min-height: 100%;
+  }
+}
+
 /* Top rows */
 .top-row {
   display: flex;

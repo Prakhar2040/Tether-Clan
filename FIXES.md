@@ -114,6 +114,34 @@ placeholder `your_mapbox_public_token_here`, not a real token. Nothing to rotate
 
 ---
 
+## 5. App scrolled the page instead of itself on a laptop — **fixed**
+
+*Reported 27 Oct.*
+
+**Symptom:** on a desktop browser you had to scroll the whole page to reach the bottom of
+the app, and it never looked phone-shaped.
+
+**Cause:** `.shell` is `min-height: 100dvh` with the bottom bar `position: fixed`. That
+is the correct model on a phone — the document scrolls, and it is what lets a mobile
+browser hide its own chrome as you scroll, which an inner scroller cannot do. On a laptop
+the same model means a column taller than the window, so the page scrolls and the bar
+sits at the bottom of the window rather than of the app.
+
+**Fix:** a `@media (min-width: 480px)` block — wider than the app's own 430px — that
+turns the shell into a fixed-height frame scrolling internally. Below that width nothing
+changes at all, so phones keep the behaviour they should have.
+
+The pieces that matter: `.screen` needs `min-height: 0` as well as `overflow-y: auto`,
+because a flex child's default `min-height: auto` floors it at its content height and the
+overflow escapes upward regardless; `.tabbar` goes from `fixed` to `absolute` so it
+anchors to the frame instead of the window; and `.map-screen` and `.dayof`, which sized
+themselves to the viewport, now mean the frame.
+
+Checked first that nothing calls `window.scrollTo` or listens for `scroll` on the window
+— either would have gone quiet once the document stopped scrolling.
+
+---
+
 ## TODO before production
 
 - [ ] **Restrict the Mapbox token.** The account currently has one token, the Default
