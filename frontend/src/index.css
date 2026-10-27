@@ -1316,21 +1316,44 @@ button {
 
 /* Pinned the same way the tab bar is, so nothing can scroll into the strip
    between the two and show through. */
-/* In the flow, at the head of the channel. Fixed to the bottom of the screen
-   it covered whatever you were reading — a poll option, in the case that got
-   it moved — and nothing reserved space for it. */
-.composer-lock {
-  display: flex; align-items: center; gap: 8px;
-  padding: 2px 0 11px;
-  margin-bottom: 4px;
+/* Tether, at the head of the channel.
+   Replaced a grey bar fixed above the tab bar, which covered whatever you
+   were reading. Here it is the first thing in the room and cannot overlap
+   anything. */
+.tether-note {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 2px 0 13px;
+  margin-bottom: 6px;
   border-bottom: 1px solid var(--paper-line);
 }
-.composer-lock svg { flex: 0 0 auto; }
-.composer-hint {
-  font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--on-paper-soft);
+.tether-mark {
+  flex: none;
+  width: 34px; height: 34px; border-radius: 11px;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
 }
-
+.tether-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.tether-name {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--blue);
+}
+.tether-tip {
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 13px; font-weight: 600; line-height: 1.4;
+  color: var(--on-paper-soft);
+}
+/* One line arriving, not a loop playing. 'rising' is only set after the first
+   change, so the tip that is there when you open the room does not animate in
+   behind the rest of the page. */
+.tether-tip.rising { animation: tip-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes tip-rise {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tether-tip.rising { animation: none; }
+}
 .gallery-count {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
   font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em;

@@ -170,6 +170,26 @@ does not need to follow you down the page: read once, scrolls away.
 
 ---
 
+**13. Tether speaks at the head of the channel** · 27 Oct · *feature*
+
+The read-only notice became a message from Tether — logo mark, name, and a tip that
+rotates every eight seconds. Same information, read as part of the room rather than as a
+warning label.
+
+Deliberately not the floating bot that was first asked for: motion played *at* someone
+over the thing they are reading is what the previous fix had just removed. This cannot
+overlap anything, stops ticking when scrolled out of view, and settles on one tip under
+reduced motion.
+
+The tips are contextual, not random — each answers something people get wrong: where the
+ticket lives, what the leaderboard counts, that nobody sees who else is coming.
+
+**Caught while building it:** an unguarded `new IntersectionObserver` took the whole page
+blank where the API is absent. An optimisation should never be able to do that; it now
+falls back to rotating without it.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
