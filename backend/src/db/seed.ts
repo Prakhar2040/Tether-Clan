@@ -34,6 +34,20 @@ const IMAGES = [
   'ddr-wizard.jpg',
   'ddr-hall.jpg',
   'ddr-origins.jpg',
+  'cpr-start.jpg',
+  'cpr-pack.jpg',
+  'cpr-finish.jpg',
+  'cpr-stretch.jpg',
+  'cpr-park.jpg',
+  'community-sketchbook.jpg',
+  'sbc-spread.jpg',
+  'sbc-pens.jpg',
+  'sbc-watercolour.jpg',
+  'community-riders.jpg',
+  'srj-dawn.jpg',
+  'srj-climb.jpg',
+  'srj-repair.jpg',
+  'srj-coffee.jpg',
 ]
 
 const mediaId = (file: string) => file.replace(/\.[a-z]+$/, '')

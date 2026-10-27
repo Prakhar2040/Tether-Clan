@@ -14,6 +14,20 @@ import ddrHegemony from '../assets/ddr-hegemony.jpg'
 import ddrWizard from '../assets/ddr-wizard.jpg'
 import ddrHall from '../assets/ddr-hall.jpg'
 import ddrOrigins from '../assets/ddr-origins.jpg'
+import cprStart from '../assets/cpr-start.jpg'
+import cprPack from '../assets/cpr-pack.jpg'
+import cprFinish from '../assets/cpr-finish.jpg'
+import cprStretch from '../assets/cpr-stretch.jpg'
+import cprPark from '../assets/cpr-park.jpg'
+import sketchCover from '../assets/community-sketchbook.jpg'
+import sbcSpread from '../assets/sbc-spread.jpg'
+import sbcPens from '../assets/sbc-pens.jpg'
+import sbcWatercolour from '../assets/sbc-watercolour.jpg'
+import ridersCover from '../assets/community-riders.jpg'
+import srjDawn from '../assets/srj-dawn.jpg'
+import srjClimb from '../assets/srj-climb.jpg'
+import srjRepair from '../assets/srj-repair.jpg'
+import srjCoffee from '../assets/srj-coffee.jpg'
 import type { Community, CommunityPhoto } from '@shared/types'
 import {
   postsFor,
@@ -30,6 +44,20 @@ const assets: Record<string, string> = {
   'ddr-wizard.jpg': ddrWizard,
   'ddr-hall.jpg': ddrHall,
   'ddr-origins.jpg': ddrOrigins,
+  'cpr-start.jpg': cprStart,
+  'cpr-pack.jpg': cprPack,
+  'cpr-finish.jpg': cprFinish,
+  'cpr-stretch.jpg': cprStretch,
+  'cpr-park.jpg': cprPark,
+  'community-sketchbook.jpg': sketchCover,
+  'sbc-spread.jpg': sbcSpread,
+  'sbc-pens.jpg': sbcPens,
+  'sbc-watercolour.jpg': sbcWatercolour,
+  'community-riders.jpg': ridersCover,
+  'srj-dawn.jpg': srjDawn,
+  'srj-climb.jpg': srjClimb,
+  'srj-repair.jpg': srjRepair,
+  'srj-coffee.jpg': srjCoffee,
 }
 
 /** A filename from the data layer → the URL this bundle serves it at. */

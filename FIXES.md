@@ -123,12 +123,35 @@ when nothing matches.
 
 ---
 
+**10. Only Dice District looked like a real community** · 27 Oct
+
+Not a broken page — the tabs were all there. Sketchbook and Sarjapur had **zero posts and
+zero photos**, so opening one gave an empty channel and nothing else.
+
+Filled in: 8 posts each for the two empty rooms (pinned welcome, a poll, reactions, some
+tied to their real events), and photographs for all three thin rooms, plus covers for the
+two that had none. The About content — owner bios, highlights, house rules — was already
+written for all four.
+
+Images came from Openverse. The first pass picked the first thing that downloaded, which
+gave the sketching club a photo called "Drown" and the cycling club "just a quick snooze";
+the picker now requires the title or tags to match the subject, requires landscape at
+700px+, and refuses to use one image twice. Three slots never found anything decent, so
+they were dropped rather than shipped — three good photos beat five with two that look
+wrong. Provenance and licences are in `frontend/src/assets/CREDITS.md`.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
       won't let you URL-restrict; a dedicated one needs a payment method. A `pk.` token
       can only read map data, so the exposure is someone spending your map loads — fine
       behind a shared password, not fine in public.
+- [ ] **Replace the placeholder photographs.** The images for Cubbon, Sketchbook and
+      Sarjapur are other people's work under non-commercial or no-derivatives licences
+      that this project does not comply with. Fine behind a shared password, not fine in
+      public. `frontend/src/assets/CREDITS.md` lists every one.
 - [ ] **Align React versions.** `host` locks 19.3.0, `frontend` 19.2.8, both asking for
       `^19.2.8`. Dedupe picks one, so the member app's components run under a React they
       weren't installed against.
