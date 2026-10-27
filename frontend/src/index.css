@@ -1,6 +1,10 @@
 :root {
   --blue: #15477C;
   --blue-deep: #0E3A68;
+  /* The community tile's base. Softer than --blue-deep, which read as a slab
+     of tab bar sitting under the photograph: lighter, less saturated, still
+     unmistakably the brand blue. */
+  --tile-base: #2C4C6E;
   --yellow: #FDBE50;
   --orange: #E9712A;
   --ink: #070808;
@@ -1057,7 +1061,7 @@ button {
      against — without this it anchors to whatever is positioned above it and
      covers the wrong thing. */
   position: relative;
-  background: var(--blue-deep); border-radius: 18px; overflow: hidden;
+  background: var(--tile-base); border-radius: 18px; overflow: hidden;
   text-decoration: none;
   /* On sand a white card is 1.26:1, so it needs an edge as well as a lift. */
   border: 1px solid var(--card-edge);
@@ -1089,9 +1093,9 @@ button {
    bar reads as the app holding the picture rather than a caption pasted
    underneath it. The name also stays white, as it was on the photo. */
 .comm-tile-body {
-  display: flex; flex-direction: column; gap: 3px;
-  padding: 13px 16px 15px;
-  background: var(--blue-deep);
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 10px 14px 12px;
+  background: var(--tile-base);
 }
 .comm-kicker {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
@@ -1107,19 +1111,19 @@ button {
   letter-spacing: 0.12em;
 }
 .comm-tile-name {
-  font-size: 21px; font-weight: 900; line-height: 1.15; color: #fff;
+  font-size: 16.5px; font-weight: 800; line-height: 1.2; color: #fff;
 }
 /* Members and rating are the two numbers that say whether this room is
    worth walking into, so they get size, not a caption. */
 .comm-tile-stats {
-  display: flex; align-items: center; gap: 5px; margin-top: 3px;
+  display: flex; align-items: center; gap: 4px; margin-top: 1px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.76);
+  font-size: 11.5px; font-weight: 600; color: rgba(255, 255, 255, 0.72);
 }
 .comm-tile-stats svg { flex: 0 0 auto; }
 .comm-stat-n {
   font-family: Archivo, sans-serif;
-  font-size: 17px; font-weight: 900; color: #fff; letter-spacing: -0.01em;
+  font-size: 13px; font-weight: 800; color: #fff; letter-spacing: -0.01em;
 }
 .comm-stat-word { position: relative; top: 0.5px; }
 .comm-stat-dot {
@@ -1130,17 +1134,17 @@ button {
 /* The hairline stays — it separated the plan from the name on the photo and
    does the same job on paper. Only its colour changes. */
 .comm-tile-plan {
-  margin-top: 10px; padding-top: 9px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 7px; padding-top: 7px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 /* The next plan is the reason to open the tile, so it gets its own line. */
 .comm-next {
   display: flex; align-items: center; gap: 8px;
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 13px; font-weight: 700; color: #fff;
+  font-size: 11.5px; font-weight: 700; color: rgba(255, 255, 255, 0.92);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.comm-next.quiet { color: rgba(255, 255, 255, 0.62); font-weight: 600; }
+.comm-next.quiet { color: rgba(255, 255, 255, 0.76); font-weight: 600; }
 /* Orange is only 3.1:1 on the blue band; amber is 5.7:1. */
 .comm-next-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--yellow); flex: 0 0 auto; }
 
