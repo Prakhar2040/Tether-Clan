@@ -183,6 +183,25 @@ it was: blocked by the browser, no position available (with the macOS setting na
 timeout, or unsupported. A transient `POSITION_UNAVAILABLE` from the watch gets a
 three-second grace period first, because a watch can complain and then recover.
 
+**What it turned out to be.** With the failures no longer swallowed, the browser console
+gave it up at once:
+
+```
+CoreLocationProvider: CoreLocation framework reported a kCLErrorLocationUnknown failure.
+ERR code=2 Position update is unavailable
+```
+
+`code=2` is POSITION_UNAVAILABLE and the permission was fine — a refusal would have been
+`code=1`. macOS itself could not work out where the machine was. The usual cause is the
+Wi-Fi radio being off: macOS locates itself by scanning nearby networks rather than from
+the IP address, so being online over Ethernet is not enough. The message now says that
+first, and Location Services second, since that is the one people check first and it had
+already been ruled out.
+
+Worth noting what made this findable: nothing about the app's behaviour changed between
+"silently wrong" and "diagnosed in one console line" except that it stopped discarding
+errors.
+
 **Still true:** a laptop has no GPS. The fix makes the app stop asking for the worst
 answer and stop hiding how good the answer is; it cannot give a laptop a satellite.
 

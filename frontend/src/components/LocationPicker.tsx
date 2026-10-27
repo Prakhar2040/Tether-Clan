@@ -41,8 +41,13 @@ export function LocationChip({ onOpen }: { onOpen: () => void }) {
 
 const WHY: Partial<Record<LocStatus, string>> & { denied: string } = {
   blocked: 'Your browser is blocking location for this site. Allow it in the padlock menu beside the address bar, or pick an area below.',
+  /* kCLErrorLocationUnknown, in plain words. On a Mac the usual cause is the
+     Wi-Fi radio being off: macOS works out where it is by scanning nearby
+     networks, not from the IP address, so being online over Ethernet is not
+     enough. Location Services being switched off is the other one, and is what
+     people check first, so both are named. */
   unavailable:
-    'Your device has no position to give. On a Mac that usually means System Settings → Privacy & Security → Location Services is off for your browser. Pick an area below meanwhile.',
+    'Your device could not work out where it is. On a Mac, switch Wi-Fi on — it finds itself by scanning nearby networks, so the radio has to be on even when you are online over Ethernet. Failing that, check System Settings → Privacy & Security → Location Services. Pick an area below meanwhile.',
   denied: 'Timed out waiting for a fix. Pick an area below instead.',
   unsupported: 'This browser cannot do location at all. Pick an area below instead.',
 }
