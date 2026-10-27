@@ -1316,11 +1316,14 @@ button {
 
 /* Pinned the same way the tab bar is, so nothing can scroll into the strip
    between the two and show through. */
+/* In the flow, at the head of the channel. Fixed to the bottom of the screen
+   it covered whatever you were reading — a poll option, in the case that got
+   it moved — and nothing reserved space for it. */
 .composer-lock {
-  position: fixed; bottom: 84px; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px; z-index: 15;
   display: flex; align-items: center; gap: 8px;
-  padding: 13px 20px; border-top: 1px solid var(--paper-line); background: var(--paper);
+  padding: 2px 0 11px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--paper-line);
 }
 .composer-lock svg { flex: 0 0 auto; }
 .composer-hint {

@@ -159,6 +159,17 @@ and would have been next.
 
 ---
 
+**12. "Only owners and admins can post" sat on top of the posts** · 27 Oct
+
+It was `position: fixed` above the tab bar with nothing reserving space for it, so it
+covered whatever you were reading — a poll option, in the screenshot that reported it.
+
+Moved into the flow at the head of the channel, which is where a compose box would be and
+therefore where you look when wondering why there isn't one. A rule that never changes
+does not need to follow you down the page: read once, scrolls away.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox

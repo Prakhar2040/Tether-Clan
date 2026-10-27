@@ -453,6 +453,23 @@ export function CommunityView({
             className="channel"
             style={{ '--comm': c.color } as CSSProperties}
           >
+            {/* Where a compose box would sit, saying why there isn't one. It
+                used to be pinned above the tab bar, which put it on top of
+                whatever you were reading — and a rule that never changes does
+                not need to follow you down the page. Read once, scrolls away. */}
+            <div className="composer-lock">
+              {writeable ? (
+                <span className="composer-hint">You can post here as {role}</span>
+              ) : (
+                <>
+                  <LockIcon size={14} color="#8A8577" />
+                  <span className="composer-hint">
+                    Only {admins.length ? 'owners and admins' : 'the owner'} can post — react to
+                    let them know you read it
+                  </span>
+                </>
+              )}
+            </div>
             {pinned ? (
               <div className={pinOpen ? 'pinned-band open' : 'pinned-band'}>
                 <button className="pinned-head" onClick={() => setPinOpen((v) => !v)}>
@@ -484,20 +501,6 @@ export function CommunityView({
                   <PostCard key={item.post!.id} post={item.post!} />
                 ),
               )
-            )}
-          </div>
-
-          <div className="composer-lock">
-            {writeable ? (
-              <span className="composer-hint">You can post here as {role}</span>
-            ) : (
-              <>
-                <LockIcon size={14} color="#8A8577" />
-                <span className="composer-hint">
-                  Only {admins.length ? 'owners and admins' : 'the owner'} can post — react to let
-                  them know you read it
-                </span>
-              </>
             )}
           </div>
         </>
