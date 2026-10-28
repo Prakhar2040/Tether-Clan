@@ -2,6 +2,8 @@ import { MissingEvent } from '../components/MissingEvent'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { events, people } from '@shared/mock'
+import { communityOf } from '../data/community'
+import { useCommunities } from '../state/communities'
 import { Avatar } from '../components/shared'
 import { BackIcon, CheckIcon, PlusIcon, ShareIcon, StarIcon } from '../components/icons'
 
@@ -13,13 +15,31 @@ const connectable = [
 export default function PostEvent() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [rating, setRating] = useState(4)
+  /* Starts at nothing, not at four. A rating the app filled in for you is
+     not a rating, and this one feeds the host's score. */
+  const [rating, setRating] = useState(0)
+  const [note, setNote] = useState('')
   const [connected, setConnected] = useState<Record<string, boolean>>({})
   const [rebooked, setRebooked] = useState(false)
   const [skipped, setSkipped] = useState(false)
+  const { isMember, join } = useCommunities()
 
   const e = id ? events[id] : undefined
   if (!e) return <MissingEvent />
+
+  /* The room that ran the night, offered once the night has been rated.
+   *
+   * This is the moment the product's own rule points at — "join one from a
+   * plan you go to, that's the only way in". Until now nothing implemented
+   * it: the only way to join was an ungated button on the room's page, which
+   * anybody could press having never met a soul.
+   *
+   * It sits behind the rating rather than beside it because the rating is
+   * the thing somebody has earned the right to be asked for, and answering
+   * it is what makes the invitation feel like a consequence of the evening
+   * rather than an advert at the end of it. */
+  const host = communityOf(e.id)
+  const offerJoin = rating > 0 && host && !isMember(host.id)
 
   return (
     <div className="screen no-bar">
@@ -89,6 +109,41 @@ export default function PostEvent() {
             ))}
           </div>
         </section>
+
+        {/* Optional, and only once there is a rating to attach it to. An
+            empty box sitting there before anybody has said anything reads as
+            homework. */}
+        {rating > 0 ? (
+          <section className="card recap-note">
+            <label className="section-label" htmlFor="recap-note">
+              Anything you'd tell Robin? <em>optional</em>
+            </label>
+            <textarea
+              id="recap-note"
+              value={note}
+              onChange={(ev) => setNote(ev.target.value)}
+              rows={2}
+              placeholder="What worked, what didn't, who to thank"
+            />
+          </section>
+        ) : null}
+
+        {offerJoin ? (
+          <section className="card join-offer">
+            <span className="join-offer-mark" style={{ background: host.color }}>
+              {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+            </span>
+            <span className="stack-2" style={{ flex: 1, minWidth: 0 }}>
+              <span className="join-offer-name">{host.name}</span>
+              <span className="join-offer-sub">
+                They run this one. Join and you'll hear about the next before anyone else.
+              </span>
+            </span>
+            <button className="btn btn-small" onClick={() => join(host.id)}>
+              Join
+            </button>
+          </section>
+        ) : null}
       </div>
 
       <div className="footer-cta">

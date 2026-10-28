@@ -310,6 +310,26 @@ place and fills in as those arrive.
 
 ---
 
+**22. There was no moment to join a community** · 28 Oct · *feature*
+
+The Community tab says "join one from a plan you go to — that's the only way in, and it's
+the point", and nothing in the app implemented it. The only way to join was an ungated
+button on a room's page, pressable by somebody who had never attended anything. The recap
+screen — the one moment the rule describes — never mentioned the community at all.
+
+The recap now asks how the night was, offers an optional note once there is a rating to
+attach it to, and then offers the room: "They run this one. Join and you'll hear about the
+next before anyone else."
+
+The invitation sits behind the rating rather than beside it. The rating is the thing
+somebody has earned the right to be asked for, and answering it is what makes the
+invitation read as a consequence of the evening rather than an advert at the end of it.
+
+Also: the stars started on four. A rating the app filled in for you is not a rating, and
+this one feeds the host's score.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
