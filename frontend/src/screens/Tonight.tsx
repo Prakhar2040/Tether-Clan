@@ -6,7 +6,7 @@ import { communityOf, eventImages, photosFor } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
-import { GoingRow, WhoSheet } from '../components/WhoSheet'
+import { WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
 import { useSearch } from '../hooks/useSearch'
 import { FALLBACK, useLocation } from '../state/location'
@@ -43,12 +43,10 @@ function EventFeedCard({
   e,
   area,
   km,
-  onWho,
 }: {
   e: TcEvent
   area: string
   km: number | null
-  onWho: (id: string) => void
 }) {
   const { stateFor } = useRsvp()
   const openBuy = useBuy()
@@ -117,41 +115,20 @@ function EventFeedCard({
 
       <div className="event-tile-body">
         <span className="comm-tile-name">{e.title}</span>
-        {/* When, where and how much — the three facts somebody decides on,
-            so they are read at a glance rather than buried in a grey line
-            with everything else. The price is the one people look for and
-            the one that used to come last. */}
-        <span className="event-facts">
-          <b>
-            {e.dayLabel !== 'Tonight' ? `${e.dayLabel} ` : ''}
-            {e.timeLabel}
-          </b>
-          <span className="event-facts-dot" />
-          <span>{area}</span>
-          {distanceLabel(km) ? (
-            <>
-              <span className="event-facts-dot" />
-              {/* The list is ordered by this, so it has to be on screen —
-                  otherwise nearest-first looks like no order at all. */}
-              <span>{distanceLabel(km)}</span>
-            </>
-          ) : null}
-          <b className="event-price">{priceLabel(e)}</b>
+        {/* When and where, given the room the host row and the going row
+            used to take. These are the two things somebody decides on; the
+            price is on the button, which is the only place it is acted on. */}
+        <span className="event-when">
+          {e.dayLabel !== 'Tonight' ? `${e.dayLabel} ` : ''}
+          {e.timeLabel}
+        </span>
+        <span className="event-where">
+          {area}
+          {/* The list is ordered by this, so it has to be on screen —
+              otherwise nearest-first looks like no order at all. */}
+          {distanceLabel(km) ? ` · ${distanceLabel(km)} away` : ''}
         </span>
 
-        {/* Its own link, not nested in the one covering the tile: this is how
-            somebody finds a room they did not know about. */}
-        {host ? (
-          <Link to={`/community/${host.id}`} className="event-host" viewTransition>
-            <span className="event-host-mark" style={{ background: host.color }}>
-              {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
-            </span>
-            <span className="event-host-name">{host.name}</span>
-            <ChevronIcon size={13} color="rgba(255,255,255,0.6)" />
-          </Link>
-        ) : null}
-
-        <GoingRow e={e} onOpen={() => onWho(e.id)} />
 
         {/* One button. "Maybe" was a second decision asked of somebody who
             had not made the first one, and it took a row to say so. */}
@@ -542,7 +519,7 @@ export default function Tonight() {
                     <ChevronIcon size={16} color="#15477C" />
                   </Link>
                   ) : (
-                    <EventFeedCard e={e} area={area} km={km} onWho={setWhoFor} />
+                    <EventFeedCard e={e} area={area} km={km} />
                   )}
                 </Fragment>
               ))

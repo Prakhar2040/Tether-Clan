@@ -256,23 +256,20 @@ button {
 }
 .btn-ghost.on-dark:disabled { opacity: 0.5; }
 
-/* When, where and how much, in a line of their own. Brighter and heavier
-   than the old grey run-on, because these are the three things somebody
-   decides on. */
-.event-facts {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
-  margin-top: 2px;
+/* When and where, on two lines of their own.
+   They inherited the space the host row and the going row were using, and
+   they earn it: these are the two things somebody is deciding on. The price
+   is not here — it is on the button, which is the only place it is acted
+   on, and saying it twice made the line longer without making it clearer. */
+.event-when {
+  margin-top: 3px;
+  font-size: 16px; font-weight: 800; color: var(--yellow);
+  letter-spacing: -0.01em;
+}
+.event-where {
   font-family: 'Archivo Narrow', Archivo, sans-serif;
-  font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.8);
+  font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.82);
 }
-.event-facts b { font-weight: 800; color: #fff; }
-.event-facts-dot {
-  width: 3px; height: 3px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.4);
-}
-/* Pushed to the end of the line and given the brand's own colour: it is the
-   question people actually came with. */
-.event-price { margin-left: auto; color: var(--yellow); font-size: 13.5px; }
 
 .event-tile .btn-row { margin-top: 9px; }
 .event-tile .going-row { margin-top: 7px; }
