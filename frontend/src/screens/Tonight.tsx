@@ -131,9 +131,22 @@ function EventFeedCard({
         ) : null}
       </div>
 
-      {/* One layer over the picture and the words, so the whole tile opens
-          the night. The host row and the buttons sit above it. */}
-      <Link to={`/event/${e.id}`} className="event-hit" aria-label={e.title} />
+      {/* The card opens the room, not the night.
+       *
+       * Discover is where somebody meets a group they have not heard of, and
+       * the question a card raises is "who are these people" — answered by
+       * the room, with its chat, its photographs and its past nights. The
+       * night itself is one decision: the Buy button below makes it without
+       * going anywhere.
+       *
+       * Every plan belongs to a room, so the fallback to the event page only
+       * exists to keep this honest if one ever does not. */}
+      <Link
+        to={host ? `/community/${host.id}` : `/event/${e.id}`}
+        className="event-hit"
+        aria-label={host ? `${e.title} — open ${host.name}` : e.title}
+        viewTransition
+      />
 
       <div className="event-tile-body">
         <span className="comm-tile-name">{e.title}</span>

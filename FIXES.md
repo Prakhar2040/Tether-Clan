@@ -344,6 +344,18 @@ member count, category and area, linking through with the same logo transition.
 
 ---
 
+**24. An event card opens the room, not the night** · 28 Oct
+
+Discover is where somebody meets a group they have not heard of, and the question a card
+raises is "who are these people". That is answered by the room — its chat, its
+photographs, its past nights — not by a page about one evening with a price on it.
+
+So the card now opens the community, exactly as Dice District opens from the Community
+tab, and the Buy button makes the one decision the night needs without going anywhere.
+The event page is still there, reached from the room's Tickets tab.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
