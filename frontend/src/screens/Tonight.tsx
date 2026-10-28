@@ -1,7 +1,8 @@
 import { Fragment, useMemo, useState } from 'react'
+import { ROLL_MS, useRollingShots } from '../hooks/useRollingShots'
 import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
-import { communityOf, eventImages } from '../data/community'
+import { communityOf, eventImages, photosFor } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
@@ -58,18 +59,49 @@ function EventFeedCard({
      here — but it is still written to cope without one. */
   const host = communityOf(e.id)
 
-  /* A picture, in order of how specific it is: the night's own, then the
-     room's cover, then nothing and the tile falls back to the brand colour.
-     Only twelve plans have art of their own; the community cover is what
-     stops the other nineteen being flat blocks, and it is honest — it is a
-     picture of the people running it. */
-  const shot = eventImages[e.id] ?? host?.coverImage
+  /* Pictures, in order of how specific they are: the night's own art, the
+     room's cover, then the room's gallery. Only twelve plans have art of
+     their own, so the room's pictures are what stop the rest being flat
+     blocks — and they are honest, being photographs of the people running
+     it.
+     
+     More than one and it rolls, the same way the community tile does. */
+  const shots = useMemo(() => {
+    const own = host ? photosFor(host.id).map((ph) => ph.src) : []
+    return [...new Set([eventImages[e.id], host?.coverImage, ...own].filter(Boolean) as string[])]
+  }, [e.id, host])
+
+  const { at, held, setHeld } = useRollingShots(shots.length)
 
   return (
-    <article className="event-tile">
-      <div className={shot ? 'event-cover' : 'event-cover no-photo'} style={{ background: host?.color ?? '#15477C' }}>
-        {shot ? <span className="event-shot" style={{ backgroundImage: `url(${shot})` }} /> : null}
+    <article
+      className="event-tile"
+      onMouseEnter={() => setHeld(true)}
+      onMouseLeave={() => setHeld(false)}
+    >
+      <div
+        className={shots.length > 0 ? 'event-cover' : 'event-cover no-photo'}
+        style={{ background: host?.color ?? '#15477C' }}
+      >
+        {/* All of them stay mounted and cross-fade, so the next is already
+            fetched by the time it is needed. */}
+        {shots.map((src, i) => (
+          <span
+            key={src}
+            className={i === at ? 'event-shot on' : 'event-shot'}
+            style={{ backgroundImage: `url(${src})` }}
+          />
+        ))}
         <span className="comm-kicker on-photo">{e.categoryLabel}</span>
+        {shots.length > 1 ? (
+          <span className="shot-dots on-event" style={{ ['--roll' as string]: `${ROLL_MS}ms` } as React.CSSProperties}>
+            {shots.map((src, i) => (
+              <b key={src} className={i === at ? 'on' : ''}>
+                {i === at && !held ? <i key={`${at}-${held}`} /> : null}
+              </b>
+            ))}
+          </span>
+        ) : null}
         {state === 'going' ? (
           <span className="badge badge-going on-cover">YOU'RE IN</span>
         ) : left === 0 ? (

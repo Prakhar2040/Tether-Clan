@@ -166,9 +166,14 @@ button {
   display: flex; align-items: flex-end;
 }
 .event-shot {
-  position: absolute; inset: 0;
-  background-size: cover; background-position: center;
+  position: absolute; inset: 0; display: block;
+  background-size: cover; background-position: center 35%;
+  /* Cross-fade, same as the community tile — they share the hook that drives
+     them, so they should share the timing of the fade too. */
+  opacity: 0; transition: opacity 0.85s ease;
 }
+.event-shot.on { opacity: 1; }
+
 .event-cover::after {
   content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background: linear-gradient(to top, rgba(7, 8, 8, 0.3) 0%, rgba(7, 8, 8, 0) 40%);

@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { upcomingCommunityEvents } from '../data/community'
 import { fetchCommunities, localCommunitiesById } from '../api/communities'
 import { fetchPhotosFor, localGallery } from '../api/photos'
 import { useRemote } from '../hooks/useRemote'
 import { venues } from '@shared/mock'
+import { ROLL_MS, useRollingShots } from '../hooks/useRollingShots'
 import { useCommunities } from '../state/communities'
 import { Brand } from '../components/shared'
 import { ChevronIcon, LogoMark, StarIcon } from '../components/icons'
@@ -18,9 +19,6 @@ function initialsOf(name: string): string {
     .map((w) => w[0].toUpperCase())
     .join('')
 }
-
-// How long each picture holds before the next one.
-const ROLL_MS = 4200
 
 // A tile, not a row. The photo is the point — you should recognise your
 // community the way you recognise a room, before you read its name.
@@ -36,21 +34,9 @@ function CommunityTile({ c, photos }: { c: TcCommunity; photos: CommunityPhoto[]
     return [...new Set([c.coverImage, ...own].filter(Boolean) as string[])]
   }, [c.id, c.coverImage, photos])
 
-  const [at, setAt] = useState(0)
-  const [held, setHeld] = useState(false)
-  const step = (d: number) => (e: React.MouseEvent) => {
-    e.preventDefault()
-    setAt((n) => (n + d + shots.length) % shots.length)
-  }
-
-  // Keyed on `at` so stepping by hand restarts the wait rather than being
-  // overtaken by a timer that was already nearly up.
-  useEffect(() => {
-    if (shots.length < 2 || held) return
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
-    const t = setTimeout(() => setAt((n) => (n + 1) % shots.length), ROLL_MS)
-    return () => clearTimeout(t)
-  }, [at, held, shots.length])
+  // Shared with the event card, so the two roll at the same pace and handle
+  // hover and reduced motion the same way.
+  const { at, held, setHeld, step } = useRollingShots(shots.length)
 
   return (
     <div

@@ -295,6 +295,21 @@ the chevron says so.
 
 ---
 
+**21. Event cards roll through pictures** · 28 Oct · *feature*
+
+The same cross-fade the community tile has. A card shows the night's own art, then the
+room's cover, then the room's gallery — most plans have no art of their own, so what rolls
+is mostly photographs of the people running it.
+
+The behaviour moved into `useRollingShots` and both feeds call it, rather than a second
+copy that would drift in timing, in the pause on hover, and in the reduced-motion branch.
+
+Only one card in nine currently has more than one picture: the thirteen newer rooms have
+covers but no galleries yet, so their nights show a single image. The mechanism is in
+place and fills in as those arrive.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
