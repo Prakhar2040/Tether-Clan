@@ -330,6 +330,20 @@ this one feeds the host's score.
 
 ---
 
+**23. No way from a night to the room running it** · 28 Oct
+
+Every event belongs to a community, and nothing said so. The card briefly carried a host
+row, but it spanned the body's full width with its own tap target — which is why tapping a
+card sometimes opened a community instead of the night — and it was removed to give the
+space to when and where. The event page had never named its community at all, so the path
+disappeared entirely.
+
+It now lives on the event page, which is the right home: the card is for deciding whether
+to go, and this is the page you are on once you want to know who these people are. Name,
+member count, category and area, linking through with the same logo transition.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox

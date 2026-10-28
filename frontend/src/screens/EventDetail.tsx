@@ -1,12 +1,13 @@
 import { MissingEvent } from '../components/MissingEvent'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { events, people, seatsLeft, venues } from '@shared/mock'
+import { communityOf } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { useBuy } from '../components/BuySheet'
 import { rupees } from '../lib/money'
 import { useCircle } from '../state/circle'
 import { Avatar } from '../components/shared'
-import { BackIcon, CheckIcon, ShareIcon, ShieldIcon } from '../components/icons'
+import { BackIcon, CheckIcon, ChevronIcon, ShareIcon, ShieldIcon } from '../components/icons'
 
 export default function EventDetail() {
   const { id } = useParams()
@@ -18,6 +19,7 @@ export default function EventDetail() {
   const e = id ? events[id] : undefined
   if (!e) return <MissingEvent />
   const venue = venues[e.venueId]
+  const host = communityOf(e.id)
   const state = stateFor(e.id)
   // Deciding needs what/when/where/who; preparing needs roles and icebreakers.
   const going = state === 'going' || state === 'checked-in'
@@ -59,6 +61,30 @@ export default function EventDetail() {
             </div>
           ) : null}
         </div>
+
+        {/* The room behind the night.
+         *
+         * Every plan in the app belongs to one, and until now nothing said
+         * so: the card used to carry a host row and the event page never did,
+         * so when the card lost it there was no way from a night to its room
+         * at all. This is the right home for it — the card is for deciding
+         * whether to go, and this is the page you are on once you want to
+         * know who these people are. */}
+        {host ? (
+          <Link to={`/community/${host.id}`} className="card detail-host" viewTransition>
+            <span className="detail-host-mark" style={{ background: host.color }}>
+              {host.name.split(' ').slice(0, 2).map((w) => w[0]).join('')}
+            </span>
+            <span className="stack-2" style={{ flex: 1, minWidth: 0 }}>
+              <span className="section-label">Run by</span>
+              <span className="detail-host-name">{host.name}</span>
+              <span className="detail-host-sub">
+                {host.memberCount} members · {host.categoryLabel} in {host.areaName}
+              </span>
+            </span>
+            <ChevronIcon size={18} color="#15477C" />
+          </Link>
+        ) : null}
 
         <section className="card">
           <span className="section-label">Who's going</span>
