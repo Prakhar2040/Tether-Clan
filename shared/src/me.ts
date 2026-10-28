@@ -4,15 +4,21 @@ import type { Person } from './types'
 // which is why the badges and the record on this page are yours alone, and
 // nobody else can see them.
 
-export const me: Person = { id: 'you', name: 'Ishaan Rao', initials: 'IR', color: 'orange' }
+export const me: Person = { id: 'you', name: 'Prakhar Sinha', initials: 'PS', color: 'orange' }
 
 export const myArea = 'Indiranagar'
-export const joinedLabel = 'March 2026'
+/* Kept in step with the nights below. The seeder turns those into a
+   membership age — a night a fortnight — so a profile saying "here since
+   March 2026" beside a console saying seventeen months would be two
+   different stories about the same person. */
+export const joinedLabel = 'May 2025'
 
 // Nights turned up to, per community.
 export const nightsIn: Record<string, number> = {
-  'dice-district-regulars': 14,
-  'cubbon-runners': 9,
+  // Old hand at the board games, one short of it at the run club — which is
+  // what makes the ladder on the profile worth looking at.
+  'dice-district-regulars': 34,
+  'cubbon-runners': 19,
 }
 
 // The ladder, self-facing. The host names their own rungs; these are the

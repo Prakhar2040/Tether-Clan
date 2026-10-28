@@ -23,9 +23,18 @@ export default function Profile() {
   const mine = joinedIds.map((id) => communities[id]).filter(Boolean)
 
   const history = Object.values(events).map((e) => stateFor(e.id))
-  const went = history.filter((s) => s === 'attended').length
   const missed = history.filter((s) => s === 'no-showed').length
   const coming = history.filter((s) => s === 'going' || s === 'checked-in').length
+
+  /* Your record, not this session's.
+   *
+   * This read "0 nights been to" for somebody with years behind them,
+   * because it counted RSVP states held in memory — which start empty every
+   * time the app loads and only ever cover plans still in the mock. The
+   * nights you have actually turned up to are the per-room counts the door
+   * keeps, which is the same number the host console shows and the seeder
+   * writes to your membership. */
+  const went = mine.reduce((n, c) => n + (nightsIn[c.id] ?? 0), 0)
 
   /* Every competition you have a placing in, newest first, and where you
      stand all-time in each room. Both come from the server, which is the

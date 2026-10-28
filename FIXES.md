@@ -359,6 +359,24 @@ later, where it is a confirmation rather than an interruption.
 
 ---
 
+**25. Distance was straight-line, and the profile said zero nights** · 28 Oct
+
+*Distance.* Cards showed haversine kilometres. Bengaluru roads run about 1.4× that, so
+"6.3 km away" meant nearly nine of driving. The venue coordinates were fine — every one
+within 250m of its area — so it was honest arithmetic answering the wrong question. The
+server already computed travel minutes and the card ignored them; it shows those now, and
+the formula moved to `shared/travel.ts` so the offline client cannot drift from it.
+
+*The profile.* "0 nights been to" for somebody with years behind them: it counted RSVP
+states held in memory, which start empty on every load. It now sums the per-room counts
+the door keeps — the same number the host console shows.
+
+Also: the viewer is Prakhar Sinha, and `joinedLabel` moved to May 2025 to match the
+membership age the seeder derives from those nights. Otherwise the profile and the console
+told two different stories about the same person.
+
+---
+
 ## Before production
 
 - [ ] **Restrict the Mapbox token.** It's the account's Default public token, which Mapbox
