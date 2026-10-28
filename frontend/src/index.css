@@ -212,7 +212,7 @@ button {
 .event-tile-body {
   position: relative; z-index: 2;
   display: flex; flex-direction: column; gap: 1px;
-  padding: 10px 14px 12px;
+  padding: 9px 13px 11px;
   /* Nothing in here is clickable except the host row and the buttons, and
      those set their own pointer events back on. Otherwise this layer would
      sit over the tile's link and swallow the tap. */
@@ -229,7 +229,7 @@ button {
 /* The room behind the night, on the blue. */
 .event-host {
   display: flex; align-items: center; gap: 8px;
-  margin-top: 8px; padding-top: 8px;
+  margin-top: 7px; padding-top: 7px;
   border-top: 1px solid rgba(255, 255, 255, 0.16);
   /* A link, but not a run of underlined text — the whole row is the target
      and the chevron says so. */
@@ -256,8 +256,26 @@ button {
 }
 .btn-ghost.on-dark:disabled { opacity: 0.5; }
 
-.event-tile .btn-row { margin-top: 10px; }
-.event-tile .going-row { margin-top: 9px; }
+/* When, where and how much, in a line of their own. Brighter and heavier
+   than the old grey run-on, because these are the three things somebody
+   decides on. */
+.event-facts {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 5px;
+  margin-top: 2px;
+  font-family: 'Archivo Narrow', Archivo, sans-serif;
+  font-size: 12.5px; font-weight: 600; color: rgba(255, 255, 255, 0.8);
+}
+.event-facts b { font-weight: 800; color: #fff; }
+.event-facts-dot {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+/* Pushed to the end of the line and given the brand's own colour: it is the
+   question people actually came with. */
+.event-price { margin-left: auto; color: var(--yellow); font-size: 13.5px; }
+
+.event-tile .btn-row { margin-top: 9px; }
+.event-tile .going-row { margin-top: 7px; }
 
 /* Who runs this night, under the event it belongs to. Its own tap target —
    the way into a room you had not heard of. */

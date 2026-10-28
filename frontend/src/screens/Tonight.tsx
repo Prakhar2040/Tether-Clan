@@ -50,7 +50,7 @@ function EventFeedCard({
   km: number | null
   onWho: (id: string) => void
 }) {
-  const { stateFor, markInterested } = useRsvp()
+  const { stateFor } = useRsvp()
   const openBuy = useBuy()
   const navigate = useNavigate()
   const state = stateFor(e.id)
@@ -117,12 +117,26 @@ function EventFeedCard({
 
       <div className="event-tile-body">
         <span className="comm-tile-name">{e.title}</span>
-        <span className="comm-tile-stats">
-          {e.dayLabel !== 'Tonight' ? `${e.dayLabel} · ` : ''}
-          {e.timeLabel} · {area}
-          {/* The list is ordered by this, so it has to be on screen —
-              otherwise nearest-first looks like no order at all. */}
-          {distanceLabel(km) ? ` · ${distanceLabel(km)}` : ''} · {priceLabel(e)}
+        {/* When, where and how much — the three facts somebody decides on,
+            so they are read at a glance rather than buried in a grey line
+            with everything else. The price is the one people look for and
+            the one that used to come last. */}
+        <span className="event-facts">
+          <b>
+            {e.dayLabel !== 'Tonight' ? `${e.dayLabel} ` : ''}
+            {e.timeLabel}
+          </b>
+          <span className="event-facts-dot" />
+          <span>{area}</span>
+          {distanceLabel(km) ? (
+            <>
+              <span className="event-facts-dot" />
+              {/* The list is ordered by this, so it has to be on screen —
+                  otherwise nearest-first looks like no order at all. */}
+              <span>{distanceLabel(km)}</span>
+            </>
+          ) : null}
+          <b className="event-price">{priceLabel(e)}</b>
         </span>
 
         {/* Its own link, not nested in the one covering the tile: this is how
@@ -139,6 +153,8 @@ function EventFeedCard({
 
         <GoingRow e={e} onOpen={() => onWho(e.id)} />
 
+        {/* One button. "Maybe" was a second decision asked of somebody who
+            had not made the first one, and it took a row to say so. */}
         <div className="btn-row">
           {state === 'going' ? (
             <button className="btn btn-confirm" onClick={() => navigate(`/event/${e.id}`)}>
@@ -150,18 +166,9 @@ function EventFeedCard({
             </button>
           ) : (
             <button className="btn btn-cta" onClick={() => openBuy(e.id)}>
-              Join them
+              {e.price === 0 ? 'Get a seat · Free' : `Buy · ${priceLabel(e)}`}
             </button>
           )}
-          {state === 'interested' ? (
-            <button className="btn btn-ghost on-dark" onClick={() => navigate(`/event/${e.id}`)}>
-              Interested ✓
-            </button>
-          ) : state === 'none' || state === 'cancelled' ? (
-            <button className="btn btn-ghost on-dark" onClick={() => markInterested(e.id)}>
-              Maybe
-            </button>
-          ) : null}
         </div>
       </div>
     </article>
