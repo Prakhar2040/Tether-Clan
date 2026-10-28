@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from 'react'
 import { ROLL_MS, useRollingShots } from '../hooks/useRollingShots'
 import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
+import { travelLabel, travelMinutes } from '@shared/travel'
 import { communityOf, eventImages, photosFor } from '../data/community'
 import { useRsvp } from '../state/rsvp'
 import { Brand } from '../components/shared'
@@ -26,16 +27,8 @@ interface Row {
   e: TcEvent
   area: string
   km: number | null
-}
-
-/* "400 m", "2.1 km". Rounded hard on purpose — the position behind it can be
-   a few hundred metres out, so a decimal would be claiming precision nobody
-   has. */
-export function distanceLabel(km: number | null): string | null {
-  if (km === null || !Number.isFinite(km)) return null
-  if (km < 0.1) return 'under 100 m'
-  if (km < 1) return `${Math.round(km * 10) * 100} m`
-  return `${km < 10 ? km.toFixed(1) : Math.round(km)} km`
+  /** Travel time, which is what a card shows. km still does the sorting. */
+  mins: number | null
 }
 
 /* Where it is, without saying it twice.
@@ -63,11 +56,11 @@ export function placeLine(e: TcEvent, area: string): string {
 function EventFeedCard({
   e,
   area,
-  km,
+  mins,
 }: {
   e: TcEvent
   area: string
-  km: number | null
+  mins: number | null
 }) {
   const { stateFor } = useRsvp()
   const navigate = useNavigate()
@@ -157,9 +150,11 @@ function EventFeedCard({
         </span>
         <span className="event-where">
           {placeLine(e, area)}
-          {/* The list is ordered by this, so it has to be on screen —
-              otherwise nearest-first looks like no order at all. */}
-          {distanceLabel(km) ? ` · ${distanceLabel(km)} away` : ''}
+          {/* The list is ordered nearest-first, so how far it is has to be on
+              screen or that order looks arbitrary. Minutes rather than
+              kilometres: the distance behind them is straight-line, which in
+              this city understates the journey by about forty per cent. */}
+          {travelLabel(mins) ? ` · ${travelLabel(mins)} away` : ''}
         </span>
 
 
@@ -402,7 +397,8 @@ export default function Tonight() {
 
   const mockRow = (e: TcEvent): Row => {
     const v = venues[e.venueId]
-    return { e, area: v.areaName, km: distanceKm(v.lat, v.lng) }
+    const km = distanceKm(v.lat, v.lng)
+    return { e, area: v.areaName, km, mins: travelMinutes(km) }
   }
   // The same predicate the Map applies, so the two screens cannot disagree.
   const localRows = Object.values(events)
@@ -417,6 +413,10 @@ export default function Tonight() {
     e: h,
     area: h.venue.areaName ?? h.venue.area,
     km: h.venue.distanceKm,
+    // The server already works this out; the fallback keeps the two in step.
+    mins:
+      h.venue.travelMin ??
+      (h.venue.distanceKm === null ? null : travelMinutes(h.venue.distanceKm)),
   })
   const serverRows = result && !offline ? result.hydrated.map(toRow) : null
   const unsorted = serverRows ?? localRows
@@ -550,7 +550,7 @@ export default function Tonight() {
                 ) : null}
               </div>
             ) : (
-              filtered.map(({ e, area, km }, i) => (
+              filtered.map(({ e, area, mins }, i) => (
                 <Fragment key={e.id}>
                   {/* Third slot down, so it never outranks a real result. */}
                   {i === 3 && promoted ? <Promoted e={promoted} /> : null}
@@ -566,7 +566,7 @@ export default function Tonight() {
                     <ChevronIcon size={16} color="#15477C" />
                   </Link>
                   ) : (
-                    <EventFeedCard e={e} area={area} km={km} />
+                    <EventFeedCard e={e} area={area} mins={mins} />
                   )}
                 </Fragment>
               ))

@@ -1,4 +1,5 @@
 import { asc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { travelMinutes } from '@shared/travel'
 import { db, schema } from './client'
 import { areas } from '../data/areas'
 import type { Community, Person, TcEvent, Venue } from '../types'
@@ -41,7 +42,8 @@ function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number): nu
     Math.cos(rad(aLat)) * Math.cos(rad(bLat)) * Math.sin(dLng / 2) ** 2
   return 2 * R * Math.asin(Math.sqrt(h))
 }
-const autoMinutes = (km: number) => Math.max(5, Math.round(km * 3.4 + 4))
+// Shared with the client, which has to produce the same answer offline.
+const autoMinutes = travelMinutes
 const areaIdByName = new Map(areas.map((a) => [slug(a.name), a.id]))
 
 export async function loadWorld(
