@@ -39,6 +39,28 @@ export function distanceLabel(km: number | null): string | null {
   return `${km < 10 ? km.toFixed(1) : Math.round(km)} km`
 }
 
+/* Where it is, without saying it twice.
+ *
+ * The venue is the useful half — "Midweek 5-a-side" tells you nothing about
+ * where to go and "Kick Off Turf" does. But plenty of titles already name
+ * the place ("Catan Night at Dice District"), and some venues are named
+ * after the area they sit in ("Cubbon Park" in Cubbon Park), so repeating it
+ * is noise.
+ *
+ * Dropped when the title already carries it, and when the venue is the area.
+ * Matched on the first two words because the full name rarely appears
+ * verbatim — a title says "Dice District" where the venue is "Dice District
+ * Board Game Café". */
+export function placeLine(e: TcEvent, area: string): string {
+  const venue = venues[e.venueId]
+  // "The Taproom, Sarjapur" — the area follows on its own, so cut it here.
+  const short = venue?.name.split(',')[0].trim()
+  if (!short || short.toLowerCase() === area.toLowerCase()) return area
+  const head = short.split(/\s+/).slice(0, 2).join(' ').toLowerCase()
+  if (e.title.toLowerCase().includes(head)) return area
+  return `${short} · ${area}`
+}
+
 function EventFeedCard({
   e,
   area,
@@ -123,7 +145,7 @@ function EventFeedCard({
           {e.timeLabel}
         </span>
         <span className="event-where">
-          {area}
+          {placeLine(e, area)}
           {/* The list is ordered by this, so it has to be on screen —
               otherwise nearest-first looks like no order at all. */}
           {distanceLabel(km) ? ` · ${distanceLabel(km)} away` : ''}
