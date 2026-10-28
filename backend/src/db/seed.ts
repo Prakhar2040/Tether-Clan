@@ -59,6 +59,7 @@ const IMAGES = [
   'community-photowalk.jpg',
   'community-pickleball.jpg',
   'community-trivia.jpg',
+  'community-chess.jpg',
 ]
 
 const mediaId = (file: string) => file.replace(/\.[a-z]+$/, '')

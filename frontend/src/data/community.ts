@@ -39,6 +39,7 @@ import coverOpenMic from '../assets/community-openmic.jpg'
 import coverPhotoWalk from '../assets/community-photowalk.jpg'
 import coverPickleball from '../assets/community-pickleball.jpg'
 import coverTrivia from '../assets/community-trivia.jpg'
+import coverChess from '../assets/community-chess.jpg'
 import type { Community, CommunityPhoto } from '@shared/types'
 import {
   communityOf as rawCommunityOf,
@@ -81,6 +82,7 @@ const assets: Record<string, string> = {
   'community-photowalk.jpg': coverPhotoWalk,
   'community-pickleball.jpg': coverPickleball,
   'community-trivia.jpg': coverTrivia,
+  'community-chess.jpg': coverChess,
 }
 
 /** A filename from the data layer → the URL this bundle serves it at. */
