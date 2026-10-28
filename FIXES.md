@@ -351,8 +351,11 @@ raises is "who are these people". That is answered by the room — its chat, its
 photographs, its past nights — not by a page about one evening with a price on it.
 
 So the card now opens the community, exactly as Dice District opens from the Community
-tab, and the Buy button makes the one decision the night needs without going anywhere.
-The event page is still there, reached from the room's Tickets tab.
+tab. Buy goes to that room's Tickets tab with the plan open, rather than throwing a sheet
+over the feed — buying is a decision somebody makes with the room in front of them, and a
+popup hides the things that answer "should I": who runs it, what the last nights looked
+like, what the house rules are. The sheet still appears at the point of purchase, one tap
+later, where it is a confirmation rather than an interruption.
 
 ---
 

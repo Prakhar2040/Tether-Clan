@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { events, priceLabel, seatsLeft, venues } from '@shared/mock'
 import { communityOf, eventImages, photosFor } from '../data/community'
 import { useRsvp } from '../state/rsvp'
-import { useBuy } from '../components/BuySheet'
 import { Brand } from '../components/shared'
 import { WhoSheet } from '../components/WhoSheet'
 import { SearchSuggestions } from '../components/SearchSuggestions'
@@ -71,7 +70,6 @@ function EventFeedCard({
   km: number | null
 }) {
   const { stateFor } = useRsvp()
-  const openBuy = useBuy()
   const navigate = useNavigate()
   const state = stateFor(e.id)
   const left = seatsLeft(e)
@@ -177,7 +175,21 @@ function EventFeedCard({
               Full
             </button>
           ) : (
-            <button className="btn btn-cta" onClick={() => openBuy(e.id)}>
+            <button
+              className="btn btn-cta"
+              /* Into the room's own Tickets tab, on this plan — not a sheet
+                 over the feed. Buying is a decision somebody makes with the
+                 room in front of them, and a popup hides exactly the things
+                 that answer "should I": who runs it, what the last nights
+                 looked like, what the house rules are. */
+              onClick={() =>
+                navigate(
+                  host
+                    ? `/community/${host.id}?tab=tickets&plan=${e.id}`
+                    : `/event/${e.id}`,
+                )
+              }
+            >
               {e.price === 0 ? 'Get a seat · Free' : `Buy · ${priceLabel(e)}`}
             </button>
           )}
